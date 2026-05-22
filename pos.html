@@ -343,6 +343,7 @@
       <div class="nav-item" data-page="settings" id="nav-settings" onclick="showPage('settings')"><span class="nav-icon">⚙️</span> Settings</div>
     </nav>
     <div class="sidebar-footer">
+      <div id="sync-status" style="font-size:11px;font-weight:600;margin-bottom:10px;text-align:center;letter-spacing:0.3px;color:var(--gray-400);">☁ Not synced</div>
       <button class="btn-logout" onclick="doLogout()">↩ Sign Out</button>
     </div>
   </aside>
@@ -442,6 +443,7 @@
     <div class="page" id="inventory-page">
       <div class="page-header">
         <div class="page-header-left"><h2>📦 Inventory</h2><p>Manage stock and product catalogue</p></div>
+        <button class="btn btn-outline" onclick="syncFromSheets()" style="font-size:12px;gap:6px;">⟳ Sync from Sheets</button>
       </div>
       <div class="table-controls">
         <input type="text" id="inv-search" placeholder="Search products…" oninput="renderInventory()">
@@ -718,7 +720,106 @@
 
 <script>
 // ═══════════════════════════════════
-//  STORAGE KEYS
+//  GOOGLE SHEETS API (same as store)
+// ═══════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbzIyZ1-ov6XyOK5CCmwQ9bEoBYeQcxqYIEynk57uA_RQtKwI-FNHmbEy4yN0Nxt8Bt-4w/exec';
+
+// ── In-memory cache for Sheets data ──
+let _gsProducts = null;   // products from Google Sheets
+let _gsSite     = null;   // site settings from Google Sheets
+let _gsLoaded   = false;
+
+// ── JSONP helper (mirrors store.html) ──
+function jsonpFetch(action, params='') {
+  return new Promise((resolve, reject) => {
+    const cbName = '_poscb_' + action + '_' + Date.now();
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => { delete window[cbName]; script.remove(); reject(new Error('Timeout')); }, 10000);
+    window[cbName] = data => { clearTimeout(timeout); delete window[cbName]; script.remove(); data&&data.success?resolve(data.data):reject(new Error('API error: '+action)); };
+    script.src = `${API_URL}?action=${action}${params}&callback=${cbName}`;
+    script.onerror = () => { clearTimeout(timeout); delete window[cbName]; script.remove(); reject(new Error('Script load failed')); };
+    document.head.appendChild(script);
+  });
+}
+async function gsFetch(action, params='') {
+  try {
+    const res  = await fetch(`${API_URL}?action=${action}${params}`);
+    const data = await res.json();
+    if (data && data.success) return data.data;
+  } catch(_) {}
+  return jsonpFetch(action, params).catch(() => null);
+}
+async function gsPost(action, body) {
+  try {
+    const res  = await fetch(API_URL, { method:'POST', body: JSON.stringify({action, ...body}) });
+    const data = await res.json();
+    return data;
+  } catch(_) { return null; }
+}
+
+// ── Load products + site from Sheets ──
+async function loadSheetsData() {
+  showSyncStatus('syncing');
+  try {
+    const [products, site] = await Promise.all([
+      gsFetch('getProducts'),
+      gsFetch('getSiteSettings')
+    ]);
+    if (Array.isArray(products) && products.length) {
+      _gsProducts = products;
+      set(K.products, products); // keep localStorage as offline cache
+    }
+    if (site && typeof site === 'object' && !Array.isArray(site)) {
+      _gsSite = site;
+      set(K.site, site);
+    }
+    _gsLoaded = true;
+    showSyncStatus('ok');
+    return true;
+  } catch(e) {
+    console.warn('Sheets sync failed:', e);
+    showSyncStatus('error');
+    return false;
+  }
+}
+
+// ── Push products back to Sheets ──
+async function pushProductsToSheets(products) {
+  showSyncStatus('syncing');
+  try {
+    const result = await gsPost('saveProducts', { products });
+    if (result && result.success) { showSyncStatus('ok'); return true; }
+    throw new Error('Save failed');
+  } catch(e) {
+    console.warn('Push to Sheets failed:', e);
+    showSyncStatus('error');
+    return false;
+  }
+}
+
+// ── Push site settings to Sheets ──
+async function pushSiteToSheets(site) {
+  showSyncStatus('syncing');
+  try {
+    const result = await gsPost('saveSiteSettings', { settings: site });
+    if (result && result.success) { showSyncStatus('ok'); return true; }
+    throw new Error('Save failed');
+  } catch(e) {
+    showSyncStatus('error');
+    return false;
+  }
+}
+
+function showSyncStatus(state) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const map = { syncing:['⟳ Syncing…','#ca8a04'], ok:['☁ Synced','#16a34a'], error:['⚠ Offline','#dc2626'] };
+  const [txt, color] = map[state] || map.ok;
+  el.textContent = txt; el.style.color = color;
+}
+
+// ═══════════════════════════════════
+//  STORAGE KEYS (localStorage = offline cache)
 // ═══════════════════════════════════
 const K = { products:'jj_products', sales:'elume_sales', config:'elume_config', users:'elume_users', site:'jj_site' };
 const get = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
@@ -774,7 +875,6 @@ function doLogin() {
   document.getElementById('user-display').textContent = user.name;
   document.getElementById('role-display').textContent  = user.role.toUpperCase();
   document.getElementById('dash-name').textContent = user.name.split(' ')[0];
-  // access control
   if (user.role === 'cashier') {
     document.getElementById('nav-settings').style.display = 'none';
     document.getElementById('nav-website').style.display  = 'none';
@@ -783,6 +883,10 @@ function doLogin() {
     document.getElementById('nav-website').style.display = 'none';
   }
   showPage('dashboard');
+  // Pull latest products & site from Google Sheets after login
+  loadSheetsData().then(ok => {
+    if (ok) { refreshDashboard(); renderProducts(); }
+  });
 }
 document.addEventListener('keydown', e => {
   if (e.key==='Enter' && document.getElementById('login-screen').style.display!=='none') doLogin();
@@ -945,6 +1049,7 @@ function checkout(method){
   else showToast('Card payment recorded ✅','success');
   clearCart(); renderProducts(); refreshDashboard();
   showToast(txnNum+' completed!','success');
+  pushProductsToSheets(prods); // sync stock deductions to Sheets silently
 }
 
 // ═══════════════════════════════════
@@ -983,6 +1088,14 @@ function showInvoice(sale){
 // ═══════════════════════════════════
 //  INVENTORY
 // ═══════════════════════════════════
+function syncFromSheets() {
+  showToast('Syncing from Google Sheets…', '');
+  loadSheetsData().then(ok => {
+    if (ok) { renderInventory(); renderProducts(); refreshDashboard(); showToast('Synced from Sheets ✅', 'success'); }
+    else showToast('⚠ Sync failed — using cached data', 'error');
+  });
+}
+
 function renderInventory(){
   const q=document.getElementById('inv-search').value.toLowerCase();
   const c=document.getElementById('inv-cat').value, s=document.getElementById('inv-status').value;
@@ -1042,10 +1155,13 @@ function saveProduct(){
   if(orig){const i=prods.findIndex(p=>p.sku===orig);if(i>=0)prods[i]=np;else prods.push(np);}
   else{if(prods.find(p=>p.sku===sku)){showToast('SKU already exists!','error');return;}prods.push(np);}
   set(K.products,prods); closeModal('product-modal'); renderInventory(); renderProducts(); showToast('Product saved ✅','success');
+  pushProductsToSheets(prods).then(ok => { if(!ok) showToast('⚠ Saved locally — Sheets sync failed','error'); });
 }
 function delProduct(sku){
   if(!confirm('Delete this product?'))return;
-  set(K.products,get(K.products).filter(p=>p.sku!==sku)); renderInventory(); showToast('Deleted.','success');
+  const prods = get(K.products).filter(p=>p.sku!==sku);
+  set(K.products, prods); renderInventory(); showToast('Deleted.','success');
+  pushProductsToSheets(prods).then(ok => { if(!ok) showToast('⚠ Deleted locally — Sheets sync failed','error'); });
 }
 
 // ═══════════════════════════════════
@@ -1197,7 +1313,10 @@ function publishSiteData(){
   s.accentColor=document.getElementById('ws-accent-color-txt').value.trim()||'#EAB308';
   s.publishedAt=new Date().toISOString();
   set(K.site,s);
-  showToast('Website published! ✅ Open store.html to see changes.','success');
+  showToast('Publishing…','');
+  pushSiteToSheets(s).then(ok => {
+    showToast(ok ? 'Website published to Sheets! ✅ Store will update shortly.' : '⚠ Saved locally — Sheets sync failed. Check API connection.', ok?'success':'error');
+  });
 }
 
 // ═══════════════════════════════════
@@ -1284,6 +1403,7 @@ function doRestock() {
   closeModal('restock-modal');
   renderInventory(); renderProducts(); refreshDashboard();
   showToast('+' + qty + ' units added to ' + prods[idx].name + ' ✅', 'success');
+  pushProductsToSheets(prods).then(ok => { if(!ok) showToast('⚠ Restocked locally — Sheets sync failed','error'); });
 }
 
 // ═══════════════════════════════════
@@ -1337,7 +1457,7 @@ function showToast(msg,type=''){
 }
 
 // ═══════════════════════════════════
-//  INIT
+//  INIT — seed defaults, then load from Sheets
 // ═══════════════════════════════════
 seed();
 </script>
