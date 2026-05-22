@@ -749,12 +749,26 @@ async function gsFetch(action, params='') {
   } catch(_) {}
   return jsonpFetch(action, params).catch(() => null);
 }
+// All writes go via JSONP GET — Google Apps Script blocks POST from browsers (CORS).
+// We encode the payload as a base64 URL param so the Apps Script can decode it.
 async function gsPost(action, body) {
-  try {
-    const res  = await fetch(API_URL, { method:'POST', body: JSON.stringify({action, ...body}) });
-    const data = await res.json();
-    return data;
-  } catch(_) { return null; }
+  return new Promise((resolve) => {
+    const cbName = '_poscb_post_' + action + '_' + Date.now();
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      delete window[cbName]; script.remove();
+      resolve(null);
+    }, 12000);
+    window[cbName] = data => {
+      clearTimeout(timeout); delete window[cbName]; script.remove();
+      resolve(data);
+    };
+    // Encode body as base64 so it survives URL encoding intact
+    const payload = btoa(unescape(encodeURIComponent(JSON.stringify(body))));
+    script.src = `${API_URL}?action=${action}&payload=${encodeURIComponent(payload)}&callback=${cbName}`;
+    script.onerror = () => { clearTimeout(timeout); delete window[cbName]; script.remove(); resolve(null); };
+    document.head.appendChild(script);
+  });
 }
 
 // ── Load products + site from Sheets ──
@@ -1008,7 +1022,7 @@ function renderProducts() {
   if (!prods.length) { grid.innerHTML='<p style="grid-column:1/-1;font-size:13px;color:var(--gray-400);">No products found.</p>'; return; }
   grid.innerHTML = prods.map(p=>{
     const isOut=p.stock===0, isLow=p.stock>0&&p.stock<=p.minStock;
-    return `<div class="product-card ${isOut?'out-of-stock':''}" onclick="${isOut?'':'addToCart(\"'+p.sku+'\")'}">
+    return `<div class="product-card ${isOut?'out-of-stock':''}" data-sku="${p.sku}" ${isOut?'':'style="cursor:pointer;"'}>
       ${isLow?'<span class="stock-badge low">Low</span>':''}${isOut?'<span class="stock-badge out">Out</span>':''}
       <span class="pc-img">${p.img?`<img src="${p.img}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;" onerror="this.parentNode.textContent='${catEmoji[p.category]||'🛍️'}'">`:catEmoji[p.category]||'🛍️'}</span>
       <div class="pc-name">${p.name}</div>
@@ -1017,6 +1031,14 @@ function renderProducts() {
     </div>`;
   }).join('');
 }
+
+// ── Event delegation for product grid clicks ──
+document.addEventListener('click', function(e) {
+  const card = e.target.closest('.product-card[data-sku]');
+  if (!card) return;
+  if (card.classList.contains('out-of-stock')) return;
+  addToCart(card.dataset.sku);
+});
 
 function addToCart(sku) {
   const p = get(K.products).find(x=>x.sku===sku);
@@ -1098,7 +1120,13 @@ function checkout(method){
   else showToast('Card payment recorded ✅','success');
   clearCart(); renderProducts(); refreshDashboard();
   showToast(txnNum+' completed!','success');
-  pushProductsToSheets(prods); // sync stock deductions to Sheets silently
+  // Sync both stock deductions AND the sale record to Google Sheets
+  pushProductsToSheets(prods);
+  gsPost('saveSale', {
+    sale: { cashier: sale.cashier, total: sale.subtotal, discount: sale.discount,
+            grandTotal: sale.total, payment: method, notes: sale.customer },
+    items: sale.items.map(i => ({ sku: i.sku, name: i.name, brand: '', qty: i.qty, unitPrice: i.price }))
+  });
 }
 
 // ═══════════════════════════════════
