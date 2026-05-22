@@ -289,8 +289,12 @@
 
   @media print {
     body * { visibility: hidden; }
+    /* Invoice print */
     #invoice-print, #invoice-print * { visibility: visible; }
     #invoice-print { position: fixed; top: 0; left: 0; width: 100%; padding: 24px; }
+    /* Reports print — show the active report tab */
+    #print-report-area, #print-report-area * { visibility: visible; }
+    #print-report-area { position: fixed; top: 0; left: 0; width: 100%; padding: 24px; background: white; }
   }
 </style>
 </head>
@@ -514,18 +518,20 @@
         <div class="tab active" onclick="switchReport('sales-report',this)">Sales Report</div>
         <div class="tab" onclick="switchReport('inv-report',this)">Inventory Report</div>
       </div>
+      <div id="print-report-area">
       <div id="sales-report">
         <div class="mini-grid" id="report-mini"></div>
         <div class="card">
           <h4 style="font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:14px;">🏆 Top Selling Products</h4>
-          <table><thead><tr><th>Product</th><th>Category</th><th>Units Sold</th><th>Revenue</th></tr></thead><tbody id="report-top"></tbody></table>
+          <table><thead><tr><th>#</th><th>Product</th><th>Category</th><th>Units Sold</th><th>Revenue</th></tr></thead><tbody id="report-top"></tbody></table>
         </div>
       </div>
       <div id="inv-report" style="display:none;">
         <div class="card">
           <h4 style="font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:14px;">📦 Inventory Valuation</h4>
-          <table><thead><tr><th>SKU</th><th>Product</th><th>Category</th><th>Stock</th><th>Cost</th><th>Price</th><th>Stock Value</th><th>Status</th></tr></thead><tbody id="report-inv"></tbody></table>
+          <table><thead><tr><th>SKU</th><th>Product</th><th>Category</th><th>Stock</th><th>Sold (Period)</th><th>Cost</th><th>Price</th><th>Stock Value</th><th>Status</th></tr></thead><tbody id="report-inv"></tbody></table>
         </div>
+      </div>
       </div>
     </div>
 
@@ -1030,15 +1036,13 @@ function renderProducts() {
       <div class="pc-stock">${p.size} · ${p.stock} in stock</div>
     </div>`;
   }).join('');
+  // Attach click handler fresh each time grid is rendered
+  grid.onclick = function(e) {
+    const card = e.target.closest('.product-card[data-sku]');
+    if (!card || card.classList.contains('out-of-stock')) return;
+    addToCart(card.dataset.sku);
+  };
 }
-
-// ── Event delegation for product grid clicks ──
-document.addEventListener('click', function(e) {
-  const card = e.target.closest('.product-card[data-sku]');
-  if (!card) return;
-  if (card.classList.contains('out-of-stock')) return;
-  addToCart(card.dataset.sku);
-});
 
 function addToCart(sku) {
   const p = get(K.products).find(x=>x.sku===sku);
@@ -1277,45 +1281,86 @@ function switchReport(id,el){
   el.classList.add('active');
 }
 function renderReports(){
-  const now=new Date();
-  // Set defaults if empty
-  if(!document.getElementById('rpt-from').value){
-    const from=new Date(now.getFullYear(),now.getMonth(),1);
-    document.getElementById('rpt-from').value=from.toLocaleDateString('en-CA');
-    document.getElementById('rpt-to').value=now.toLocaleDateString('en-CA');
+  const now = new Date();
+  const fmt = n => 'Rs. ' + n.toLocaleString('en-PH', {minimumFractionDigits:0});
+
+  // Set date defaults only on first load (when both are empty)
+  const fromEl = document.getElementById('rpt-from');
+  const toEl   = document.getElementById('rpt-to');
+  if (!fromEl.value && !toEl.value) {
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    fromEl.value = monthStart.toLocaleDateString('en-CA');
+    toEl.value   = now.toLocaleDateString('en-CA');
   }
-  const from=document.getElementById('rpt-from').value, to=document.getElementById('rpt-to').value;
-  const allSales=get(K.sales), prods=get(K.products);
-  const sales=allSales.filter(s=>{const d=s.date.slice(0,10);return(!from||d>=from)&&(!to||d<=to);});
-  const fmt=n=>'Rs. '+n.toLocaleString('en-PH',{minimumFractionDigits:0});
-  const totalRev=sales.reduce((a,s)=>a+s.total,0);
-  const cashRev=sales.filter(s=>s.payment==='cash').reduce((a,s)=>a+s.total,0);
-  const cardRev=sales.filter(s=>s.payment==='card').reduce((a,s)=>a+s.total,0);
-  const avgOrder=sales.length?totalRev/sales.length:0;
-  const totalDisc=sales.reduce((a,s)=>a+(s.discount||0),0);
-  document.getElementById('report-mini').innerHTML=`
+  const from = fromEl.value;
+  const to   = toEl.value;
+
+  const allSales = get(K.sales);
+  const prods    = get(K.products);
+
+  // Filter sales by selected date range
+  const sales = allSales.filter(s => {
+    const d = s.date.slice(0, 10);
+    return (!from || d >= from) && (!to || d <= to);
+  });
+
+  // ── Sales summary cards ──
+  const totalRev  = sales.reduce((a,s) => a + s.total, 0);
+  const cashRev   = sales.filter(s => s.payment==='cash').reduce((a,s) => a + s.total, 0);
+  const cardRev   = sales.filter(s => s.payment==='card').reduce((a,s) => a + s.total, 0);
+  const avgOrder  = sales.length ? totalRev / sales.length : 0;
+  const totalDisc = sales.reduce((a,s) => a + (s.discount||0), 0);
+  document.getElementById('report-mini').innerHTML = `
     <div class="mini-stat"><div class="label">Revenue (Range)</div><div class="value">${fmt(totalRev)}</div></div>
     <div class="mini-stat"><div class="label">Total Orders</div><div class="value">${sales.length}</div></div>
     <div class="mini-stat"><div class="label">Avg Order Value</div><div class="value">${fmt(avgOrder)}</div></div>
     <div class="mini-stat"><div class="label">Cash Sales</div><div class="value">${fmt(cashRev)}</div></div>
     <div class="mini-stat"><div class="label">Card Sales</div><div class="value">${fmt(cardRev)}</div></div>
     <div class="mini-stat"><div class="label">Total Discounts</div><div class="value">${fmt(totalDisc)}</div></div>`;
-  const ps={};
-  sales.forEach(s=>s.items.forEach(it=>{if(!ps[it.name])ps[it.name]={units:0,rev:0,cat:''};ps[it.name].units+=it.qty;ps[it.name].rev+=it.qty*it.price;}));
-  prods.forEach(p=>{if(ps[p.name])ps[p.name].cat=p.category;});
-  const top=Object.entries(ps).sort((a,b)=>b[1].rev-a[1].rev).slice(0,15);
-  document.getElementById('report-top').innerHTML=top.length
-    ?top.map(([n,d],i)=>`<tr><td style="color:var(--gray-400);font-weight:700;">#${i+1}</td><td>${n}</td><td>${d.cat||'—'}</td><td>${d.units}</td><td style="font-weight:700;color:var(--gold-600);">Rs. ${d.rev.toLocaleString('en-PH',{minimumFractionDigits:2})}</td></tr>`).join('')
-    :'<tr><td colspan="5" style="text-align:center;color:var(--gray-400);padding:16px;">No sales in this period.</td></tr>';
-  // update table header for rank column
-  const topTh = document.querySelector('#report-top')?.closest('table')?.querySelector('thead tr');
-  if(topTh && topTh.children.length===4) topTh.innerHTML='<th>#</th><th>Product</th><th>Category</th><th>Units Sold</th><th>Revenue</th>';
-  document.getElementById('report-inv').innerHTML=prods.map(p=>{
-    const sc=p.stock===0?'out-stock':p.stock<=p.minStock?'low-stock':'in-stock';
-    const sl=p.stock===0?'Out of Stock':p.stock<=p.minStock?'Low Stock':'In Stock';
-    const stockVal=(p.stock*p.cost).toLocaleString();
-    return`<tr><td><code>${p.sku}</code></td><td>${p.name}</td><td>${p.category}</td><td><strong>${p.stock}</strong></td><td>Rs. ${Number(p.cost).toLocaleString()}</td><td>Rs. ${Number(p.price).toLocaleString()}</td><td style="font-weight:700;">Rs. ${stockVal}</td><td><span class="badge ${sc}">${sl}</span></td></tr>`;
-  }).join('');
+
+  // ── Top selling products (within date range) ──
+  const ps = {};
+  sales.forEach(s => s.items.forEach(it => {
+    if (!ps[it.name]) ps[it.name] = {units:0, rev:0, cat:''};
+    ps[it.name].units += it.qty;
+    ps[it.name].rev   += it.qty * it.price;
+  }));
+  prods.forEach(p => { if (ps[p.name]) ps[p.name].cat = p.category; });
+  const top = Object.entries(ps).sort((a,b) => b[1].rev - a[1].rev).slice(0, 15);
+  document.getElementById('report-top').innerHTML = top.length
+    ? top.map(([n,d],i) => `<tr>
+        <td style="color:var(--gray-400);font-weight:700;">#${i+1}</td>
+        <td>${n}</td><td>${d.cat||'—'}</td><td>${d.units}</td>
+        <td style="font-weight:700;color:var(--gold-600);">Rs. ${d.rev.toLocaleString('en-PH',{minimumFractionDigits:2})}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;color:var(--gray-400);padding:16px;">No sales in this period.</td></tr>';
+
+  // ── Inventory report — also filtered: show products sold in range + all products ──
+  // Filter prods sold in this range (for highlighting), but always show all inventory
+  const soldSkus = new Set();
+  sales.forEach(s => s.items.forEach(it => soldSkus.add(it.sku)));
+
+  document.getElementById('report-inv').innerHTML = prods.length
+    ? prods.map(p => {
+        const sc = p.stock===0 ? 'out-stock' : p.stock<=p.minStock ? 'low-stock' : 'in-stock';
+        const sl = p.stock===0 ? 'Out of Stock' : p.stock<=p.minStock ? 'Low Stock' : 'In Stock';
+        const stockVal = (p.stock * p.cost).toLocaleString();
+        // Units sold in the filtered date range for this product
+        let unitsSold = 0;
+        sales.forEach(s => s.items.forEach(it => { if(it.sku===p.sku) unitsSold += it.qty; }));
+        return `<tr>
+          <td><code>${p.sku}</code></td>
+          <td><strong>${p.name}</strong></td>
+          <td>${p.category}</td>
+          <td><strong>${p.stock}</strong></td>
+          <td>${unitsSold > 0 ? '<span style="color:var(--green);font-weight:700;">'+unitsSold+' sold</span>' : '—'}</td>
+          <td>Rs. ${Number(p.cost).toLocaleString()}</td>
+          <td>Rs. ${Number(p.price).toLocaleString()}</td>
+          <td style="font-weight:700;">Rs. ${stockVal}</td>
+          <td><span class="badge ${sc}">${sl}</span></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="9" style="text-align:center;color:var(--gray-400);padding:16px;">No products found.</td></tr>';
 }
 
 // ═══════════════════════════════════
