@@ -750,23 +750,29 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 // ═══════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════
-window.addEventListener('load', async () => {
-  // Show loader while fetching data
-  try {
-    await loadAllData();
-  } catch(e) {
-    console.warn('Data fetch failed, using defaults:', e);
-    _cachedProducts = getDefaultProducts();
-    _cachedSite = getDefaultSite();
-  }
+function hideLoader() {
+  const loader = document.getElementById('page-loader');
+  if (!loader) return;
+  loader.style.opacity = '0';
+  setTimeout(() => loader.style.display = 'none', 500);
+}
+
+window.addEventListener('load', () => {
+  // ── Step 1: Show page immediately with defaults (never stuck on loader)
+  _cachedProducts = getDefaultProducts();
+  _cachedSite     = getDefaultSite();
   applySiteData();
   loadProducts();
-  // Hide loader
-  setTimeout(() => {
-    const loader = document.getElementById('page-loader');
-    loader.style.opacity = '0';
-    setTimeout(() => loader.style.display = 'none', 500);
-  }, 300);
+  hideLoader();
+
+  // ── Step 2: Silently fetch live data from Google Sheets in background
+  //    If it succeeds, refresh the page content without any flash
+  loadAllData().then(() => {
+    applySiteData();
+    loadProducts();
+  }).catch(err => {
+    console.warn('Google Sheets sync failed, showing defaults:', err);
+  });
 });
 </script>
 </body>
