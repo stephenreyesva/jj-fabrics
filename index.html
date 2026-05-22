@@ -10,7 +10,7 @@
     --accent:     #EAB308;
     --accent-dark:#CA8A04;
     --accent-lt:  #FEF9C3;
-    --hero-bg:    #FFFDF0;
+    --hero-section-bg: #1C1C14;
     --white:      #FFFFFF;
     --gray-50:    #FAFAF7;
     --gray-100:   #F5F5EF;
@@ -29,69 +29,75 @@
 
   /* ── LOADER ── */
   #page-loader {
-    position: fixed; inset: 0; background: var(--hero-bg); z-index: 9999;
+    position: fixed; inset: 0; background: #FFFDF0; z-index: 9999;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     transition: opacity 0.5s ease;
   }
-  #page-loader .loader-logo { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--gray-900); animation: pulse 1.4s ease-in-out infinite; }
+  #page-loader .loader-logo { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: #1C1C14; animation: pulse 1.4s ease-in-out infinite; }
   #page-loader .loader-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; margin-top: 16px; animation: bounce 0.8s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
   @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
 
-  /* ── NAVBAR ── */
+  /* ── NAVBAR — always light, never inherits hero dark bg ── */
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     padding: 0 5%; height: 72px; display: flex; align-items: center; justify-content: space-between;
-    background: rgba(255,253,240,0.85); backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(234,179,8,0.15);
+    background: rgba(255, 253, 240, 0.95); backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(234,179,8,0.18);
     transition: box-shadow 0.3s;
   }
-  nav.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  nav.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,0.10); }
   .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
   .nav-brand .nb-icon { font-size: 26px; }
-  .nav-brand h1 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--gray-900); letter-spacing: 0.3px; }
+  .nav-brand h1 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #1C1C14; letter-spacing: 0.3px; }
   .nav-links { display: flex; gap: 32px; list-style: none; }
-  .nav-links a { text-decoration: none; font-size: 13px; font-weight: 600; color: var(--gray-600); letter-spacing: 0.3px; transition: color 0.2s; }
+  .nav-links a { text-decoration: none; font-size: 13px; font-weight: 600; color: #5C5C50; letter-spacing: 0.3px; transition: color 0.2s; }
   .nav-links a:hover { color: var(--accent-dark); }
-  .nav-cta { background: var(--accent); color: var(--gray-900); padding: 9px 20px; border-radius: 50px; font-size: 13px; font-weight: 700; text-decoration: none; transition: all 0.2s; white-space: nowrap; }
+  .nav-cta { background: var(--accent); color: #1C1C14; padding: 9px 20px; border-radius: 50px; font-size: 13px; font-weight: 700; text-decoration: none; transition: all 0.2s; white-space: nowrap; }
   .nav-cta:hover { background: var(--accent-dark); color: white; transform: translateY(-1px); }
   .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
-  .hamburger span { width: 22px; height: 2px; background: var(--gray-900); border-radius: 2px; transition: all 0.3s; }
-  .mobile-menu { display: none; position: fixed; inset: 72px 0 0; background: rgba(255,253,240,0.97); backdrop-filter: blur(16px); z-index: 99; flex-direction: column; align-items: center; justify-content: center; gap: 32px; }
+  .hamburger span { width: 22px; height: 2px; background: #1C1C14; border-radius: 2px; transition: all 0.3s; }
+  .mobile-menu { display: none; position: fixed; inset: 72px 0 0; background: rgba(255,253,240,0.98); backdrop-filter: blur(20px); z-index: 99; flex-direction: column; align-items: center; justify-content: center; gap: 32px; }
   .mobile-menu.open { display: flex; }
-  .mobile-menu a { font-size: 22px; font-family: 'Playfair Display', serif; color: var(--gray-900); text-decoration: none; font-weight: 600; }
+  .mobile-menu a { font-size: 22px; font-family: 'Playfair Display', serif; color: #1C1C14; text-decoration: none; font-weight: 600; }
 
-  /* ── HERO ── */
+  /* ── HERO — isolated bg, never bleeds into other sections ── */
   .hero {
-    min-height: 100vh; background: var(--hero-bg);
+    min-height: 100vh;
+    background: var(--hero-section-bg, #1C1C14);
     display: flex; align-items: center; padding: 100px 5% 60px;
     position: relative; overflow: hidden;
   }
   .hero::before {
     content:''; position:absolute; top:-80px; right:-80px; width:480px; height:480px;
-    background: radial-gradient(circle, rgba(234,179,8,0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(234,179,8,0.18) 0%, transparent 70%);
     border-radius: 50%;
   }
   .hero::after {
     content:''; position:absolute; bottom:-60px; left:10%; width:320px; height:320px;
-    background: radial-gradient(circle, rgba(234,179,8,0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(234,179,8,0.10) 0%, transparent 70%);
     border-radius: 50%;
   }
+  /* Hero text is always white when on dark bg */
+  .hero h2 { font-family: 'Playfair Display', serif; font-size: clamp(36px,5vw,62px); font-weight: 700; line-height: 1.12; color: #FFFFFF; margin-bottom: 20px; }
+  .hero h2 em { font-style: italic; color: var(--accent); }
+  .hero p { font-size: 16px; color: rgba(255,255,255,0.7); line-height: 1.7; max-width: 420px; margin-bottom: 36px; }
+  .hero-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(234,179,8,0.18); color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 6px 14px; border-radius: 50px; margin-bottom: 20px; border: 1px solid rgba(234,179,8,0.3); }
+  .hero-pill::before { content:'✦'; font-size: 10px; }
+  .hero-stats { display: flex; gap: 32px; margin-top: 40px; padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.12); }
+  .hero-stat .num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #FFFFFF; }
+  .hero-stat .lbl { font-size: 12px; color: rgba(255,255,255,0.45); font-weight: 500; }
+
   .hero-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; width: 100%; position: relative; z-index: 1; }
   .hero-text { animation: fadeUp 0.9s ease both; }
-  .hero-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-lt); color: var(--accent-dark); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 6px 14px; border-radius: 50px; margin-bottom: 20px; }
-  .hero-pill::before { content:'✦'; font-size: 10px; }
-  .hero h2 { font-family: 'Playfair Display', serif; font-size: clamp(36px,5vw,62px); font-weight: 700; line-height: 1.12; color: var(--gray-900); margin-bottom: 20px; }
-  .hero h2 em { font-style: italic; color: var(--accent-dark); }
-  .hero p { font-size: 16px; color: var(--gray-600); line-height: 1.7; max-width: 420px; margin-bottom: 36px; }
   .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
-  .btn-hero-primary { background: var(--accent); color: var(--gray-900); padding: 14px 28px; border-radius: 50px; font-weight: 700; font-size: 14px; text-decoration: none; transition: all 0.2s; box-shadow: 0 4px 20px rgba(234,179,8,0.35); }
-  .btn-hero-primary:hover { background: var(--accent-dark); color: white; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(234,179,8,0.4); }
-  .btn-hero-ghost { border: 2px solid var(--gray-200); color: var(--gray-900); padding: 14px 28px; border-radius: 50px; font-weight: 700; font-size: 14px; text-decoration: none; transition: all 0.2s; }
-  .btn-hero-ghost:hover { border-color: var(--accent); color: var(--accent-dark); }
+  .btn-hero-primary { background: var(--accent); color: #1C1C14; padding: 14px 28px; border-radius: 50px; font-weight: 700; font-size: 14px; text-decoration: none; transition: all 0.2s; box-shadow: 0 4px 20px rgba(234,179,8,0.4); }
+  .btn-hero-primary:hover { background: var(--accent-dark); color: white; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(234,179,8,0.5); }
+  .btn-hero-ghost { border: 2px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.85); padding: 14px 28px; border-radius: 50px; font-weight: 700; font-size: 14px; text-decoration: none; transition: all 0.2s; }
+  .btn-hero-ghost:hover { border-color: var(--accent); color: var(--accent); }
   .hero-visual { animation: fadeUp 0.9s 0.2s ease both; display: flex; justify-content: center; align-items: center; }
   .hero-card-stack { position: relative; width: 320px; height: 380px; }
-  .hero-card { position: absolute; background: white; border-radius: 24px; box-shadow: var(--shadow-lg); overflow: hidden; }
+  .hero-card { position: absolute; background: white; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); overflow: hidden; }
   .hero-card.c1 { width: 220px; height: 280px; top: 0; left: 20px; transform: rotate(-4deg); z-index: 1; }
   .hero-card.c2 { width: 200px; height: 260px; top: 80px; right: 0; transform: rotate(3deg); z-index: 2; }
   .hero-card.c3 { width: 180px; height: 220px; bottom: 0; left: 0; transform: rotate(1deg); z-index: 3; }
@@ -99,9 +105,6 @@
   .hc-img { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 16px 16px 8px 8px; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 52px; }
   .hc-name { font-size: 12px; font-weight: 700; color: var(--gray-900); margin-top: 8px; }
   .hc-price { font-size: 13px; color: var(--accent-dark); font-weight: 700; }
-  .hero-stats { display: flex; gap: 32px; margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--gray-200); }
-  .hero-stat .num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--gray-900); }
-  .hero-stat .lbl { font-size: 12px; color: var(--gray-400); font-weight: 500; }
 
   /* ── SECTION COMMONS ── */
   section { padding: 80px 5%; }
@@ -151,7 +154,7 @@
   .no-products p { font-size: 15px; }
 
   /* ── ABOUT / STORY ── */
-  .about-section { background: var(--hero-bg); }
+  .about-section { background: var(--gray-50); }
   .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
   .about-visual { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .about-img-block { border-radius: var(--radius); background: var(--gray-100); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 56px; }
@@ -292,7 +295,7 @@
 </div>
 
 <!-- HERO -->
-<section class="hero" id="home" style="background: var(--hero-bg);">
+<section class="hero" id="home">
   <div class="hero-inner">
     <div class="hero-text">
       <div class="hero-pill">House of Brands — Attock City</div>
@@ -380,9 +383,9 @@
         </div>
       </div>
       <div class="about-visual">
-        <div class="about-img-block tall" style="background:linear-gradient(135deg,#1a1a0e,#2d2d14);font-size:80px;">👘</div>
-        <div class="about-img-block" style="background:linear-gradient(135deg,#2d2d14,#1a1a0e);font-size:48px;">👔</div>
-        <div class="about-img-block" style="background:linear-gradient(135deg,#1a1a0e,#3d3800);font-size:48px;">🧵</div>
+        <div class="about-img-block tall" style="background:linear-gradient(135deg,var(--accent-dark),var(--gray-900));font-size:80px;">👘</div>
+        <div class="about-img-block" style="background:linear-gradient(135deg,var(--gray-900),var(--gray-600));font-size:48px;">👔</div>
+        <div class="about-img-block" style="background:linear-gradient(135deg,var(--gray-100),var(--gray-200));font-size:48px;">🧵</div>
       </div>
     </div>
   </div>
@@ -470,73 +473,119 @@
 
 <script>
 // ═══════════════════════════════════════
-//  DATA — reads from same localStorage
-//  that boutique-pos.html writes to
+//  GOOGLE SHEETS API CONFIG
 // ═══════════════════════════════════════
-const K = { products:'jj_products', site:'jj_site' };
-const getData = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
-const getSite = () => { try { return JSON.parse(localStorage.getItem(K.site)) || {}; } catch { return {}; } };
+const API_URL = 'https://script.google.com/macros/s/AKfycbzIyZ1-ov6XyOK5CCmwQ9bEoBYeQcxqYIEynk57uA_RQtKwI-FNHmbEy4yN0Nxt8Bt-4w/exec';
+
+// In-memory store (replaces localStorage)
+let _cachedProducts = null;
+let _cachedSite = null;
+let _dataLoaded = false;
 
 const catEmoji = {"Ladies Suits":'👘',"Gents Wear":'👔','Accessories':'💎','Kids':'👦'};
 let allProducts = [], activeFilter = '';
 
 // ═══════════════════════════════════════
-//  SEED PUBLIC DEFAULTS (if no POS data)
+//  JSONP HELPER (fixes CORS with Apps Script)
 // ═══════════════════════════════════════
-function seedPublicDefaults() {
-  if (!localStorage.getItem(K.products)) {
-    const defaults = [
-      {sku:'LAD-001',name:'SAYA Embroidered 3-Piece',category:"Ladies Suits",size:'S/M/L/XL',price:4500,cost:2800,stock:15,minStock:3,desc:'Luxury embroidered lawn suit by SAYA',img:''},
-      {sku:'LAD-002',name:'Bonanza Satrangi Summer Lawn',category:"Ladies Suits",size:'S/M/L/XL/XXL',price:3200,cost:1800,stock:20,minStock:5,desc:'Vibrant summer lawn collection',img:''},
-      {sku:'LAD-003',name:'Sapphire Printed Suit',category:"Ladies Suits",size:'S/M/L/XL',price:5500,cost:3200,stock:10,minStock:3,desc:'Elegant Sapphire printed suit',img:''},
-      {sku:'LAD-004',name:'Maria.B Luxury Pret',category:"Ladies Suits",size:'S/M/L',price:8500,cost:5000,stock:6,minStock:2,desc:'Maria.B premium luxury pret collection',img:''},
-      {sku:'GEN-001',name:'J. Junaid Jamshed Kurta',category:"Gents Wear",size:'S/M/L/XL/XXL',price:3800,cost:2200,stock:18,minStock:5,desc:'Classic embroidered kurta by J.',img:''},
-      {sku:'GEN-002',name:'Bin Saeed Premium Shalwar Kameez',category:"Gents Wear",size:'S/M/L/XL',price:4200,cost:2500,stock:12,minStock:4,desc:'Fine cotton shalwar kameez',img:''},
-      {sku:'GEN-003',name:'Gents Waistcoat (Wasket)',category:"Gents Wear",size:'S/M/L/XL',price:2500,cost:1400,stock:15,minStock:4,desc:'Formal embroidered waistcoat',img:''},
-      {sku:'KID-001',name:'Kids Eid Suit',category:"Kids",size:'2Y–14Y',price:1800,cost:900,stock:20,minStock:5,desc:'Festive embroidered kids suit',img:''},
-      {sku:'ACC-001',name:'Dupatta — Embroidered',category:"Accessories",size:'One Size',price:1200,cost:600,stock:25,minStock:5,desc:'Heavy embroidered dupatta',img:''},
-      {sku:'ACC-002',name:'VIRSA Pret Kurta',category:"Ladies Suits",size:'S/M/L/XL',price:2800,cost:1600,stock:14,minStock:4,desc:'Ready-to-wear kurta by VIRSA Pret',img:''},
-    ];
-    localStorage.setItem(K.products, JSON.stringify(defaults));
-  }
-  if (!localStorage.getItem(K.site)) {
-    localStorage.setItem(K.site, JSON.stringify({
-      name:'JJ Fabrics', tagline:'Gents & Ladies Suiting Place',
-      about:'We believe every outfit tells a story. At JJ Fabrics, we curate timeless pieces that celebrate your unique style — blending elegance, comfort, and affordability.',
-      address:'Sher Bahadur Plaza, K-Block, Near Dr. Ibadat Hospital, Main Bazar, Attock City', phone:'923145777344', email:'jjfabrics@gmail.com',
-      facebook:'https://facebook.com', instagram:'https://instagram.com',
-      map:'https://maps.google.com/maps?q=Sher+Bahadur+Plaza+K+Block+Attock+City+Pakistan&output=embed', emoji:'🧵', heroColor:'#0a0a0a', accentColor:'#D4A017',
-      featured:[], publishedAt: null
-    }));
-  }
+function jsonpFetch(action) {
+  return new Promise((resolve, reject) => {
+    const cbName = '_jjcb_' + action + '_' + Date.now();
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      delete window[cbName];
+      script.remove();
+      reject(new Error('Timeout: ' + action));
+    }, 8000);
+    window[cbName] = function(data) {
+      clearTimeout(timeout);
+      delete window[cbName];
+      script.remove();
+      if (data && data.success) resolve(data.data);
+      else reject(new Error('API error: ' + action));
+    };
+    script.src = `${API_URL}?action=${action}&callback=${cbName}`;
+    script.onerror = () => { clearTimeout(timeout); delete window[cbName]; script.remove(); reject(new Error('Script load failed')); };
+    document.head.appendChild(script);
+  });
 }
+
+async function loadAllData() {
+  // Try regular fetch first (works if CORS headers are set on the Apps Script)
+  // If that fails, fall back to JSONP
+  async function fetchAction(action) {
+    try {
+      const res = await fetch(`${API_URL}?action=${action}`);
+      const data = await res.json();
+      if (data && data.success) return data.data;
+    } catch(_) {}
+    // JSONP fallback
+    return jsonpFetch(action).catch(() => null);
+  }
+  const [products, site] = await Promise.all([
+    fetchAction('getProducts'),
+    fetchAction('getSiteSettings')
+  ]);
+  _cachedProducts = Array.isArray(products) ? products : getDefaultProducts();
+  _cachedSite     = (site && typeof site === 'object' && !Array.isArray(site))
+                    ? site : getDefaultSite();
+  _dataLoaded = true;
+}
+
+const getData = () => _cachedProducts || getDefaultProducts();
+const getSite = () => _cachedSite     || getDefaultSite();
+
+// ═══════════════════════════════════════
+//  FALLBACK DEFAULTS (shown while loading
+//  or if Google Sheets is unreachable)
+// ═══════════════════════════════════════
+function getDefaultProducts() {
+  return [
+    {sku:'LAD-001',name:'SAYA Embroidered 3-Piece',category:"Ladies Suits",size:'S/M/L/XL',price:4500,cost:2800,stock:15,minStock:3,desc:'Luxury embroidered lawn suit by SAYA',img:''},
+    {sku:'LAD-002',name:'Bonanza Satrangi Summer Lawn',category:"Ladies Suits",size:'S/M/L/XL/XXL',price:3200,cost:1800,stock:20,minStock:5,desc:'Vibrant summer lawn collection',img:''},
+    {sku:'LAD-003',name:'Sapphire Printed Suit',category:"Ladies Suits",size:'S/M/L/XL',price:5500,cost:3200,stock:10,minStock:3,desc:'Elegant Sapphire printed suit',img:''},
+    {sku:'LAD-004',name:'Maria.B Luxury Pret',category:"Ladies Suits",size:'S/M/L',price:8500,cost:5000,stock:6,minStock:2,desc:'Maria.B premium luxury pret collection',img:''},
+    {sku:'GEN-001',name:'J. Junaid Jamshed Kurta',category:"Gents Wear",size:'S/M/L/XL/XXL',price:3800,cost:2200,stock:18,minStock:5,desc:'Classic embroidered kurta by J.',img:''},
+    {sku:'GEN-002',name:'Bin Saeed Premium Shalwar Kameez',category:"Gents Wear",size:'S/M/L/XL',price:4200,cost:2500,stock:12,minStock:4,desc:'Fine cotton shalwar kameez',img:''},
+    {sku:'GEN-003',name:'Gents Waistcoat (Wasket)',category:"Gents Wear",size:'S/M/L/XL',price:2500,cost:1400,stock:15,minStock:4,desc:'Formal embroidered waistcoat',img:''},
+    {sku:'KID-001',name:'Kids Eid Suit',category:"Kids",size:'2Y–14Y',price:1800,cost:900,stock:20,minStock:5,desc:'Festive embroidered kids suit',img:''},
+    {sku:'ACC-001',name:'Dupatta — Embroidered',category:"Accessories",size:'One Size',price:1200,cost:600,stock:25,minStock:5,desc:'Heavy embroidered dupatta',img:''},
+    {sku:'ACC-002',name:'VIRSA Pret Kurta',category:"Ladies Suits",size:'S/M/L/XL',price:2800,cost:1600,stock:14,minStock:4,desc:'Ready-to-wear kurta by VIRSA Pret',img:''},
+  ];
+}
+
+function getDefaultSite() {
+  return {
+    name:'JJ Fabrics', tagline:'Gents & Ladies Suiting Place',
+    about:'We believe every outfit tells a story. At JJ Fabrics, we curate timeless pieces that celebrate your unique style — blending elegance, comfort, and affordability.',
+    address:'Sher Bahadur Plaza, K-Block, Near Dr. Ibadat Hospital, Main Bazar, Attock City',
+    phone:'923145777344', email:'jjfabrics@gmail.com',
+    facebook:'https://facebook.com', instagram:'https://instagram.com',
+    map:'https://maps.google.com/maps?q=Sher+Bahadur+Plaza+K+Block+Attock+City+Pakistan&output=embed',
+    emoji:'🧵', heroColor:'#0a0a0a', accentColor:'#D4A017',
+    featured:[], publishedAt: null
+  };
+}
+
+// Legacy stub — no longer needed but keeps any stray calls safe
+function seedPublicDefaults() {}
 
 // ═══════════════════════════════════════
 //  APPLY SITE DATA
 // ═══════════════════════════════════════
 function applySiteData() {
   const s = getSite();
-  // Colors
+  // Accent colors
   if (s.accentColor) {
     document.documentElement.style.setProperty('--accent', s.accentColor);
     document.documentElement.style.setProperty('--accent-dark', shadeColor(s.accentColor, -20));
     document.documentElement.style.setProperty('--accent-lt', shadeColor(s.accentColor, 80));
   }
-  if (s.heroColor) {
-    document.documentElement.style.setProperty('--hero-bg', s.heroColor);
-    // If dark hero, make text white
-    const isDark = s.heroColor && parseInt(s.heroColor.replace('#','').substring(0,2),16) < 100;
-    if (isDark) {
-      const heroEl = document.querySelector('.hero');
-      if (heroEl) { heroEl.style.color = 'white'; }
-      const heroP = document.querySelector('.hero p');
-      if (heroP) heroP.style.color = 'rgba(255,255,255,0.7)';
-      document.querySelectorAll('.hero-stat .lbl').forEach(el => el.style.color = 'rgba(255,255,255,0.5)');
-      document.querySelectorAll('.hero-stat .num').forEach(el => el.style.color = 'white');
-      const heroH = document.querySelector('.hero h2');
-      if (heroH) heroH.style.color = 'white';
-    }
-  }
+  // Hero color — ONLY applied to the hero section, never bleeds to nav or other sections
+  const heroColor = s.heroColor || '#1C1C14';
+  document.documentElement.style.setProperty('--hero-section-bg', heroColor);
+  // Hero is always assumed dark — keep text white regardless
+  // (the CSS already hardcodes white text for .hero)
   // Text
   const name = s.name || 'JJ Fabrics';
   const emoji = s.emoji || '👗';
@@ -595,7 +644,7 @@ function shadeColor(hex, amt) {
 // ═══════════════════════════════════════
 function loadProducts() {
   const s       = getSite();
-  const prods   = getData(K.products);
+  const prods   = getData();
   const featured = s.featured && s.featured.length ? s.featured : null;
   // Show only featured (if set) and in-stock
   allProducts = prods.filter(p => p.stock > 0 && (!featured || featured.includes(p.sku)));
@@ -701,8 +750,15 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 // ═══════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════
-window.addEventListener('load', () => {
-  seedPublicDefaults();
+window.addEventListener('load', async () => {
+  // Show loader while fetching data
+  try {
+    await loadAllData();
+  } catch(e) {
+    console.warn('Data fetch failed, using defaults:', e);
+    _cachedProducts = getDefaultProducts();
+    _cachedSite = getDefaultSite();
+  }
   applySiteData();
   loadProducts();
   // Hide loader
@@ -710,15 +766,7 @@ window.addEventListener('load', () => {
     const loader = document.getElementById('page-loader');
     loader.style.opacity = '0';
     setTimeout(() => loader.style.display = 'none', 500);
-  }, 800);
-});
-
-// Auto-refresh if POS pushes new data (same tab via storage event)
-window.addEventListener('storage', e => {
-  if (e.key === K.site || e.key === K.products) {
-    applySiteData();
-    loadProducts();
-  }
+  }, 300);
 });
 </script>
 </body>
