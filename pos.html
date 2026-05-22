@@ -314,7 +314,7 @@
     </div>
     <button class="btn-primary" onclick="doLogin()">Sign In →</button>
     <p class="login-error" id="login-error">Invalid username or password.</p>
-    <p class="login-hint">Demo: admin/admin123 · cashier/cash123 · owner/own456 · dev/dev789</p>
+    <p class="login-hint">nora · hamza · cashier1 — passwords loaded from Google Sheets</p>
   </div>
 </div>
 
@@ -761,17 +761,31 @@ async function gsPost(action, body) {
 async function loadSheetsData() {
   showSyncStatus('syncing');
   try {
-    const [products, site] = await Promise.all([
+    const [products, site, users] = await Promise.all([
       gsFetch('getProducts'),
-      gsFetch('getSiteSettings')
+      gsFetch('getSiteSettings'),
+      gsFetch('getUsers')
     ]);
     if (Array.isArray(products) && products.length) {
       _gsProducts = products;
-      set(K.products, products); // keep localStorage as offline cache
+      set(K.products, products);
     }
     if (site && typeof site === 'object' && !Array.isArray(site)) {
       _gsSite = site;
       set(K.site, site);
+    }
+    // Map Sheets Users tab columns: Username, Password, Role, FullName, Active
+    if (Array.isArray(users) && users.length) {
+      const mapped = users
+        .filter(u => String(u.Active).toUpperCase() === 'TRUE')
+        .map(u => ({
+          username: u.Username || u.username || '',
+          password: u.Password || u.password || '',
+          name:     u.FullName  || u.name     || u.Username || '',
+          role:     (u.Role     || u.role     || 'cashier').toLowerCase()
+        }))
+        .filter(u => u.username);
+      if (mapped.length) set(K.users, mapped);
     }
     _gsLoaded = true;
     showSyncStatus('ok');
@@ -831,11 +845,11 @@ const getSite = () => { try { return JSON.parse(localStorage.getItem(K.site)) ||
 //  SEED
 // ═══════════════════════════════════
 function seed() {
+  // Seed with real JJ Fabrics users — these get refreshed from Google Sheets on login
   if (!localStorage.getItem(K.users)) set(K.users, [
-    { username:'admin',   password:'admin123', name:'Admin User',    role:'admin' },
-    { username:'cashier', password:'cash123',  name:'Maria Santos',  role:'cashier' },
-    { username:'owner',   password:'own456',   name:'Store Owner',   role:'owner' },
-    { username:'dev',     password:'dev789',   name:'Developer',     role:'developer' },
+    { username:'nora',     password:'nora',    name:'Noraliah',         role:'owner' },
+    { username:'hamza',    password:'hamza',   name:'M. Hamza Javed',   role:'admin' },
+    { username:'cashier1', password:'cashier', name:'Front Desk Staff', role:'cashier' },
   ]);
   if (!localStorage.getItem(K.config)) set(K.config, { name:'JJ Fabrics', address:'Sher Bahadur Plaza, K-Block, Near Dr. Ibadat Hospital, Main Bazar, Attock City', phone:'+63 912 345 6789', vat:0 });
   if (!localStorage.getItem(K.site)) set(K.site, {
