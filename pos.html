@@ -292,6 +292,146 @@
   .scrollable-table { overflow-x: auto; }
   code { font-size: 11px; background: var(--gray-100); padding: 2px 7px; border-radius: 4px; font-family: monospace; }
 
+  /* ─── MOBILE TOP BAR ─── */
+  .mobile-topbar {
+    display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    background: var(--gray-900); height: 54px; align-items: center;
+    padding: 0 16px; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .mobile-topbar .brand-name { font-family: 'Playfair Display', serif; font-size: 18px; color: white; font-weight: 700; flex: 1; }
+  .mobile-topbar .mob-user { font-size: 11px; color: var(--gold-400); font-weight: 600; }
+  .hamburger { background: none; border: none; cursor: pointer; color: white; font-size: 22px; padding: 4px; }
+
+  /* ─── MOBILE BOTTOM NAV ─── */
+  .mobile-bottom-nav {
+    display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+    background: var(--gray-900); border-top: 1px solid rgba(255,255,255,0.1);
+    height: 60px;
+  }
+  .mobile-bottom-nav .mob-nav-inner {
+    display: flex; height: 100%; align-items: stretch;
+  }
+  .mob-nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; cursor: pointer; color: rgba(255,255,255,0.45); font-size: 10px; font-weight: 600;
+    transition: all 0.15s; letter-spacing: 0.3px; border: none; background: none; padding: 0;
+  }
+  .mob-nav-item .mn-icon { font-size: 18px; line-height: 1; }
+  .mob-nav-item.active { color: var(--gold-400); }
+  .mob-nav-item:hover { color: white; }
+
+  /* ─── SIDEBAR OVERLAY (mobile drawer) ─── */
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 299; backdrop-filter: blur(2px);
+  }
+  .sidebar-overlay.open { display: block; }
+
+  /* ─── POS CART TOGGLE (mobile) ─── */
+  .cart-toggle-bar {
+    display: none; background: var(--gold-500); color: white;
+    padding: 12px 18px; border-radius: var(--radius); font-weight: 700;
+    font-size: 14px; cursor: pointer; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; box-shadow: var(--shadow);
+  }
+  .cart-toggle-bar .ct-badge { background: white; color: var(--gold-700); font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+
+  /* ═══ TABLET (≤1024px) ═══ */
+  @media (max-width: 1024px) {
+    .sidebar { width: 200px; }
+    .main-content { margin-left: 200px; padding: 22px 20px; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .pos-layout { grid-template-columns: 1fr 320px; }
+    .stat-card .stat-value { font-size: 24px; }
+  }
+
+  /* ═══ MOBILE (≤768px) ═══ */
+  @media (max-width: 768px) {
+    /* Show mobile chrome, hide desktop sidebar */
+    .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; z-index: 300; width: 260px; top: 0; }
+    .sidebar.mob-open { transform: translateX(0); }
+    .main-content { margin-left: 0; padding: 70px 14px 80px; min-height: 100vh; }
+    .mobile-topbar { display: flex; }
+    .mobile-bottom-nav { display: block; }
+
+    /* Page header stacks */
+    .page-header { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+    .page-header > div:last-child { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; }
+    .page-header-left h2 { font-size: 22px; }
+
+    /* Stat cards: 2-col grid */
+    .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+    .stat-card { padding: 14px 12px; }
+    .stat-card .stat-value { font-size: 22px; }
+    .stat-card .stat-icon { font-size: 18px; margin-bottom: 6px; }
+
+    /* Dashboard lower grid */
+    #dashboard-page > div[style*="grid-template-columns:1fr 1fr"] { display: flex; flex-direction: column; gap: 12px; }
+
+    /* POS — full width, cart slides up */
+    #pos-page.active { padding-bottom: 0; }
+    .pos-layout { display: flex; flex-direction: column; height: auto; gap: 0; }
+    .pos-left { height: auto; overflow: visible; }
+    .product-grid { height: 52vw; min-height: 220px; max-height: 340px; overflow-y: auto; }
+    .cart-toggle-bar { display: flex; }
+    .pos-right {
+      position: fixed; bottom: 60px; left: 0; right: 0; z-index: 150;
+      background: white; border-radius: 20px 20px 0 0;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.18);
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    .pos-right.cart-open { max-height: 88vh; overflow: visible; }
+    .cart-panel { border-radius: 20px 20px 0 0; border: none; height: auto; max-height: 80vh; }
+    .cart-items { max-height: 34vh; }
+    .cart-header { border-radius: 20px 20px 0 0; }
+
+    /* Tables — horizontal scroll */
+    .scrollable-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { min-width: 560px; }
+
+    /* Table controls wrap */
+    .table-controls { flex-wrap: wrap; gap: 8px; }
+    .table-controls input, .table-controls select { font-size: 13px; padding: 8px 10px; }
+    .spacer { display: none; }
+    .table-controls .btn { width: 100%; justify-content: center; }
+
+    /* Modals full-width */
+    .modal { max-width: 100% !important; width: 100%; border-radius: 20px 20px 0 0; margin-top: auto; }
+    .modal-overlay.active { align-items: flex-end; }
+
+    /* Login card */
+    .login-card { width: 100%; max-width: 360px; padding: 36px 24px; }
+
+    /* Reports */
+    .mini-grid { grid-template-columns: repeat(2, 1fr); }
+    .tab-bar { width: 100%; }
+    .tab { flex: 1; text-align: center; }
+
+    /* Site editor */
+    .site-editor { grid-template-columns: 1fr; }
+    .site-editor-full { grid-column: 1; }
+
+    /* Settings grid */
+    #settings-page > div[style*="grid-template-columns:1fr 1fr"] { display: flex; flex-direction: column; }
+
+    /* Form rows stack */
+    .form-row { grid-template-columns: 1fr; gap: 10px; }
+
+    /* Buttons */
+    .btn { font-size: 12px; padding: 8px 12px; }
+    .btn-pay { padding: 13px 8px; font-size: 13px; }
+    .pay-btns { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ═══ SMALL PHONES (≤400px) ═══ */
+  @media (max-width: 400px) {
+    .stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-card .stat-value { font-size: 19px; }
+    .product-grid { grid-template-columns: repeat(2, 1fr); }
+    .main-content { padding: 64px 10px 76px; }
+  }
+
   @media print {
     body * { visibility: hidden; }
     /* Invoice print */
@@ -329,6 +469,17 @@
 
 <!-- ═══════ MAIN APP ═══════ -->
 <div id="app">
+
+  <!-- Mobile top bar -->
+  <div class="mobile-topbar">
+    <button class="hamburger" onclick="toggleMobileSidebar()">☰</button>
+    <span class="brand-name">JJ Fabrics</span>
+    <span class="mob-user" id="mob-user-label">—</span>
+  </div>
+
+  <!-- Sidebar overlay (tap to close) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
   <aside class="sidebar">
     <div class="sidebar-brand">
       <h2 style="display:flex;align-items:center;gap:8px;"><img src="image/logo.jpeg" style="width:32px;height:32px;object-fit:contain;border-radius:50%;background:#000;" /> JJ Fabrics</h2>
@@ -397,6 +548,11 @@
     <div class="page" id="pos-page">
       <div class="page-header" style="margin-bottom:14px;">
         <div class="page-header-left"><h2>🛍️ Cashier Counter</h2><p>Click a product to add it to the cart</p></div>
+      </div>
+      <!-- Mobile cart toggle -->
+      <div class="cart-toggle-bar" id="cart-toggle-bar" onclick="toggleMobileCart()">
+        <span>🛒 View Cart</span>
+        <span class="ct-badge" id="cart-toggle-count">0 items</span>
       </div>
       <div class="pos-layout">
         <div class="pos-left">
@@ -626,6 +782,28 @@
     </div>
 
   </main>
+
+  <!-- Mobile bottom nav -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <div class="mob-nav-inner">
+      <button class="mob-nav-item active" data-page="dashboard" onclick="showPage('dashboard');setMobNav(this)">
+        <span class="mn-icon">🏠</span>Home
+      </button>
+      <button class="mob-nav-item" data-page="pos" onclick="showPage('pos');setMobNav(this)">
+        <span class="mn-icon">🛍️</span>POS
+      </button>
+      <button class="mob-nav-item" data-page="inventory" onclick="showPage('inventory');setMobNav(this)">
+        <span class="mn-icon">📦</span>Stock
+      </button>
+      <button class="mob-nav-item" data-page="sales" onclick="showPage('sales');setMobNav(this)">
+        <span class="mn-icon">🧾</span>Sales
+      </button>
+      <button class="mob-nav-item" data-page="reports" onclick="showPage('reports');setMobNav(this)">
+        <span class="mn-icon">📊</span>Reports
+      </button>
+    </div>
+  </nav>
+
 </div>
 
 <!-- ═══════ MODALS ═══════ -->
@@ -1782,6 +1960,69 @@ function showToast(msg,type=''){
 // ═══════════════════════════════════
 //  INIT — seed defaults, then load from Sheets
 // ═══════════════════════════════════
+// ═══════════════════════════════════
+//  MOBILE RESPONSIVE HELPERS
+// ═══════════════════════════════════
+let _cartOpen = false;
+
+function toggleMobileSidebar() {
+  const sb = document.querySelector('.sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  const isOpen = sb.classList.contains('mob-open');
+  if (isOpen) { closeMobileSidebar(); }
+  else { sb.classList.add('mob-open'); ov.classList.add('open'); }
+}
+function closeMobileSidebar() {
+  document.querySelector('.sidebar').classList.remove('mob-open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+function toggleMobileCart() {
+  _cartOpen = !_cartOpen;
+  const panel = document.querySelector('.pos-right');
+  const bar   = document.getElementById('cart-toggle-bar');
+  if (panel) panel.classList.toggle('cart-open', _cartOpen);
+  if (bar)   bar.querySelector('span').textContent = _cartOpen ? '✕ Close Cart' : '🛒 View Cart';
+}
+
+function setMobNav(el) {
+  document.querySelectorAll('.mob-nav-item').forEach(x => x.classList.remove('active'));
+  if (el) el.classList.add('active');
+  closeMobileSidebar();
+  // Close cart when leaving POS
+  if (el && el.dataset.page !== 'pos') {
+    _cartOpen = false;
+    const panel = document.querySelector('.pos-right');
+    if (panel) panel.classList.remove('cart-open');
+  }
+}
+
+// Sync cart toggle count badge
+const _origRenderCart = renderCart;
+renderCart = function() {
+  _origRenderCart();
+  const total = cart.reduce((a,c) => a + c.qty, 0);
+  const ctBadge = document.getElementById('cart-toggle-count');
+  if (ctBadge) ctBadge.textContent = total + (total === 1 ? ' item' : ' items');
+  // Auto-open cart on mobile when first item added
+  if (total > 0 && !_cartOpen && window.innerWidth <= 768) {
+    _cartOpen = true;
+    const panel = document.querySelector('.pos-right');
+    const bar   = document.getElementById('cart-toggle-bar');
+    if (panel) panel.classList.add('cart-open');
+    if (bar) bar.querySelector('span').textContent = '✕ Close Cart';
+  }
+};
+
+// Keep desktop sidebar nav and mobile bottom nav in sync
+const _origShowPage = showPage;
+showPage = function(p) {
+  _origShowPage(p);
+  document.querySelectorAll('.mob-nav-item').forEach(x => {
+    x.classList.toggle('active', x.dataset.page === p);
+  });
+};
+
 seed();
 
 // ── One-time migration: clear any demo data left from earlier trial sessions ──
