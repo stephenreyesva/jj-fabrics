@@ -488,6 +488,7 @@
     <div class="page" id="sales-page">
       <div class="page-header">
         <div class="page-header-left"><h2>🧾 Sales History</h2><p>All transaction records</p></div>
+        <button class="btn btn-danger btn-sm" id="clear-all-sales-btn" style="display:none;" onclick="clearAllSales()">🗑 Clear All Records</button>
       </div>
       <div class="table-controls">
         <input type="date" id="sales-from">
@@ -1288,24 +1289,40 @@ function setDefaultDates(){
   document.getElementById('sales-from').value=from.toLocaleDateString('en-CA');
   document.getElementById('sales-to').value=now.toLocaleDateString('en-CA');
 }
+// Sale lookup map — keyed by txnNum, rebuilt on every renderSales call
+let _salesMap = {};
+
+function viewSaleByTxn(txnNum) {
+  const s = _salesMap[txnNum];
+  if (s) showInvoice(s);
+}
+
 function renderSales(){
   const isOwner = CU && CU.role === 'owner';
-  // Show/hide the owner column header
   document.getElementById('sales-void-th').style.display = isOwner ? '' : 'none';
+  const clearBtn = document.getElementById('clear-all-sales-btn');
+  if (clearBtn) clearBtn.style.display = isOwner ? '' : 'none';
 
   const from=document.getElementById('sales-from').value, to=document.getElementById('sales-to').value, pay=document.getElementById('sales-pay').value;
-  const sales=get(K.sales).filter(s=>{const d=s.date.slice(0,10);return(!from||d>=from)&&(!to||d<=to)&&(!pay||s.payment===pay);}).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const allSales = get(K.sales);
+
+  // Rebuild lookup map with ALL sales (unfiltered) so View always works
+  _salesMap = {};
+  allSales.forEach(s => { _salesMap[s.txnNum] = s; });
+
+  const sales = allSales.filter(s=>{const d=s.date.slice(0,10);return(!from||d>=from)&&(!to||d<=to)&&(!pay||s.payment===pay);}).sort((a,b)=>new Date(b.date)-new Date(a.date));
   const fmt=n=>'Rs. '+n.toLocaleString('en-PH',{minimumFractionDigits:2});
   document.getElementById('sales-tbody').innerHTML=sales.length
     ?sales.map(s=>{
       const voided = !!s.voided;
       const payBadge = voided ? 'voided' : s.payment;
       const payLabel = voided ? 'VOIDED' : s.payment.toUpperCase();
-      const voidBtn = isOwner
-        ? (voided
-            ? `<button class="btn btn-outline btn-sm" onclick="unvoidSale('${s.txnNum}')" title="Restore this record">↩ Restore</button>`
-            : `<button class="btn-void" onclick="voidSale('${s.txnNum}')">⊘ Void</button>`)
-        : '';
+      const ownerBtns = isOwner ? `
+        ${voided
+          ? `<button class="btn btn-outline btn-sm" onclick="unvoidSale('${s.txnNum}')" title="Restore this record">↩ Restore</button>`
+          : `<button class="btn-void" onclick="voidSale('${s.txnNum}')">⊘ Void</button>`}
+        <button class="btn btn-danger btn-sm" onclick="deleteSale('${s.txnNum}')" title="Permanently delete record" style="margin-left:4px;">🗑</button>
+      ` : '';
       return `<tr class="${voided?'void-row':''}">
         <td><code>${s.txnNum}</code>${voided?'<br><span style="font-size:10px;color:var(--red);font-weight:700;">VOID</span>':''}</td>
         <td>${new Date(s.date).toLocaleString('en-PH')}</td>
@@ -1314,8 +1331,8 @@ function renderSales(){
         <td><span class="badge ${payBadge}">${payLabel}</span></td>
         <td style="color:var(--green);">${s.discount>0?'-'+fmt(s.discount):'—'}</td>
         <td style="font-weight:700;color:${voided?'var(--red)':'var(--gold-600)'};">${voided?'<s>'+fmt(s.total)+'</s>':fmt(s.total)}</td>
-        <td><button class="btn btn-outline btn-sm" onclick="showInvoice(${JSON.stringify(s).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,"&#39;")})">View</button></td>
-        ${isOwner?`<td>${voidBtn}</td>`:''}
+        <td><button class="btn btn-outline btn-sm" onclick="viewSaleByTxn('${s.txnNum}')">👁 View</button></td>
+        ${isOwner?`<td style="white-space:nowrap;">${ownerBtns}</td>`:''}
       </tr>`;
     }).join('')
     :'<tr><td colspan="9" style="text-align:center;color:var(--gray-400);padding:24px;">No sales in this date range.</td></tr>';
@@ -1383,6 +1400,49 @@ function doVoid(txnNum, isRestore) {
   set(K.sales, sales);
   closeModal('void-modal');
   renderSales();
+}
+
+function deleteSale(txnNum) {
+  if (CU.role !== 'owner') { showToast('Only the owner can delete records!', 'error'); return; }
+  const sales = get(K.sales);
+  const sale = sales.find(s => s.txnNum === txnNum);
+  if (!sale) return;
+  const fmt = n => 'Rs. ' + Number(n).toLocaleString('en-PH', {minimumFractionDigits:2});
+
+  // Build confirm modal content
+  document.getElementById('void-txn-num').textContent = txnNum;
+  document.getElementById('void-customer').textContent = sale.customer;
+  document.getElementById('void-total').textContent = fmt(sale.total);
+  document.getElementById('void-action-label').textContent = 'DELETE';
+  document.getElementById('void-confirm-btn').textContent = '🗑 Yes, Permanently Delete';
+  document.getElementById('void-confirm-btn').className = 'btn btn-danger';
+  document.getElementById('void-confirm-btn').onclick = () => doDeleteSale(txnNum);
+  document.getElementById('void-restore-note').style.display = 'none';
+  document.getElementById('void-warn-note').innerHTML = `
+    🗑️ <strong>Permanently deleting this record will:</strong><br>
+    • Remove it completely from Sales History<br>
+    • It will <strong>NOT</strong> be recoverable<br>
+    • Stock will <strong>NOT</strong> be automatically restored<br>
+    <span style="color:var(--gray-700);font-weight:600;">Tip: Use ⊘ Void instead if you may need to undo this.</span>`;
+  document.getElementById('void-warn-note').style.display = 'block';
+  openModal('void-modal');
+}
+function doDeleteSale(txnNum) {
+  if (CU.role !== 'owner') { showToast('Access denied', 'error'); return; }
+  const sales = get(K.sales).filter(s => s.txnNum !== txnNum);
+  set(K.sales, sales);
+  closeModal('void-modal');
+  renderSales(); refreshDashboard();
+  showToast(txnNum + ' permanently deleted 🗑', 'success');
+}
+
+// Clear ALL sales — owner only (for trial/testing)
+function clearAllSales() {
+  if (CU.role !== 'owner') { showToast('Only the owner can do this!', 'error'); return; }
+  if (!confirm('⚠️ DELETE ALL SALES RECORDS?\n\nThis cannot be undone. Stock levels will NOT be restored.\n\nType OK to confirm.')) return;
+  set(K.sales, []);
+  renderSales(); refreshDashboard();
+  showToast('All sales records cleared 🗑', 'success');
 }
 
 // ═══════════════════════════════════
