@@ -177,6 +177,8 @@
     transition: all 0.25s; border: 2px solid transparent;
   }
   .social-btn .sb-icon { font-size: 20px; }
+  .social-btn.tiktok   { background: #010101; color: white; border-color: rgba(255,255,255,0.15); }
+  .social-btn.tiktok:hover   { background: #69C9D0; color: #010101; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(105,201,208,0.4); }
   .social-btn.facebook  { background: #1877F2; color: white; }
   .social-btn.facebook:hover  { background: #0d65d9; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(24,119,242,0.4); }
   .social-btn.instagram { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); color: white; }
@@ -208,8 +210,16 @@
   .footer-brand h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: white; }
   .footer-brand p { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 3px; }
   .footer-socials { display: flex; gap: 12px; }
-  .fs-btn { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: center; font-size: 18px; text-decoration: none; transition: background 0.2s; }
-  .fs-btn:hover { background: rgba(255,255,255,0.15); }
+  .fs-btn { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: all 0.2s; }
+  .fs-btn svg { width: 20px; height: 20px; }
+  .fs-facebook { background: #1877F2; color: white; }
+  .fs-facebook:hover { background: #0d65d9; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(24,119,242,0.5); }
+  .fs-instagram { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); color: white; }
+  .fs-instagram:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(220,39,67,0.5); }
+  .fs-tiktok { background: #010101; color: white; border: 1px solid rgba(255,255,255,0.12); }
+  .fs-tiktok:hover { background: #69C9D0; color: #010101; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(105,201,208,0.5); }
+  .fs-whatsapp { background: #25D366; color: white; }
+  .fs-whatsapp:hover { background: #1fbc5a; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(37,211,102,0.5); }
   .footer-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 10px; }
   .footer-bottom p { font-size: 12px; color: rgba(255,255,255,0.25); }
 
@@ -233,6 +243,35 @@
   @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
   .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
   .reveal.visible { opacity: 1; transform: none; }
+
+  /* ── QR CODE SECTION ── */
+  .qr-section { background: var(--gray-50); }
+  .qr-inner { display: grid; grid-template-columns: 1fr auto; gap: 60px; align-items: center; }
+  .qr-card {
+    background: white; border-radius: 20px; padding: 24px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.10); border: 1.5px solid var(--gray-200);
+    text-align: center;
+  }
+  .qr-logo-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; }
+  .qr-steps { display: flex; flex-direction: column; gap: 12px; margin: 24px 0; }
+  .qr-step { display: flex; align-items: center; gap: 14px; }
+  .qs-num { width: 28px; height: 28px; background: var(--accent); color: #1c1c14; border-radius: 50%; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .qs-txt { font-size: 14px; color: var(--gray-600); font-weight: 500; }
+  .qr-url { display: inline-block; margin-top: 4px; font-size: 12px; color: var(--accent-dark); font-weight: 700; word-break: break-all; text-decoration: none; border-bottom: 1px dashed var(--accent); padding-bottom: 2px; }
+  .qr-url:hover { color: var(--accent); }
+  .qr-visual { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .qr-download-btn {
+    background: var(--gray-900); color: white; border: none; padding: 11px 22px;
+    border-radius: 50px; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .qr-download-btn:hover { background: var(--accent); color: #1c1c14; transform: translateY(-2px); }
+  @media (max-width: 768px) {
+    .qr-inner { grid-template-columns: 1fr; text-align: center; }
+    .qr-steps { align-items: flex-start; }
+    .qr-visual { margin-top: 8px; }
+  }
 
   /* ── BRAND TILES ── */
   .brand-tile {
@@ -406,35 +445,24 @@
 </section>
 
 
-<!-- HOUSE OF BRANDS -->
-<section class="brands-section reveal" id="brands" style="background: var(--gray-900); padding: 60px 5%;">
-  <div class="container" style="max-width:900px;margin:0 auto;text-align:center;">
-    <div class="section-label" style="color: var(--accent);">Authorized Retailer</div>
-    <div class="section-title" style="color:white; margin-bottom: 36px;">House of <em>Brands</em></div>
-    <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:14px;">
-      <div class="brand-tile">SAYA</div>
-      <div class="brand-tile">BONANZA<br><span class="brand-sub">SATRANGI</span></div>
-      <div class="brand-tile">SAPPHIRE</div>
-      <div class="brand-tile">MARIA.B.</div>
-      <div class="brand-tile" style="font-size:20px;font-style:italic;">J.</div>
-      <div class="brand-tile">BIN SAEED</div>
-      <div class="brand-tile">VIRSA<br><span class="brand-sub">PRET</span></div>
-      <div class="brand-tile">GRACE</div>
-      <div class="brand-tile">IDEAS</div>
-      <div class="brand-tile">NL</div>
-    </div>
-  </div>
-</section>
-
 <!-- SOCIAL STRIP -->
 <div class="social-strip reveal" id="social">
   <div class="social-strip-inner">
     <h3>Find Us Online &amp; In Person</h3>
     <p>Follow us on social media or message us directly — we'd love to hear from you!</p>
     <div class="social-links">
-      <a class="social-btn facebook" id="link-fb" href="#" target="_blank"><span class="sb-icon">📘</span> Facebook</a>
-      <a class="social-btn instagram" id="link-ig" href="#" target="_blank"><span class="sb-icon">📸</span> Instagram</a>
-      <a class="social-btn whatsapp" id="link-wa" href="#" target="_blank"><span class="sb-icon">💬</span> WhatsApp</a>
+      <a class="social-btn facebook" id="link-fb" href="#" target="_blank">
+        <span class="sb-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></span> Facebook
+      </a>
+      <a class="social-btn instagram" id="link-ig" href="#" target="_blank">
+        <span class="sb-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></span> Instagram
+      </a>
+      <a class="social-btn tiktok" id="link-tt" href="#" target="_blank">
+        <span class="sb-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg></span> TikTok
+      </a>
+      <a class="social-btn whatsapp" id="link-wa" href="#" target="_blank">
+        <span class="sb-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span> WhatsApp
+      </a>
       <a class="social-btn location" href="#contact"><span class="sb-icon">📍</span> Find Our Store</a>
     </div>
   </div>
@@ -473,9 +501,18 @@
         <p id="footer-tagline">Gents & Ladies Suiting Place</p>
       </div>
       <div class="footer-socials">
-        <a class="fs-btn" id="fs-fb" href="#" target="_blank" title="Facebook">📘</a>
-        <a class="fs-btn" id="fs-ig" href="#" target="_blank" title="Instagram">📸</a>
-        <a class="fs-btn" id="fs-wa" href="#" target="_blank" title="WhatsApp">💬</a>
+        <a class="fs-btn fs-facebook" id="fs-fb" href="#" target="_blank" title="Facebook">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </a>
+        <a class="fs-btn fs-instagram" id="fs-ig" href="#" target="_blank" title="Instagram">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a class="fs-btn fs-tiktok" id="fs-tt" href="#" target="_blank" title="TikTok">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>
+        </a>
+        <a class="fs-btn fs-whatsapp" id="fs-wa" href="#" target="_blank" title="WhatsApp">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </a>
       </div>
     </div>
     <div class="footer-bottom">
@@ -631,6 +668,10 @@ function applySiteData() {
   const igLink = s.instagram || '#';
   document.getElementById('link-ig').href   = igLink;
   document.getElementById('fs-ig').href     = igLink;
+  // TikTok
+  const ttLink = s.tiktok || '#';
+  document.getElementById('link-tt').href   = ttLink;
+  document.getElementById('fs-tt').href     = ttLink;
   // Contact
   document.getElementById('contact-address').innerHTML = (s.address || '—') + '<br><a href="https://maps.app.goo.gl/FpTpXPsSP61XQrkf9" target="_blank" style="color:var(--accent-dark);font-size:12px;font-weight:700;">📍 Open in Google Maps →</a>';
   const phoneDisplay = s.phone ? s.phone.replace(/(\d{2})(\d{3})(\d{3})(\d{4})/, '+$1 $2 $3 $4') : '—';
@@ -736,6 +777,18 @@ function renderProducts() {
       </div>
     </div>`;
   }).join('');
+}
+
+// ═══════════════════════════════════════
+//  QR CODE DOWNLOAD
+// ═══════════════════════════════════════
+function downloadQR() {
+  const url = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=20&color=1c1c14&bgcolor=ffffff&data=https://stephenreyesva.github.io/jj-fabrics/';
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'jj-fabrics-qr.png';
+  a.target = '_blank';
+  a.click();
 }
 
 // ═══════════════════════════════════════
