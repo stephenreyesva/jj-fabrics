@@ -312,9 +312,9 @@
       <label>Password</label>
       <input type="password" id="login-pass" placeholder="Enter password">
     </div>
-    <button class="btn-primary" onclick="doLogin()">Sign In →</button>
+    <button class="btn-primary" id="login-btn" onclick="doLogin()">Sign In →</button>
     <p class="login-error" id="login-error">Invalid username or password.</p>
-    <p class="login-hint">nora · hamza · cashier1 — passwords loaded from Google Sheets</p>
+    <p class="login-hint">Use your Google Sheets username &amp; password</p>
   </div>
 </div>
 
@@ -878,11 +878,45 @@ function seed() {
 // ═══════════════════════════════════
 let CU = null; // current user
 
-function doLogin() {
-  const u = document.getElementById('login-user').value.trim();
-  const p = document.getElementById('login-pass').value;
+async function doLogin() {
+  const u   = document.getElementById('login-user').value.trim();
+  const p   = document.getElementById('login-pass').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-error');
+
+  if (!u || !p) { err.textContent = 'Enter username and password.'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  btn.textContent = 'Signing in…'; btn.disabled = true;
+
+  // ── Step 1: Try to fetch latest users from Google Sheets ──
+  // This ensures Sheets passwords always take priority over the local cache.
+  try {
+    const data = await gsFetch('getUsers');
+    if (Array.isArray(data) && data.length) {
+      const mapped = data
+        .filter(u => String(u.Active).toUpperCase() === 'TRUE')
+        .map(u => ({
+          username: u.Username || '', password: u.Password || '',
+          name: u.FullName || u.Username || '', role: (u.Role || 'cashier').toLowerCase()
+        }))
+        .filter(u => u.username);
+      if (mapped.length) set(K.users, mapped); // update local cache with live Sheets data
+    }
+  } catch(_) {
+    // Network unavailable — fall through and use cached users
+  }
+
+  // ── Step 2: Validate against (now-fresh) local cache ──
   const user = get(K.users).find(x => x.username === u && x.password === p);
-  if (!user) { document.getElementById('login-error').style.display = 'block'; return; }
+  btn.textContent = 'Sign In →'; btn.disabled = false;
+
+  if (!user) {
+    err.textContent = 'Invalid username or password.';
+    err.style.display = 'block';
+    return;
+  }
+
+  // ── Step 3: Open the app ──
   CU = user;
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
@@ -897,7 +931,8 @@ function doLogin() {
     document.getElementById('nav-website').style.display = 'none';
   }
   showPage('dashboard');
-  // Pull latest products & site from Google Sheets after login
+
+  // ── Step 4: Load products + site settings in background ──
   loadSheetsData().then(ok => {
     if (ok) { refreshDashboard(); renderProducts(); }
   });
