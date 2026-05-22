@@ -212,6 +212,11 @@
   .badge.cash      { background: var(--gold-100); color: var(--gold-700); }
   .badge.card      { background: #eff6ff; color: #1d4ed8; }
   .badge.role      { background: var(--gray-100); color: var(--gray-700); }
+  .badge.voided    { background: #fef2f2; color: #b91c1c; text-decoration: line-through; }
+  .void-row td     { opacity: 0.45; }
+  .btn-void { background: #fef2f2; color: var(--red); border: 1.5px solid #fecaca; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 700; padding: 6px 12px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.3px; }
+  .btn-void:hover { background: var(--red); color: white; }
+  .card-info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: #1d4ed8; margin-top: 6px; line-height: 1.6; }
 
   /* ─── BUTTONS ─── */
   .btn { padding: 9px 16px; border: none; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
@@ -428,8 +433,9 @@
               </div>
               <div class="pay-btns">
                 <button class="btn-pay cash" onclick="checkout('cash')">💵 Cash + Invoice</button>
-                <button class="btn-pay card" onclick="checkout('card')">💳 Card</button>
+                <button class="btn-pay card" onclick="checkout('card')" onmouseenter="document.getElementById('card-info-box').style.display='block'" onmouseleave="document.getElementById('card-info-box').style.display='none'">💳 Card</button>
               </div>
+              <div class="card-info-box" id="card-info-box" style="display:none;">💳 <strong>Card Payment</strong> — Process on your physical card machine, then click <em>Card</em> to record the sale. Stock will be deducted automatically.</div>
               <div id="cash-calc" style="display:none;margin-bottom:8px;">
                 <div style="display:flex;gap:8px;align-items:center;">
                   <input class="input-field" type="number" id="cash-tendered" placeholder="Cash received" min="0" oninput="calcChange()" style="margin-bottom:0;flex:1;">
@@ -497,7 +503,7 @@
       </div>
       <div class="card scrollable-table">
         <table>
-          <thead><tr><th>Txn #</th><th>Date & Time</th><th>Customer</th><th>Items</th><th>Payment</th><th>Discount</th><th>Total</th><th>Action</th></tr></thead>
+          <thead><tr><th>Txn #</th><th>Date & Time</th><th>Customer</th><th>Items</th><th>Payment</th><th>Discount</th><th>Total</th><th>Action</th><th id="sales-void-th" style="display:none;">Owner</th></tr></thead>
           <tbody id="sales-tbody"></tbody>
         </table>
       </div>
@@ -718,6 +724,35 @@
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('restock-modal')">Cancel</button>
       <button class="btn btn-green" onclick="doRestock()">✓ Add Stock</button>
+    </div>
+  </div>
+</div>
+
+<!-- VOID CONFIRMATION MODAL -->
+<div class="modal-overlay" id="void-modal">
+  <div class="modal" style="max-width:420px;">
+    <h3 style="color:var(--red);">⊘ <span id="void-action-label">VOID</span> Transaction</h3>
+    <div style="background:var(--gray-50);border-radius:var(--radius-sm);padding:16px;margin-bottom:18px;border:1px solid var(--gray-200);">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;"><span style="color:var(--gray-500);">Transaction</span><span style="font-weight:700;font-family:monospace;" id="void-txn-num">—</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;"><span style="color:var(--gray-500);">Customer</span><span id="void-customer">—</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--gray-500);">Amount</span><span style="font-weight:700;color:var(--gold-600);" id="void-total">—</span></div>
+    </div>
+    <div id="void-warn-note" style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--red);line-height:1.6;margin-bottom:18px;">
+      ⚠️ <strong>Voiding this sale will:</strong><br>
+      • Mark it as VOID in Sales History<br>
+      • Restore the stock for all items in the order<br>
+      • Exclude it from revenue totals<br>
+      This action is reversible — you can restore it anytime.
+    </div>
+    <div id="void-restore-note" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--green);line-height:1.6;margin-bottom:18px;">
+      ✅ <strong>Restoring this sale will:</strong><br>
+      • Remove the VOID status<br>
+      • Re-deduct stock for all items<br>
+      • Include it back in revenue totals
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('void-modal')">Cancel</button>
+      <button class="btn btn-danger" id="void-confirm-btn">⊘ Yes, Void Transaction</button>
     </div>
   </div>
 </div>
@@ -991,7 +1026,7 @@ function showPage(p) {
 function refreshDashboard() {
   const now = new Date();
   document.getElementById('dash-date').textContent = now.toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  const sales = get(K.sales), prods = get(K.products);
+  const sales = get(K.sales).filter(s=>!s.voided), prods = get(K.products);
   const today = now.toLocaleDateString('en-CA'), month = now.toISOString().slice(0,7);
   const td = sales.filter(s=>s.date.startsWith(today)), mo = sales.filter(s=>s.date.startsWith(month));
   const fmt = n => 'Rs. '+n.toLocaleString('en-PH',{minimumFractionDigits:2});
@@ -1254,21 +1289,100 @@ function setDefaultDates(){
   document.getElementById('sales-to').value=now.toLocaleDateString('en-CA');
 }
 function renderSales(){
+  const isOwner = CU && CU.role === 'owner';
+  // Show/hide the owner column header
+  document.getElementById('sales-void-th').style.display = isOwner ? '' : 'none';
+
   const from=document.getElementById('sales-from').value, to=document.getElementById('sales-to').value, pay=document.getElementById('sales-pay').value;
   const sales=get(K.sales).filter(s=>{const d=s.date.slice(0,10);return(!from||d>=from)&&(!to||d<=to)&&(!pay||s.payment===pay);}).sort((a,b)=>new Date(b.date)-new Date(a.date));
   const fmt=n=>'Rs. '+n.toLocaleString('en-PH',{minimumFractionDigits:2});
   document.getElementById('sales-tbody').innerHTML=sales.length
-    ?sales.map(s=>`<tr>
-      <td><code>${s.txnNum}</code></td>
-      <td>${new Date(s.date).toLocaleString('en-PH')}</td>
-      <td>${s.customer}</td>
-      <td>${s.items.length} item(s)</td>
-      <td><span class="badge ${s.payment}">${s.payment.toUpperCase()}</span></td>
-      <td style="color:var(--green);">${s.discount>0?'-'+fmt(s.discount):'—'}</td>
-      <td style="font-weight:700;color:var(--gold-600);">${fmt(s.total)}</td>
-      <td><button class="btn btn-outline btn-sm" onclick="showInvoice(${JSON.stringify(s).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,"&#39;")})">View</button></td>
-    </tr>`).join('')
-    :'<tr><td colspan="8" style="text-align:center;color:var(--gray-400);padding:24px;">No sales in this date range.</td></tr>';
+    ?sales.map(s=>{
+      const voided = !!s.voided;
+      const payBadge = voided ? 'voided' : s.payment;
+      const payLabel = voided ? 'VOIDED' : s.payment.toUpperCase();
+      const voidBtn = isOwner
+        ? (voided
+            ? `<button class="btn btn-outline btn-sm" onclick="unvoidSale('${s.txnNum}')" title="Restore this record">↩ Restore</button>`
+            : `<button class="btn-void" onclick="voidSale('${s.txnNum}')">⊘ Void</button>`)
+        : '';
+      return `<tr class="${voided?'void-row':''}">
+        <td><code>${s.txnNum}</code>${voided?'<br><span style="font-size:10px;color:var(--red);font-weight:700;">VOID</span>':''}</td>
+        <td>${new Date(s.date).toLocaleString('en-PH')}</td>
+        <td>${s.customer}</td>
+        <td>${s.items.length} item(s)</td>
+        <td><span class="badge ${payBadge}">${payLabel}</span></td>
+        <td style="color:var(--green);">${s.discount>0?'-'+fmt(s.discount):'—'}</td>
+        <td style="font-weight:700;color:${voided?'var(--red)':'var(--gold-600)'};">${voided?'<s>'+fmt(s.total)+'</s>':fmt(s.total)}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="showInvoice(${JSON.stringify(s).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,"&#39;")})">View</button></td>
+        ${isOwner?`<td>${voidBtn}</td>`:''}
+      </tr>`;
+    }).join('')
+    :'<tr><td colspan="9" style="text-align:center;color:var(--gray-400);padding:24px;">No sales in this date range.</td></tr>';
+}
+
+// ═══════════════════════════════════
+//  VOID (Owner only)
+// ═══════════════════════════════════
+function voidSale(txnNum) {
+  if (CU.role !== 'owner') { showToast('Only the owner can void sales!', 'error'); return; }
+  openVoidConfirm(txnNum, false);
+}
+function unvoidSale(txnNum) {
+  if (CU.role !== 'owner') { showToast('Only the owner can restore sales!', 'error'); return; }
+  openVoidConfirm(txnNum, true);
+}
+function openVoidConfirm(txnNum, isRestore) {
+  const sales = get(K.sales);
+  const sale = sales.find(s => s.txnNum === txnNum);
+  if (!sale) return;
+  document.getElementById('void-txn-num').textContent = txnNum;
+  document.getElementById('void-customer').textContent = sale.customer;
+  document.getElementById('void-total').textContent = 'Rs. ' + Number(sale.total).toLocaleString('en-PH', {minimumFractionDigits:2});
+  document.getElementById('void-action-label').textContent = isRestore ? 'RESTORE' : 'VOID';
+  document.getElementById('void-confirm-btn').textContent = isRestore ? '↩ Yes, Restore Record' : '⊘ Yes, Void Transaction';
+  document.getElementById('void-confirm-btn').className = isRestore ? 'btn btn-green' : 'btn btn-danger';
+  document.getElementById('void-confirm-btn').onclick = () => doVoid(txnNum, isRestore);
+  document.getElementById('void-restore-note').style.display = isRestore ? 'block' : 'none';
+  document.getElementById('void-warn-note').style.display = isRestore ? 'none' : 'block';
+  openModal('void-modal');
+}
+function doVoid(txnNum, isRestore) {
+  if (CU.role !== 'owner') { showToast('Access denied', 'error'); return; }
+  const sales = get(K.sales);
+  const idx = sales.findIndex(s => s.txnNum === txnNum);
+  if (idx < 0) return;
+  const sale = sales[idx];
+  if (!isRestore) {
+    // Mark as voided, restore stock
+    sales[idx].voided = true;
+    sales[idx].voidedAt = new Date().toISOString();
+    sales[idx].voidedBy = CU.name;
+    const prods = get(K.products);
+    sale.items.forEach(it => {
+      const p = prods.find(x => x.sku === it.sku);
+      if (p) p.stock = (p.stock || 0) + it.qty;
+    });
+    set(K.products, prods);
+    renderProducts(); refreshDashboard();
+    showToast(txnNum + ' voided — stock restored ✅', 'success');
+  } else {
+    // Restore: remove void flag, re-deduct stock
+    delete sales[idx].voided;
+    delete sales[idx].voidedAt;
+    delete sales[idx].voidedBy;
+    const prods = get(K.products);
+    sale.items.forEach(it => {
+      const p = prods.find(x => x.sku === it.sku);
+      if (p) p.stock = Math.max(0, (p.stock || 0) - it.qty);
+    });
+    set(K.products, prods);
+    renderProducts(); refreshDashboard();
+    showToast(txnNum + ' restored ✅', 'success');
+  }
+  set(K.sales, sales);
+  closeModal('void-modal');
+  renderSales();
 }
 
 // ═══════════════════════════════════
@@ -1295,7 +1409,7 @@ function renderReports(){
   const from = fromEl.value;
   const to   = toEl.value;
 
-  const allSales = get(K.sales);
+  const allSales = get(K.sales).filter(s=>!s.voided);
   const prods    = get(K.products);
 
   // Filter sales by selected date range
