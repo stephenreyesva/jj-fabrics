@@ -1343,6 +1343,30 @@ function refreshDashboard() {
 let cart = [];
 const catEmoji = {"Ladies Suits":'👘',"Gents Wear":'👔','Accessories':'💎','Kids':'👦'};
 
+// ── Null-safe DOM helpers ──
+function posEl(id)        { return document.getElementById(id); }
+function posText(id, val) { const e=posEl(id); if(e) e.textContent=val; }
+function posHtml(id, val) { const e=posEl(id); if(e) e.innerHTML=val; }
+
+// ── Image resolver: maps SKU → local image file as fallback when Sheets img is empty ──
+const SKU_IMG_MAP = {
+  'P001':'image/p1.jpeg','P002':'image/p2.jpeg','P003':'image/p3.jpeg',
+  'P004':'image/p4.jpeg','P005':'image/p5.jpeg','P006':'image/p6.jpeg','P007':'image/p7.jpeg',
+  'PS001':'image/ps1.jpeg','PS002':'image/ps2.jpeg','PS003':'image/ps3.jpeg',
+  'PS004':'image/ps4.jpeg','PS005':'image/ps5.jpeg','PS006':'image/ps6.jpeg','PS007':'image/ps7.jpeg'
+};
+function resolveImg(p) {
+  if (p.img && p.img.trim()) return p.img.trim();
+  if (SKU_IMG_MAP[p.sku])   return SKU_IMG_MAP[p.sku];
+  const m = (p.sku || '').match(/(\d+)$/);
+  if (m) {
+    const n = parseInt(m[1], 10);
+    if ((p.sku||'').startsWith('PS') && n >= 1 && n <= 7) return 'image/ps' + n + '.jpeg';
+    if (n >= 1 && n <= 7) return 'image/p' + n + '.jpeg';
+  }
+  return '';
+}
+
 function renderProducts() {
   const q = document.getElementById('pos-search').value.toLowerCase();
   const c = document.getElementById('pos-cat').value;
@@ -1352,8 +1376,9 @@ function renderProducts() {
   grid.innerHTML = prods.map(p=>{
     const isOut=p.stock===0, isLow=p.stock>0&&p.stock<=p.minStock;
     const emoji = catEmoji[p.category]||'🛍️';
-    const imgHtml = p.img
-      ? `<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;" onerror="this.parentNode.innerHTML='<span style=font-size:32px>${emoji}</span>'">`
+    const resolvedImg = resolveImg(p);
+    const imgHtml = resolvedImg
+      ? `<img src="${resolvedImg}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;" onerror="this.parentNode.innerHTML='<span style=font-size:32px>${emoji}</span>'">`
       : `<span style="font-size:32px;">${emoji}</span>`;
     return `<div class="product-card ${isOut?'out-of-stock':''}" data-sku="${p.sku}" ${isOut?'':'style="cursor:pointer;"'}>
       ${isLow?'<span class="stock-badge low">Low</span>':''}${isOut?'<span class="stock-badge out">Out</span>':''}
@@ -1519,9 +1544,14 @@ function renderInventory(){
   document.getElementById('inv-tbody').innerHTML=prods.map(p=>{
     const sc=p.stock===0?'out-stock':p.stock<=p.minStock?'low-stock':'in-stock';
     const sl=p.stock===0?'Out of Stock':p.stock<=p.minStock?'Low Stock':'In Stock';
+    const emoji=catEmoji[p.category]||'🛍️';
+    const thumb=resolveImg(p);
+    const thumbHtml=thumb
+      ?`<img src="${thumb}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.outerHTML='<span style=font-size:20px>${emoji}</span>'">`
+      :`<span style="font-size:20px;">${emoji}</span>`;
     return`<tr>
       <td><code>${p.sku}</code></td>
-      <td><strong>${p.name}</strong><br><span style="font-size:11px;color:var(--gray-400);">${p.desc||''}</span></td>
+      <td><div style="display:flex;align-items:center;gap:10px;">${thumbHtml}<div><strong>${p.name}</strong><br><span style="font-size:11px;color:var(--gray-400);">${p.desc||''}</span></div></div></td>
       <td>${p.category}</td><td>${p.size}</td>
       <td style="font-weight:700;">Rs. ${Number(p.price).toLocaleString()}</td>
       <td style="color:var(--gray-400);">Rs. ${Number(p.cost).toLocaleString()}</td>
@@ -1895,8 +1925,9 @@ function renderFeaturedList(){
   document.getElementById('featured-product-list').innerHTML=prods.map(p=>{
     const checked=featured.includes(p.sku);
     const emoji = catEmoji[p.category]||'🛍️';
-    const thumbHtml = p.img
-      ? `<img src="${p.img}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;flex-shrink:0;" onerror="this.outerHTML='<span style=font-size:22px>${emoji}</span>'">`
+    const resolvedThumb = resolveImg(p);
+    const thumbHtml = resolvedThumb
+      ? `<img src="${resolvedThumb}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;flex-shrink:0;" onerror="this.outerHTML='<span style=font-size:22px>${emoji}</span>'">`
       : `<span style="font-size:22px;">${emoji}</span>`;
     return`<label style="display:flex;align-items:center;gap:10px;padding:10px;border:1.5px solid ${checked?'var(--gold-400)':'var(--gray-200)'};border-radius:var(--radius-sm);cursor:pointer;background:${checked?'var(--gold-50)':'white'};transition:all 0.15s;">
       <input type="checkbox" ${checked?'checked':''} onchange="toggleFeatured('${p.sku}',this.checked)" style="accent-color:var(--gold-500);width:16px;height:16px;">
