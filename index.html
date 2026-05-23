@@ -745,7 +745,7 @@ function jsonpFetch(action) {
       else if (data && typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length) resolve(data);
       else reject(new Error('Empty response: ' + action));
     };
-    script.src = `${API_URL}?action=${action}&callback=${cbName}`;
+    script.src = `${API_URL}?action=${action}&callback=${cbName}&_t=${Date.now()}`;
     script.onerror = () => { clearTimeout(timeout); delete window[cbName]; script.remove(); reject(new Error('Script load failed')); };
     document.head.appendChild(script);
   });
@@ -755,7 +755,7 @@ async function loadAllData() {
   async function fetchAction(action) {
     // Try regular fetch first
     try {
-      const res = await fetch(`${API_URL}?action=${action}`);
+      const res = await fetch(`${API_URL}?action=${action}&_t=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
         if (data && data.success && data.data) return data.data;
@@ -771,7 +771,7 @@ async function loadAllData() {
   ]);
   if (Array.isArray(products) && products.length) {
     // Normalize Sheets column names (SKU → sku, Name → name, Price → price etc.)
-    _cachedProducts = products.map(p => ({
+    const sheetsProds = products.map(p => ({
       sku      : p.sku      || p.SKU      || '',
       name     : p.name     || p.Name     || '',
       brand    : p.brand    || p.Brand    || '',
@@ -785,6 +785,12 @@ async function loadAllData() {
       img      : p.img  || p.ImageURL    || '',
       active   : String(p.active || p.Active || 'TRUE').toUpperCase() === 'TRUE'
     })).filter(p => p.sku);
+
+    // MERGE: Sheets data takes priority, but keep defaults for any SKU not yet in Sheets
+    const sheetsSkus = new Set(sheetsProds.map(p => p.sku));
+    const defaults   = getDefaultProducts();
+    const missing    = defaults.filter(d => !sheetsSkus.has(d.sku));
+    _cachedProducts  = [...sheetsProds, ...missing];
   } else {
     _cachedProducts = getDefaultProducts();
   }
