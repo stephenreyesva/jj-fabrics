@@ -951,50 +951,21 @@ function loadProducts() {
   setText('cnt-men',    allProducts.filter(p=>p.category==='Gents Suiting').length + ' items');
   setText('cnt-acc',    allProducts.filter(p=>p.category==='Accessories').length + ' items');
 
-  // Hero cards — auto-rotating slideshow through all real product images
-  const heroPool = allProducts.filter(p => resolveImg(p));
-  const heroSource = heroPool.length >= 3 ? heroPool : allProducts;
-
-  let heroOffsets = [0, 1, 2]; // each card tracks its own position
-
-  function updateHeroCard(hcId, p, animate) {
-    const e  = catEmoji[p.category] || '\u{1F6CD}';
+  // Hero cards — show the 3 newest products (most recently added)
+  const heroItems = allProducts.slice(-3).reverse(); // last 3 added = newest
+  ['hc1','hc2','hc3'].forEach((hcId, idx) => {
+    const p = heroItems[idx]; if (!p) return;
+    const e  = catEmoji[p.category] || '🛍️';
     const hc = el(hcId); if (!hc) return;
     const img = resolveImg(p);
-    const doUpdate = () => {
-      hc.innerHTML = img
-        ? '<img src="' + img + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\';this.parentNode.insertAdjacentText(\'beforeend\',\''+e+'\')">'
-        : e;
-      setText(hcId + '-name',  p.name);
-      setText(hcId + '-price', 'Rs. ' + Number(p.price).toLocaleString());
-      if (animate) { hc.style.opacity = '1'; }
-    };
-    if (animate) {
-      hc.style.transition = 'opacity 0.45s ease';
-      hc.style.opacity = '0';
-      setTimeout(doUpdate, 450);
-    } else {
-      doUpdate();
-    }
-  }
-
-  // Initial render
-  ['hc1','hc2','hc3'].forEach((hcId, i) => {
-    const p = heroSource[heroOffsets[i] % heroSource.length];
-    if (p) updateHeroCard(hcId, p, false);
+    hc.innerHTML = img
+      ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentNode.insertAdjacentText('beforeend','${e}')">`
+      : e;
+    setText(hcId + '-name',  p.name);
+    setText(hcId + '-price', 'Rs. ' + Number(p.price).toLocaleString());
   });
 
-  // Staggered auto-advance: each card rotates on its own timer
-  ['hc1','hc2','hc3'].forEach((hcId, cardIdx) => {
-    setInterval(() => {
-      if (!heroSource.length) return;
-      heroOffsets[cardIdx] = (heroOffsets[cardIdx] + 3) % heroSource.length;
-      const p = heroSource[heroOffsets[cardIdx]];
-      if (p) updateHeroCard(hcId, p, true);
-    }, 3000 + cardIdx * 1200); // card1=3s, card2=4.2s, card3=5.4s — staggered so they never all flip at once
-  });
-
-  renderProducts();
+    renderProducts();
 }
 
 function filterCat(cat) {
