@@ -1257,8 +1257,9 @@ function seed() {
     map:'', emoji:'👗', heroColor:'#0a0a0a', accentColor:'#D4A017',
     featured:[], publishedAt: null
   });
-  // Products & sales — start EMPTY (add your real stock via Inventory > Add Product or CSV Import)
-  if (!localStorage.getItem(K.products)) set(K.products, [
+
+  // Default product list
+  const defaultProducts = [
     {sku:'BN-1075',name:'Laam Luxury Lawn 3-Piece (BN-1075)',brand:'Laam',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:20,minStock:5,desc:'Laam Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Off-white with delicate blue floral embroidery.',img:'image/p1.jpeg'},
     {sku:'BN-1000',name:'Qalandari Luxury Lawn 3-Piece (BN-1000)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:18,minStock:5,desc:'Qalandari Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Deep navy blue with gold thread embroidery.',img:'image/p2.jpeg'},
     {sku:'BN-1056',name:'Veezal Luxury Lawn 3-Piece (BN-1056)',brand:'Veezal',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Veezal Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Warm beige with vibrant pink and green floral embroidery.',img:'image/p3.jpeg'},
@@ -1273,8 +1274,11 @@ function seed() {
     {sku:'PS-005',name:'Premium Lawn Suit (PS-005)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps5.jpeg'},
     {sku:'PS-006',name:'Premium Lawn Suit (PS-006)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps6.jpeg'},
     {sku:'PS-007',name:'Premium Lawn Suit (PS-007)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps7.jpeg'}
-  ]);
-  if (!localStorage.getItem(K.sales))    set(K.sales,    []);
+  ];
+  // Seed products if missing OR if previously wiped to empty array
+  const storedProds = get(K.products);
+  if (!storedProds || storedProds.length === 0) set(K.products, defaultProducts);
+  if (!localStorage.getItem(K.sales)) set(K.sales, []);
 }
 
 // ═══════════════════════════════════
@@ -2444,14 +2448,13 @@ showPage = function(p) {
 
 seed();
 
-// ── One-time migration: clear any demo data left from earlier trial sessions ──
+// ── One-time migration: clear ONLY old demo sales from earlier trial sessions ──
+// Products are intentionally kept — do NOT remove them here.
 (function migrateCleanStart() {
-  const flag = 'jj_v10_clean';
+  const flag = 'jj_v11_clean'; // bumped from v10 → v11 so old affected browsers re-run this
   if (localStorage.getItem(flag)) return; // already done
   localStorage.removeItem(K.sales);
-  localStorage.removeItem(K.products);
   set(K.sales, []);
-  set(K.products, []);
   localStorage.setItem(flag, '1');
 })();
 </script>
