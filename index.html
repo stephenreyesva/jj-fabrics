@@ -63,30 +63,6 @@
 
   /* ── HERO — isolated bg, never bleeds into other sections ── */
 
-  /* ── MANUAL REFRESH BUTTON (owner tool, bottom-right) ── */
-  #manual-refresh-btn {
-    position: fixed; bottom: 18px; right: 18px; z-index: 200;
-    background: rgba(28,28,20,0.82); backdrop-filter: blur(10px);
-    border: 1px solid rgba(212,160,23,0.3); color: rgba(255,255,255,0.7);
-    font-size: 11px; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif;
-    padding: 7px 14px; border-radius: 20px; cursor: pointer;
-    transition: all 0.2s; letter-spacing: 0.3px;
-    opacity: 0; pointer-events: none;
-  }
-  #manual-refresh-btn.ready { opacity: 1; pointer-events: all; }
-  #manual-refresh-btn:hover { background: rgba(212,160,23,0.2); color: white; border-color: rgba(212,160,23,0.6); }
-  #manual-refresh-btn:disabled { opacity: 0.4; cursor: default; }
-
-  /* ── LIVE PILL ── */
-  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.75)} }
-  .live-pill {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: #d4f7de; color: #166534;
-    font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
-    padding: 3px 9px; border-radius: 20px; vertical-align: middle; margin-left: 8px;
-  }
-  .live-pill::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:#16a34a; animation: pulse-dot 1.2s ease-in-out infinite; }
-
   /* ── BRANDS NAV STRIP ── */
   .brands-nav {
     background: #1C1C14;
@@ -100,12 +76,17 @@
   .brands-nav-inner {
     display: flex;
     align-items: stretch;
-    overflow-x: auto;
-    scrollbar-width: none;
+    width: max-content;
+    animation: brands-scroll 36s linear infinite;
+    will-change: transform;
   }
-  .brands-nav-inner::-webkit-scrollbar { display: none; }
+  .brands-nav-inner:hover { animation-play-state: paused; }
+  @keyframes brands-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
   .brands-nav-item {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0;
     flex-shrink: 0;
@@ -114,7 +95,6 @@
     transition: background 0.2s;
     text-decoration: none;
   }
-  .brands-nav-item:last-child { border-right: none; }
   .brands-nav-item:hover { background: rgba(212,160,23,0.08); }
   .brands-nav-item.active { background: rgba(212,160,23,0.12); }
   .brands-nav-label {
@@ -469,27 +449,53 @@
 <!-- BRANDS NAV STRIP -->
 <div class="brands-nav" id="brands-nav">
   <div class="brands-nav-inner">
-    <a class="brands-nav-item active" onclick="filterBrandNav('all',this)" href="#collections">
+    <!-- Set 1 -->
+    <a class="brands-nav-item" onclick="filterBrandNav('all',this);return false;" href="#collections">
       <span class="brands-nav-label">All Collections</span>
       <span class="brands-nav-plus">+</span>
     </a>
-    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this)" href="#collections">
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this);return false;" href="#collections">
       <span class="brands-nav-label">SAYA · Bonanza · Sapphire</span>
       <span class="brands-nav-plus">+</span>
     </a>
-    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this)" href="#collections">
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this);return false;" href="#collections">
       <span class="brands-nav-label">Maria.B · Bareeze · Cross Stitch</span>
       <span class="brands-nav-plus">+</span>
     </a>
-    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this)" href="#collections">
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this);return false;" href="#collections">
       <span class="brands-nav-label">Veezal · Qalandari · Laam</span>
       <span class="brands-nav-plus">+</span>
     </a>
-    <a class="brands-nav-item" onclick="filterBrandNav('Gents Suiting',this)" href="#collections">
+    <a class="brands-nav-item" onclick="filterBrandNav('Gents Suiting',this);return false;" href="#collections">
       <span class="brands-nav-label">Gents &amp; Ladies Suiting</span>
       <span class="brands-nav-plus">+</span>
     </a>
-    <a class="brands-nav-item" onclick="filterBrandNav('Accessories',this)" href="#collections">
+    <a class="brands-nav-item" onclick="filterBrandNav('Accessories',this);return false;" href="#collections">
+      <span class="brands-nav-label">Accessories</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <!-- Set 2 — duplicate for seamless loop -->
+    <a class="brands-nav-item" onclick="filterBrandNav('all',this);return false;" href="#collections">
+      <span class="brands-nav-label">All Collections</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this);return false;" href="#collections">
+      <span class="brands-nav-label">SAYA · Bonanza · Sapphire</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this);return false;" href="#collections">
+      <span class="brands-nav-label">Maria.B · Bareeze · Cross Stitch</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this);return false;" href="#collections">
+      <span class="brands-nav-label">Veezal · Qalandari · Laam</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Gents Suiting',this);return false;" href="#collections">
+      <span class="brands-nav-label">Gents &amp; Ladies Suiting</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Accessories',this);return false;" href="#collections">
       <span class="brands-nav-label">Accessories</span>
       <span class="brands-nav-plus">+</span>
     </a>
@@ -590,10 +596,7 @@
         <div class="section-label">Featured</div>
         <div class="section-title"><em>Collections</em></div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <div id="products-count" style="font-size:13px;color:var(--gray-400);font-weight:500;"></div>
-        <span id="sync-pill"></span>
-      </div>
+      <div id="products-count" style="font-size:13px;color:var(--gray-400);font-weight:500;"></div>
     </div>
     <div class="product-grid" id="product-grid"></div>
   </div>
@@ -673,9 +676,6 @@
 </section>
 
 <!-- FOOTER -->
-<!-- MANUAL REFRESH BUTTON (appears after first successful sync) -->
-<button id="manual-refresh-btn" onclick="manualRefresh()" title="Refresh inventory from spreadsheet">↻ Refresh</button>
-
 <footer>
   <div class="footer-inner">
     <div class="footer-top">
@@ -731,18 +731,63 @@ function jsonpFetch(action) {
       delete window[cbName];
       script.remove();
       reject(new Error('Timeout: ' + action));
-    }, 8000);
+    }, 12000); // increased to 12s for slow connections
     window[cbName] = function(data) {
       clearTimeout(timeout);
       delete window[cbName];
       script.remove();
+      // Accept both {success:true, data:[...]} and bare arrays/objects
       if (data && data.success) resolve(data.data);
-      else reject(new Error('API error: ' + action));
+      else if (Array.isArray(data) && data.length) resolve(data);
+      else if (data && typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length) resolve(data);
+      else reject(new Error('Empty response: ' + action));
     };
     script.src = `${API_URL}?action=${action}&callback=${cbName}`;
     script.onerror = () => { clearTimeout(timeout); delete window[cbName]; script.remove(); reject(new Error('Script load failed')); };
     document.head.appendChild(script);
   });
+}
+
+async function loadAllData() {
+  async function fetchAction(action) {
+    // Try regular fetch first
+    try {
+      const res = await fetch(`${API_URL}?action=${action}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && data.data) return data.data;
+        if (Array.isArray(data) && data.length) return data;
+      }
+    } catch(_) {}
+    // JSONP fallback (handles CORS restrictions)
+    return jsonpFetch(action).catch(() => null);
+  }
+  const [products, site] = await Promise.all([
+    fetchAction('getProducts'),
+    fetchAction('getSiteSettings')
+  ]);
+  if (Array.isArray(products) && products.length) {
+    // Normalize Sheets column names (SKU → sku, Name → name, Price → price etc.)
+    _cachedProducts = products.map(p => ({
+      sku      : p.sku      || p.SKU      || '',
+      name     : p.name     || p.Name     || '',
+      brand    : p.brand    || p.Brand    || '',
+      category : p.category || p.Category || '',
+      size     : p.size     || p.Size     || '',
+      price    : Number(p.price  || p.Price)  || 0,
+      cost     : Number(p.cost   || p.Cost)   || 0,
+      stock    : Number(p.stock  || p.Stock)  || 0,
+      minStock : Number(p.minStock || p.MinStock) || 0,
+      desc     : p.desc || p.Description || '',
+      img      : p.img  || p.ImageURL    || '',
+      active   : String(p.active || p.Active || 'TRUE').toUpperCase() === 'TRUE'
+    })).filter(p => p.sku);
+  } else {
+    _cachedProducts = getDefaultProducts();
+  }
+  _cachedSite = (site && typeof site === 'object' && !Array.isArray(site))
+                ? site : getDefaultSite();
+  _dataLoaded = true;
 }
 
 const getData = () => _cachedProducts || getDefaultProducts();
@@ -753,21 +798,22 @@ const getSite = () => _cachedSite     || getDefaultSite();
 //  or if Google Sheets is unreachable)
 // ═══════════════════════════════════════
 function getDefaultProducts() {
+  const b = 'https://stephenreyesva.github.io/jj-fabrics/image/';
   return [
-        {sku:'BN-1075',name:'Laam Luxury Lawn 3-Piece (BN-1075)',brand:'Laam',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:20,minStock:5,desc:'Laam Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Off-white with delicate blue floral embroidery.',img:'image/p1.jpeg',active:true},
-    {sku:'BN-1000',name:'Qalandari Luxury Lawn 3-Piece (BN-1000)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:18,minStock:5,desc:'Qalandari Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Deep navy blue with gold thread embroidery.',img:'image/p2.jpeg',active:true},
-    {sku:'BN-1056',name:'Veezal Luxury Lawn 3-Piece (BN-1056)',brand:'Veezal',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Veezal Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Warm beige with vibrant pink and green floral embroidery.',img:'image/p3.jpeg',active:true},
-    {sku:'BN-1060',name:'Maria.B Luxury Lawn 3-Piece (BN-1060)',brand:'Maria.B',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Maria.B Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Cornflower blue with elegant white embroidery.',img:'image/p4.jpeg',active:true},
-    {sku:'BN-1025',name:'Bareeze Luxury Lawn 3-Piece (BN-1025)',brand:'Bareeze',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Bareeze Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Jet black with rich crimson and silver embroidery.',img:'image/p5.jpeg',active:true},
-    {sku:'BN-1053',name:'Cross Stitch Luxury Lawn 3-Piece (BN-1053)',brand:'Cross Stitch',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Cross Stitch Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Dusty mauve with intricate gold embroidery.',img:'image/p6.jpeg',active:true},
-    {sku:'BN-1059',name:'Qalandari Luxury Lawn 3-Piece (BN-1059)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:10,minStock:3,desc:'Qalandari Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Soft grey with purple floral embroidery.',img:'image/p7.jpeg',active:true},
-    {sku:'PS-001',name:'Premium Lawn Suit (PS-001)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps1.jpeg',active:true},
-    {sku:'PS-002',name:'Premium Lawn Suit (PS-002)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps2.jpeg',active:true},
-    {sku:'PS-003',name:'Premium Lawn Suit (PS-003)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps3.jpeg',active:true},
-    {sku:'PS-004',name:'Premium Lawn Suit (PS-004)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps4.jpeg',active:true},
-    {sku:'PS-005',name:'Premium Lawn Suit (PS-005)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps5.jpeg',active:true},
-    {sku:'PS-006',name:'Premium Lawn Suit (PS-006)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps6.jpeg',active:true},
-    {sku:'PS-007',name:'Premium Lawn Suit (PS-007)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps7.jpeg',active:true}
+    {sku:'BN-1075',name:'Laam Luxury Lawn 3-Piece (BN-1075)',brand:'Laam',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:20,minStock:5,desc:'Laam Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Off-white with delicate blue floral embroidery.',img:b+'p1.jpeg',active:true},
+    {sku:'BN-1000',name:'Qalandari Luxury Lawn 3-Piece (BN-1000)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:18,minStock:5,desc:'Qalandari Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Deep navy blue with gold thread embroidery.',img:b+'p2.jpeg',active:true},
+    {sku:'BN-1056',name:'Veezal Luxury Lawn 3-Piece (BN-1056)',brand:'Veezal',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Veezal Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Warm beige with vibrant pink and green floral embroidery.',img:b+'p3.jpeg',active:true},
+    {sku:'BN-1060',name:'Maria.B Luxury Lawn 3-Piece (BN-1060)',brand:'Maria.B',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Maria.B Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Cornflower blue with elegant white embroidery.',img:b+'p4.jpeg',active:true},
+    {sku:'BN-1025',name:'Bareeze Luxury Lawn 3-Piece (BN-1025)',brand:'Bareeze',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Bareeze Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Jet black with rich crimson and silver embroidery.',img:b+'p5.jpeg',active:true},
+    {sku:'BN-1053',name:'Cross Stitch Luxury Lawn 3-Piece (BN-1053)',brand:'Cross Stitch',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Cross Stitch Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Dusty mauve with intricate gold embroidery.',img:b+'p6.jpeg',active:true},
+    {sku:'BN-1059',name:'Qalandari Luxury Lawn 3-Piece (BN-1059)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:10,minStock:3,desc:'Qalandari Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Soft grey with purple floral embroidery.',img:b+'p7.jpeg',active:true},
+    {sku:'PS-001',name:'Premium Lawn Suit (PS-001)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps1.jpeg',active:true},
+    {sku:'PS-002',name:'Premium Lawn Suit (PS-002)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps2.jpeg',active:true},
+    {sku:'PS-003',name:'Premium Lawn Suit (PS-003)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps3.jpeg',active:true},
+    {sku:'PS-004',name:'Premium Lawn Suit (PS-004)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps4.jpeg',active:true},
+    {sku:'PS-005',name:'Premium Lawn Suit (PS-005)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps5.jpeg',active:true},
+    {sku:'PS-006',name:'Premium Lawn Suit (PS-006)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps6.jpeg',active:true},
+    {sku:'PS-007',name:'Premium Lawn Suit (PS-007)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps7.jpeg',active:true}
   ];
 }
 
@@ -794,27 +840,31 @@ function seedPublicDefaults() {}
 //  IMAGE RESOLVER
 //  When Sheets products have no img URL, fall back to local p1.jpeg–p7.jpeg
 // ═══════════════════════════════════════
+const GITHUB_IMG_BASE = 'https://stephenreyesva.github.io/jj-fabrics/image/';
 const SKU_IMG_MAP = {
-  'BN-1075':'image/p1.jpeg',
-  'BN-1000':'image/p2.jpeg',
-  'BN-1056':'image/p3.jpeg',
-  'BN-1060':'image/p4.jpeg',
-  'BN-1025':'image/p5.jpeg',
-  'BN-1053':'image/p6.jpeg',
-  'BN-1059':'image/p7.jpeg',
-  'PS-001':'image/ps1.jpeg',
-  'PS-002':'image/ps2.jpeg',
-  'PS-003':'image/ps3.jpeg',
-  'PS-004':'image/ps4.jpeg',
-  'PS-005':'image/ps5.jpeg',
-  'PS-006':'image/ps6.jpeg',
-  'PS-007':'image/ps7.jpeg'
+  'BN-1075': GITHUB_IMG_BASE + 'p1.jpeg',
+  'BN-1000': GITHUB_IMG_BASE + 'p2.jpeg',
+  'BN-1056': GITHUB_IMG_BASE + 'p3.jpeg',
+  'BN-1060': GITHUB_IMG_BASE + 'p4.jpeg',
+  'BN-1025': GITHUB_IMG_BASE + 'p5.jpeg',
+  'BN-1053': GITHUB_IMG_BASE + 'p6.jpeg',
+  'BN-1059': GITHUB_IMG_BASE + 'p7.jpeg',
+  'PS-001':  GITHUB_IMG_BASE + 'ps1.jpeg',
+  'PS-002':  GITHUB_IMG_BASE + 'ps2.jpeg',
+  'PS-003':  GITHUB_IMG_BASE + 'ps3.jpeg',
+  'PS-004':  GITHUB_IMG_BASE + 'ps4.jpeg',
+  'PS-005':  GITHUB_IMG_BASE + 'ps5.jpeg',
+  'PS-006':  GITHUB_IMG_BASE + 'ps6.jpeg',
+  'PS-007':  GITHUB_IMG_BASE + 'ps7.jpeg'
 };
 function resolveImg(p) {
-  // p.img comes from Sheets ImageURL column (or local fallback)
-  const imgVal = p.img || p.ImageURL || '';
-  if (imgVal && imgVal.trim()) return imgVal.trim();
+  // 1. Use Sheets ImageURL if it's a full valid URL
+  const imgVal = (p.img || p.ImageURL || '').trim();
+  if (imgVal && (imgVal.startsWith('http') || imgVal.startsWith('/'))) return imgVal;
+  // 2. Fall back to SKU map (absolute GitHub Pages URLs)
   if (SKU_IMG_MAP[p.sku]) return SKU_IMG_MAP[p.sku];
+  // 3. Relative path last resort
+  if (imgVal) return imgVal;
   return '';
 }
 
@@ -947,7 +997,8 @@ function filterBrandNav(cat, el) {
 
 function renderProducts() {
   const filtered = activeFilter ? allProducts.filter(p => p.category === activeFilter) : allProducts;
-  document.getElementById('products-count').textContent = filtered.length + ' product' + (filtered.length !== 1 ? 's' : '') + ' shown';
+  const liveTag = _dataLoaded ? ' <span style="font-size:10px;background:#d4f7de;color:#166534;padding:2px 7px;border-radius:20px;font-weight:600;vertical-align:middle;">● LIVE</span>' : '';
+  document.getElementById('products-count').innerHTML = filtered.length + ' product' + (filtered.length !== 1 ? 's' : '') + ' shown' + liveTag;
   const s = getSite();
   const waNum = (s.phone||'').replace(/\D/g,'');
   const grid = document.getElementById('product-grid');
@@ -1028,136 +1079,23 @@ function hideLoader() {
 }
 
 // ── Show content immediately on DOMContentLoaded — never wait for images/fonts ──
-// ═══════════════════════════════════════
-//  LIVE SYNC ENGINE
-//  • Silent background sync — zero interruption to visitors
-//  • On success : shows a small "● LIVE" pill next to product count
-//  • On failure : retries quietly (console only), pill stays hidden
-//  • Manual refresh button for the owner (bottom-right corner)
-//  • Auto-refreshes every 5 min + on tab re-focus after 2 min away
-// ═══════════════════════════════════════
-let _lastSyncTime = null;
-let _syncTimer    = null;
-const SYNC_INTERVAL = 5 * 60 * 1000;  // 5 minutes
-
-// ── Live pill (only visual feedback — small, non-intrusive) ──
-function updateSyncPill(state) {
-  const pill = document.getElementById('sync-pill');
-  const btn  = document.getElementById('manual-refresh-btn');
-  if (pill) {
-    if (state === 'live') {
-      pill.innerHTML = '<span class="live-pill">LIVE</span>';
-      if (btn) btn.classList.add('ready'); // reveal refresh button after first success
-    } else {
-      pill.innerHTML = '';
-    }
-  }
-}
-
-// ── Manual refresh button (owner-facing, bottom-right corner) ──
-function manualRefresh() {
-  const btn = document.getElementById('manual-refresh-btn');
-  if (btn) { btn.textContent = '↻'; btn.disabled = true; }
-  _doSync().finally(() => {
-    if (btn) { btn.textContent = '↻ Refresh'; btn.disabled = false; }
-  });
-}
-
-// ── Core fetch — fully silent, all errors go to console only ──
-async function _doSync() {
-  async function fetchAction(action) {
-    try {
-      const res  = await fetch(`${API_URL}?action=${action}`);
-      const data = await res.json();
-      if (data && data.success) return data.data;
-    } catch(_) {}
-    return jsonpFetch(action).catch(() => null);
-  }
-
-  try {
-    const [products, site] = await Promise.all([
-      fetchAction('getProducts'),
-      fetchAction('getSiteSettings')
-    ]);
-
-    let gotData = false;
-    if (Array.isArray(products) && products.length) {
-      _cachedProducts = products.map(p => ({
-        sku      : p.sku      || p.SKU      || '',
-        name     : p.name     || p.Name     || '',
-        brand    : p.brand    || p.Brand    || '',
-        category : p.category || p.Category || '',
-        size     : p.size     || p.Size     || '',
-        price    : Number(p.price    || p.Price)    || 0,
-        cost     : Number(p.cost     || p.Cost)     || 0,
-        stock    : Number(p.stock    || p.Stock)    || 0,
-        minStock : Number(p.minStock || p.MinStock) || 5,
-        desc     : p.desc || p.Description || '',
-        img      : p.img  || p.ImageURL    || '',
-        active   : String(p.active || p.Active || 'TRUE').toUpperCase() === 'TRUE'
-      })).filter(p => p.sku);
-      gotData = true;
-    }
-    if (site && typeof site === 'object' && !Array.isArray(site)) {
-      _cachedSite = site;
-      gotData = true;
-    }
-    _dataLoaded = true;
-
-    if (gotData) {
-      _lastSyncTime = Date.now();
-      applySiteData();
-      loadProducts();
-      updateSyncPill('live');
-    } else {
-      throw new Error('Empty response from Sheets');
-    }
-  } catch(err) {
-    // Silent fail — console only, visitor sees nothing different
-    console.warn('[JJ Store] Sheets sync failed:', err.message);
-    updateSyncPill(''); // hide pill, show default data
-  }
-}
-
-// ── Retry with back-off (silent) ──
-async function syncFromSheets() {
-  const delays = [0, 6000, 15000]; // immediate, 6s, 15s
-  for (const delay of delays) {
-    if (delay) await new Promise(r => setTimeout(r, delay));
-    try { await _doSync(); return; } catch(_) {}
-  }
-  // All attempts exhausted — silent, visitor unaffected
-}
-
-// ── Legacy shim ──
-async function loadAllData() { return _doSync(); }
-
-// ── Auto-refresh every 5 minutes ──
-setInterval(syncFromSheets, SYNC_INTERVAL);
-
-// ── Refresh on tab re-focus after >2 min away ──
-let _hiddenAt = null;
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    _hiddenAt = Date.now();
-  } else if (_hiddenAt && Date.now() - _hiddenAt > 2 * 60 * 1000) {
-    _hiddenAt = null;
-    syncFromSheets();
-  }
-});
-
-// ── Boot sequence ──
 document.addEventListener('DOMContentLoaded', () => {
-  // Show default data instantly — no blank screen ever
   _cachedProducts = getDefaultProducts();
   _cachedSite     = getDefaultSite();
   applySiteData();
   loadProducts();
   hideLoader();
-  // Then silently fetch live Sheets data in background
-  syncFromSheets();
+
+  // ── Silently fetch live data from Google Sheets in background ──
+  loadAllData().then(() => {
+    applySiteData();
+    loadProducts();
+  }).catch(() => {
+    // Sheets unreachable — defaults already shown, no action needed
+  });
 });
 
+// ── Absolute safety net: if loader somehow still visible after 2s, force-hide it ──
 setTimeout(() => hideLoader(), 2000);
 </script>
 </body>
