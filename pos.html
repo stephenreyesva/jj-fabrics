@@ -1184,7 +1184,22 @@ function seed() {
     featured:[], publishedAt: null
   });
   // Products & sales — start EMPTY (add your real stock via Inventory > Add Product or CSV Import)
-  if (!localStorage.getItem(K.products)) set(K.products, []);
+  if (!localStorage.getItem(K.products)) set(K.products, [
+    {sku:'BN-1075',name:'Laam Luxury Lawn 3-Piece (BN-1075)',brand:'Laam',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:20,minStock:5,desc:'Laam Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Off-white with delicate blue floral embroidery.',img:'image/p1.jpeg'},
+    {sku:'BN-1000',name:'Qalandari Luxury Lawn 3-Piece (BN-1000)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:18,minStock:5,desc:'Qalandari Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Deep navy blue with gold thread embroidery.',img:'image/p2.jpeg'},
+    {sku:'BN-1056',name:'Veezal Luxury Lawn 3-Piece (BN-1056)',brand:'Veezal',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Veezal Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Warm beige with vibrant pink and green floral embroidery.',img:'image/p3.jpeg'},
+    {sku:'BN-1060',name:'Maria.B Luxury Lawn 3-Piece (BN-1060)',brand:'Maria.B',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Maria.B Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Cornflower blue with elegant white embroidery.',img:'image/p4.jpeg'},
+    {sku:'BN-1025',name:'Bareeze Luxury Lawn 3-Piece (BN-1025)',brand:'Bareeze',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Bareeze Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Jet black with rich crimson and silver embroidery.',img:'image/p5.jpeg'},
+    {sku:'BN-1053',name:'Cross Stitch Luxury Lawn 3-Piece (BN-1053)',brand:'Cross Stitch',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Cross Stitch Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Dusty mauve with intricate gold embroidery.',img:'image/p6.jpeg'},
+    {sku:'BN-1059',name:'Qalandari Luxury Lawn 3-Piece (BN-1059)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:10,minStock:3,desc:'Qalandari Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Soft grey with purple floral embroidery.',img:'image/p7.jpeg'},
+    {sku:'PS-001',name:'Premium Lawn Suit (PS-001)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps1.jpeg'},
+    {sku:'PS-002',name:'Premium Lawn Suit (PS-002)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps2.jpeg'},
+    {sku:'PS-003',name:'Premium Lawn Suit (PS-003)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps3.jpeg'},
+    {sku:'PS-004',name:'Premium Lawn Suit (PS-004)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps4.jpeg'},
+    {sku:'PS-005',name:'Premium Lawn Suit (PS-005)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps5.jpeg'},
+    {sku:'PS-006',name:'Premium Lawn Suit (PS-006)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps6.jpeg'},
+    {sku:'PS-007',name:'Premium Lawn Suit (PS-007)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:'image/ps7.jpeg'}
+  ]);
   if (!localStorage.getItem(K.sales))    set(K.sales,    []);
 }
 
@@ -1350,20 +1365,25 @@ function posHtml(id, val) { const e=posEl(id); if(e) e.innerHTML=val; }
 
 // ── Image resolver: maps SKU → local image file as fallback when Sheets img is empty ──
 const SKU_IMG_MAP = {
-  'P001':'image/p1.jpeg','P002':'image/p2.jpeg','P003':'image/p3.jpeg',
-  'P004':'image/p4.jpeg','P005':'image/p5.jpeg','P006':'image/p6.jpeg','P007':'image/p7.jpeg',
-  'PS001':'image/ps1.jpeg','PS002':'image/ps2.jpeg','PS003':'image/ps3.jpeg',
-  'PS004':'image/ps4.jpeg','PS005':'image/ps5.jpeg','PS006':'image/ps6.jpeg','PS007':'image/ps7.jpeg'
+  'BN-1075':'image/p1.jpeg',
+  'BN-1000':'image/p2.jpeg',
+  'BN-1056':'image/p3.jpeg',
+  'BN-1060':'image/p4.jpeg',
+  'BN-1025':'image/p5.jpeg',
+  'BN-1053':'image/p6.jpeg',
+  'BN-1059':'image/p7.jpeg',
+  'PS-001':'image/ps1.jpeg',
+  'PS-002':'image/ps2.jpeg',
+  'PS-003':'image/ps3.jpeg',
+  'PS-004':'image/ps4.jpeg',
+  'PS-005':'image/ps5.jpeg',
+  'PS-006':'image/ps6.jpeg',
+  'PS-007':'image/ps7.jpeg'
 };
 function resolveImg(p) {
-  if (p.img && p.img.trim()) return p.img.trim();
-  if (SKU_IMG_MAP[p.sku])   return SKU_IMG_MAP[p.sku];
-  const m = (p.sku || '').match(/(\d+)$/);
-  if (m) {
-    const n = parseInt(m[1], 10);
-    if ((p.sku||'').startsWith('PS') && n >= 1 && n <= 7) return 'image/ps' + n + '.jpeg';
-    if (n >= 1 && n <= 7) return 'image/p' + n + '.jpeg';
-  }
+  const imgVal = p.img || p.ImageURL || '';
+  if (imgVal && imgVal.trim()) return imgVal.trim();
+  if (SKU_IMG_MAP[p.sku]) return SKU_IMG_MAP[p.sku];
   return '';
 }
 
