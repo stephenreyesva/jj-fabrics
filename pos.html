@@ -259,6 +259,61 @@
   .alert-box { display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 14px; }
   .alert-box.warning { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
   .alert-box.success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  /* ─── SHEETS SAVE SYSTEM ─── */
+  .sheets-bar {
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    background: var(--gray-50); border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm); margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .sheets-bar .sb-label { font-size: 12px; font-weight: 600; color: var(--gray-500); flex: 1; }
+  .sheets-status-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 50px;
+    letter-spacing: 0.3px;
+  }
+  .sheets-status-pill.synced  { background: #dcfce7; color: #15803d; }
+  .sheets-status-pill.pending { background: #fff7ed; color: #c2410c; }
+  .sheets-status-pill.syncing { background: var(--gold-100); color: var(--gold-700); }
+  .sheets-status-pill.error   { background: #fef2f2; color: #b91c1c; }
+  .pending-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--orange);
+    display: inline-block; animation: pendingPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pendingPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
+  .btn-save-sheets {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border: none; border-radius: var(--radius-sm);
+    font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; background: #16a34a; color: white;
+  }
+  .btn-save-sheets:hover { background: #15803d; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(22,163,74,0.3); }
+  .btn-save-sheets:disabled { background: var(--gray-200); color: var(--gray-400); cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn-save-sheets.saving { background: var(--gold-500); }
+  .btn-push-sales {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border: none; border-radius: var(--radius-sm);
+    font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; background: #2563eb; color: white;
+  }
+  .btn-push-sales:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,0.3); }
+  .save-log {
+    background: var(--gray-50); border: 1px solid var(--gray-100);
+    border-radius: var(--radius-sm); padding: 12px 16px; margin-top: 12px;
+    font-size: 12px; color: var(--gray-500); max-height: 160px; overflow-y: auto; display: none;
+  }
+  .save-log-entry { padding: 5px 0; border-bottom: 1px solid var(--gray-100); display: flex; justify-content: space-between; align-items: center; }
+  .save-log-entry:last-child { border-bottom: none; }
+  .save-log-entry .sle-ok   { color: #15803d; font-weight: 700; }
+  .save-log-entry .sle-fail { color: #b91c1c; font-weight: 700; }
+  .sheets-inline-btn {
+    font-size: 11px; padding: 4px 10px; border: 1.5px solid #16a34a; background: white; color: #16a34a;
+    border-radius: 6px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .sheets-inline-btn:hover { background: #16a34a; color: white; }
+  .sheets-inline-btn.blue { border-color: #2563eb; color: #2563eb; }
+  .sheets-inline-btn.blue:hover { background: #2563eb; color: white; }
+
   #toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
   .toast-msg { background: var(--gray-900); color: white; padding: 12px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease; max-width: 300px; }
   .toast-msg.success { background: var(--green); }
@@ -613,8 +668,23 @@
     <div class="page" id="inventory-page">
       <div class="page-header">
         <div class="page-header-left"><h2>📦 Inventory</h2><p>Manage stock and product catalogue</p></div>
-        <button class="btn btn-outline" onclick="syncFromSheets()" style="font-size:12px;gap:6px;">⟳ Sync from Sheets</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-outline btn-sm" onclick="syncFromSheets()" style="font-size:12px;">⟳ Sync from Sheets</button>
+          <button class="btn-save-sheets" id="inv-save-btn" onclick="saveInventoryToSheets()">
+            <span id="inv-save-icon">☁</span> Save to Sheets
+          </button>
+        </div>
       </div>
+      <!-- Sheets Status Bar -->
+      <div class="sheets-bar" id="inv-sheets-bar">
+        <div class="sb-label">
+          <span id="inv-pending-dot" class="pending-dot" style="display:none;"></span>
+          <span id="inv-sheets-info">Inventory sync status</span>
+        </div>
+        <span class="sheets-status-pill synced" id="inv-sheets-pill">☁ Synced</span>
+        <span style="font-size:11px;color:var(--gray-400);" id="inv-last-saved"></span>
+      </div>
+      <div id="inv-alerts"></div>
       <div class="table-controls">
         <input type="text" id="inv-search" placeholder="Search products…" oninput="renderInventory()">
         <select id="inv-cat" onchange="renderInventory()">
@@ -633,7 +703,6 @@
         <div class="spacer"></div>
         <button class="btn btn-gold" onclick="openAddProduct()">+ Add Product</button>
       </div>
-      <div id="inv-alerts"></div>
       <div class="card scrollable-table">
         <table>
           <thead>
@@ -648,8 +717,24 @@
     <div class="page" id="sales-page">
       <div class="page-header">
         <div class="page-header-left"><h2>🧾 Sales History</h2><p>All transaction records</p></div>
-        <button class="btn btn-danger btn-sm" id="clear-all-sales-btn" style="display:none;" onclick="clearAllSales()">🗑 Clear All Records</button>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn-push-sales" onclick="pushAllSalesToSheets()">
+            ☁ Push Sales to Sheets
+          </button>
+          <button class="btn btn-danger btn-sm" id="clear-all-sales-btn" style="display:none;" onclick="clearAllSales()">🗑 Clear All Records</button>
+        </div>
       </div>
+      <!-- Sheets Status Bar for Sales -->
+      <div class="sheets-bar" id="sales-sheets-bar">
+        <div class="sb-label">
+          <span id="sales-pending-dot" class="pending-dot" style="display:none;"></span>
+          <span id="sales-sheets-info">Sales sync status</span>
+        </div>
+        <span class="sheets-status-pill synced" id="sales-sheets-pill">☁ Synced</span>
+        <span style="font-size:11px;color:var(--gray-400);" id="sales-last-saved"></span>
+        <button class="sheets-inline-btn blue" onclick="toggleSaveLog()" style="margin-left:4px;">📋 Log</button>
+      </div>
+      <div class="save-log" id="save-log"><div style="font-weight:700;margin-bottom:8px;color:var(--gray-700);">Save Log</div><div id="save-log-entries">No entries yet.</div></div>
       <div class="table-controls">
         <input type="date" id="sales-from">
         <input type="date" id="sales-to">
@@ -876,7 +961,8 @@
     <div class="form-group"><label>Image URL (for public site)</label><input class="input-field" type="text" id="p-img" placeholder="https://... (leave blank for emoji)" style="margin-bottom:0"></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('product-modal')">Cancel</button>
-      <button class="btn btn-gold" onclick="saveProduct()">Save Product</button>
+      <button class="btn btn-gold" onclick="saveProduct(false)">💾 Save Locally</button>
+      <button class="btn-save-sheets" onclick="saveProduct(true)" style="padding:9px 16px;font-size:13px;">☁ Save &amp; Push to Sheets</button>
     </div>
   </div>
 </div>
@@ -906,7 +992,8 @@
     <input type="hidden" id="restock-sku">
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('restock-modal')">Cancel</button>
-      <button class="btn btn-green" onclick="doRestock()">✓ Add Stock</button>
+      <button class="btn btn-green" onclick="doRestock(false)">✓ Save Locally</button>
+      <button class="btn-save-sheets" onclick="doRestock(true)" style="padding:9px 16px;">☁ Restock & Push</button>
     </div>
   </div>
 </div>
@@ -970,6 +1057,7 @@ async function gsFetch(action, params='') {
 }
 // All writes go via JSONP GET — Google Apps Script blocks POST from browsers (CORS).
 // We encode the payload as a base64 URL param so the Apps Script can decode it.
+// Available actions: saveProducts, saveSale, saveSalesBatch, saveSiteSettings
 async function gsPost(action, body) {
   return new Promise((resolve) => {
     const cbName = '_poscb_post_' + action + '_' + Date.now();
@@ -1458,7 +1546,7 @@ function openEditProduct(sku){
   document.getElementById('p-desc').value=p.desc||''; document.getElementById('p-img').value=p.img||'';
   openModal('product-modal');
 }
-function saveProduct(){
+function saveProduct(pushNow=false){
   const sku=document.getElementById('p-sku').value.trim(), name=document.getElementById('p-name').value.trim();
   if(!sku||!name){showToast('SKU and Name required!','error');return;}
   const orig=document.getElementById('edit-sku-orig').value;
@@ -1469,14 +1557,32 @@ function saveProduct(){
     desc:document.getElementById('p-desc').value.trim(),img:document.getElementById('p-img').value.trim()};
   if(orig){const i=prods.findIndex(p=>p.sku===orig);if(i>=0)prods[i]=np;else prods.push(np);}
   else{if(prods.find(p=>p.sku===sku)){showToast('SKU already exists!','error');return;}prods.push(np);}
-  set(K.products,prods); closeModal('product-modal'); renderInventory(); renderProducts(); showToast('Product saved ✅','success');
-  pushProductsToSheets(prods).then(ok => { if(!ok) showToast('⚠ Saved locally — Sheets sync failed','error'); });
+  set(K.products,prods);
+  markInvPending();
+  closeModal('product-modal'); renderInventory(); renderProducts();
+  if (pushNow) {
+    showToast('Saving to Sheets…', '');
+    setInvSaveState('saving');
+    pushProductsToSheets(prods).then(ok => {
+      if(ok){ showToast('Product saved & pushed to Sheets ✅','success'); setInvSaveState('synced'); addSaveLog('inventory','Products saved to Sheets','ok'); }
+      else  { showToast('⚠ Saved locally — Sheets push failed. Use "Save to Sheets" button.','error'); setInvSaveState('error'); addSaveLog('inventory','Products push failed','fail'); }
+    });
+  } else {
+    showToast('Product saved locally 💾 — click "Save to Sheets" to sync','');
+    setInvSaveState('pending');
+  }
 }
 function delProduct(sku){
-  if(!confirm('Delete this product?'))return;
+  if(!confirm('Delete this product? This will also remove it from Google Sheets.'))return;
   const prods = get(K.products).filter(p=>p.sku!==sku);
-  set(K.products, prods); renderInventory(); showToast('Deleted.','success');
-  pushProductsToSheets(prods).then(ok => { if(!ok) showToast('⚠ Deleted locally — Sheets sync failed','error'); });
+  set(K.products, prods);
+  markInvPending();
+  renderInventory();
+  setInvSaveState('saving');
+  pushProductsToSheets(prods).then(ok => {
+    if(ok){ showToast('Product deleted & Sheets updated ✅','success'); setInvSaveState('synced'); addSaveLog('delete','Product '+sku+' deleted from Sheets','ok'); }
+    else  { showToast('⚠ Deleted locally — Sheets push failed. Use "Save to Sheets" button.','error'); setInvSaveState('error'); addSaveLog('delete','Delete '+sku+' — push failed','fail'); }
+  });
 }
 
 // ═══════════════════════════════════
@@ -1529,7 +1635,10 @@ function renderSales(){
         <td><span class="badge ${payBadge}">${payLabel}</span></td>
         <td style="color:var(--green);">${s.discount>0?'-'+fmt(s.discount):'—'}</td>
         <td style="font-weight:700;color:${voided?'var(--red)':'var(--gold-600)'};">${voided?'<s>'+fmt(s.total)+'</s>':fmt(s.total)}</td>
-        <td><button class="btn btn-outline btn-sm" onclick="viewSaleByTxn('${s.txnNum}')">👁 View</button></td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-outline btn-sm" onclick="viewSaleByTxn('${s.txnNum}')">👁 View</button>
+          <button class="sheets-inline-btn" style="margin-left:4px;" onclick="repushSale('${s.txnNum}')" title="Re-send this transaction to Google Sheets">☁ Push</button>
+        </td>
         ${isOwner?`<td style="white-space:nowrap;">${ownerBtns}</td>`:''}
       </tr>`;
     }).join('')
@@ -1893,18 +2002,193 @@ function openRestock(sku) {
   document.getElementById('restock-note').value = '';
   openModal('restock-modal');
 }
-function doRestock() {
+function doRestock(pushNow=false) {
   const sku = document.getElementById('restock-sku').value;
   const qty = parseInt(document.getElementById('restock-qty').value) || 0;
   if (qty <= 0) { showToast('Enter a valid quantity!', 'error'); return; }
   const prods = get(K.products), idx = prods.findIndex(p => p.sku === sku);
   if (idx < 0) return;
+  const pName = prods[idx].name;
   prods[idx].stock += qty;
   set(K.products, prods);
+  markInvPending();
   closeModal('restock-modal');
   renderInventory(); renderProducts(); refreshDashboard();
-  showToast('+' + qty + ' units added to ' + prods[idx].name + ' ✅', 'success');
-  pushProductsToSheets(prods).then(ok => { if(!ok) showToast('⚠ Restocked locally — Sheets sync failed','error'); });
+  if (pushNow) {
+    showToast('Pushing restock to Sheets…', '');
+    setInvSaveState('saving');
+    pushProductsToSheets(prods).then(ok => {
+      if(ok){ showToast('+'+qty+' units restocked on '+pName+' & saved to Sheets ✅','success'); setInvSaveState('synced'); addSaveLog('restock','+'+qty+' × '+pName+' saved','ok'); }
+      else  { showToast('⚠ Restocked locally — Sheets push failed. Use "Save to Sheets" button.','error'); setInvSaveState('error'); addSaveLog('restock','+'+qty+' × '+pName+' — push failed','fail'); }
+    });
+  } else {
+    showToast('+'+qty+' added to '+pName+' 💾 — click "Save to Sheets" to sync','');
+    setInvSaveState('pending');
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════
+//  SHEETS SAVE SYSTEM — Manual & Auto
+// ═══════════════════════════════════════════════════════
+
+// ── Inventory Save State ──────────────────────────────
+let _invPendingChanges = 0;
+let _invLastSaved = null;
+
+function markInvPending() {
+  _invPendingChanges++;
+  setInvSaveState('pending');
+}
+
+function setInvSaveState(state) {
+  const pill    = document.getElementById('inv-sheets-pill');
+  const dot     = document.getElementById('inv-pending-dot');
+  const info    = document.getElementById('inv-sheets-info');
+  const btn     = document.getElementById('inv-save-btn');
+  const icon    = document.getElementById('inv-save-icon');
+  const lastSav = document.getElementById('inv-last-saved');
+  if (!pill) return;
+  const map = {
+    synced:  { cls:'synced',  txt:'☁ Synced',    dot:false, btnDis:false, infoTxt:'All changes saved to Google Sheets', btnIcon:'☁' },
+    pending: { cls:'pending', txt:'● Unsaved changes', dot:true, btnDis:false, infoTxt:`${_invPendingChanges} unsaved change(s) — click Save to Sheets`, btnIcon:'⬆' },
+    saving:  { cls:'syncing', txt:'⟳ Saving…',   dot:false, btnDis:true,  infoTxt:'Saving to Google Sheets…', btnIcon:'⟳' },
+    error:   { cls:'error',   txt:'⚠ Save failed', dot:true, btnDis:false, infoTxt:'Save failed — check internet & retry', btnIcon:'↺' },
+  };
+  const m = map[state] || map.synced;
+  pill.className = 'sheets-status-pill ' + m.cls;
+  pill.textContent = m.txt;
+  dot.style.display = m.dot ? 'inline-block' : 'none';
+  info.textContent = m.infoTxt;
+  if (btn) { btn.disabled = m.btnDis; btn.className = 'btn-save-sheets' + (m.btnDis ? ' saving' : ''); }
+  if (icon) icon.textContent = m.btnIcon;
+  if (state === 'synced' && _invLastSaved) {
+    lastSav.textContent = 'Last saved: ' + _invLastSaved.toLocaleTimeString('en-PH');
+  }
+}
+
+function saveInventoryToSheets() {
+  const prods = get(K.products);
+  if (!prods.length) { showToast('No products to save!', ''); return; }
+  setInvSaveState('saving');
+  showToast('Saving all ' + prods.length + ' products to Google Sheets…', '');
+  pushProductsToSheets(prods).then(ok => {
+    if (ok) {
+      _invPendingChanges = 0;
+      _invLastSaved = new Date();
+      setInvSaveState('synced');
+      showToast('✅ ' + prods.length + ' products saved to Sheets!', 'success');
+      addSaveLog('inventory', prods.length + ' products saved to Sheets', 'ok');
+    } else {
+      setInvSaveState('error');
+      showToast('⚠ Sheets save failed — check connection & try again', 'error');
+      addSaveLog('inventory', 'Bulk save failed', 'fail');
+    }
+  });
+}
+
+// ── Sales Push Functions ──────────────────────────────
+let _salesLastPushed = null;
+
+function setSalesSaveState(state, detail) {
+  const pill    = document.getElementById('sales-sheets-pill');
+  const dot     = document.getElementById('sales-pending-dot');
+  const info    = document.getElementById('sales-sheets-info');
+  const lastSav = document.getElementById('sales-last-saved');
+  if (!pill) return;
+  const map = {
+    synced:  { cls:'synced',  txt:'☁ Synced',     dot:false },
+    pending: { cls:'pending', txt:'● Pending push', dot:true  },
+    syncing: { cls:'syncing', txt:'⟳ Pushing…',    dot:false },
+    error:   { cls:'error',   txt:'⚠ Push failed',  dot:true  },
+  };
+  const m = map[state] || map.synced;
+  pill.className = 'sheets-status-pill ' + m.cls;
+  pill.textContent = m.txt;
+  dot.style.display = m.dot ? 'inline-block' : 'none';
+  if (detail) info.textContent = detail;
+  if (state === 'synced' && _salesLastPushed) {
+    lastSav.textContent = 'Last pushed: ' + _salesLastPushed.toLocaleTimeString('en-PH');
+  }
+}
+
+function repushSale(txnNum) {
+  const sale = _salesMap && _salesMap[txnNum];
+  if (!sale) { showToast('Sale not found!', 'error'); return; }
+  setSalesSaveState('syncing', 'Pushing ' + txnNum + '…');
+  showToast('Pushing ' + txnNum + ' to Sheets…', '');
+  gsPost('saveSale', {
+    sale: { cashier: sale.cashier, total: sale.subtotal, discount: sale.discount,
+            grandTotal: sale.total, payment: sale.payment, notes: sale.customer },
+    items: sale.items.map(i => ({ sku: i.sku, name: i.name, brand: '', qty: i.qty, unitPrice: i.price }))
+  }).then(result => {
+    if (result && result.success) {
+      _salesLastPushed = new Date();
+      setSalesSaveState('synced', txnNum + ' pushed successfully');
+      showToast(txnNum + ' pushed to Sheets ✅', 'success');
+      addSaveLog('sale', txnNum + ' re-pushed to Sheets', 'ok');
+    } else {
+      setSalesSaveState('error', txnNum + ' push failed');
+      showToast('⚠ Push failed for ' + txnNum, 'error');
+      addSaveLog('sale', txnNum + ' re-push failed', 'fail');
+    }
+  });
+}
+
+function pushAllSalesToSheets() {
+  const sales = get(K.sales).filter(s => !s.voided);
+  if (!sales.length) { showToast('No sales to push!', ''); return; }
+  setSalesSaveState('syncing', 'Pushing ' + sales.length + ' records…');
+  showToast('Pushing all ' + sales.length + ' sales to Sheets…', '');
+  // Push all one-by-one with a small batch aggregator
+  const allItems = [];
+  sales.forEach(s => {
+    allItems.push({ sku: 'BATCH', name: 'BATCH_PUSH', brand: '', qty: 0, unitPrice: 0 });
+  });
+  gsPost('saveSalesBatch', {
+    sales: sales.map(s => ({
+      txnNum:    s.txnNum,
+      date:      s.date,
+      cashier:   s.cashier,
+      customer:  s.customer,
+      subtotal:  s.subtotal,
+      discount:  s.discount,
+      grandTotal:s.total,
+      payment:   s.payment,
+      items:     s.items.map(i => ({ sku:i.sku, name:i.name, qty:i.qty, unitPrice:i.price }))
+    }))
+  }).then(result => {
+    if (result && result.success) {
+      _salesLastPushed = new Date();
+      setSalesSaveState('synced', sales.length + ' records pushed');
+      showToast('✅ ' + sales.length + ' sales pushed to Sheets!', 'success');
+      addSaveLog('sales-batch', sales.length + ' sales pushed', 'ok');
+    } else {
+      setSalesSaveState('error', 'Batch push failed');
+      showToast('⚠ Batch push failed — try pushing individual records', 'error');
+      addSaveLog('sales-batch', 'Batch push failed', 'fail');
+    }
+  });
+}
+
+// ── Save Log ──────────────────────────────────────────
+const _saveLog = [];
+function addSaveLog(type, msg, status) {
+  const now = new Date();
+  _saveLog.unshift({ time: now.toLocaleTimeString('en-PH'), type, msg, status });
+  if (_saveLog.length > 30) _saveLog.pop();
+  const el = document.getElementById('save-log-entries');
+  if (!el) return;
+  el.innerHTML = _saveLog.map(e =>
+    `<div class="save-log-entry">
+      <span><strong>${e.type.toUpperCase()}</strong> — ${e.msg}</span>
+      <span class="sle-${e.status === 'ok' ? 'ok' : 'fail'}">[${e.time}] ${e.status === 'ok' ? '✓ OK' : '✗ FAIL'}</span>
+    </div>`
+  ).join('');
+}
+function toggleSaveLog() {
+  const el = document.getElementById('save-log');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 // ═══════════════════════════════════
