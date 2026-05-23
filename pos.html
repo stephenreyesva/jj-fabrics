@@ -593,6 +593,7 @@
     <div class="sidebar-footer">
       <div id="sync-status" style="font-size:11px;font-weight:600;margin-bottom:10px;text-align:center;letter-spacing:0.3px;color:var(--gray-400);">☁ Not synced</div>
       <button class="btn-logout" onclick="doLogout()">↩ Sign Out</button>
+      <button class="btn-logout" style="margin-top:6px;background:rgba(239,68,68,0.12);color:#ef4444;font-size:10px;" onclick="if(confirm('Clear all local data and reload? This will re-sync from Sheets.')){localStorage.clear();location.reload();}">🗑 Clear Cache & Reload</button>
     </div>
   </aside>
 
@@ -1252,18 +1253,37 @@ async function testSheetsConnection() {
 async function pushProductsToSheets(products) {
   showSyncStatus('syncing');
   try {
-    // Strip base64 — keep only http/https URLs for Sheets
+    // Strip base64 images — Sheets can't render them and they bloat the URL
     const sheetsProds = products.map(p => ({
       ...p,
       img: (p.img && p.img.startsWith('http')) ? p.img : ''
     }));
 
-    const result = await gsPost('saveProducts', { products: sheetsProds });
-    if (result && result.success) { showSyncStatus('ok'); return true; }
+    // CHUNKED SAVE — 23 products in one URL = ~12,000 chars → Google rejects it.
+    // Send in batches of 14 max (~7,300 chars each, safely under the 8,000 char limit).
+    const CHUNK = 14;
+    const chunks = [];
+    for (let i = 0; i < sheetsProds.length; i += CHUNK) {
+      chunks.push(sheetsProds.slice(i, i + CHUNK));
+    }
 
-    // null = timeout/network error
-    if (result === null) throw new Error('Timeout — check internet');
-    throw new Error(result && result.error ? result.error : 'Sheets rejected the save');
+    for (let i = 0; i < chunks.length; i++) {
+      const info = document.getElementById('inv-sheets-info');
+      if (info) info.textContent = 'Saving ' + (i+1) + ' of ' + chunks.length + '…';
+
+      const result = await gsPost('saveProducts', {
+        products:    chunks[i],
+        replaceAll:  i === 0,        // first chunk: clear sheet + write headers fresh
+        chunkIndex:  i,
+        totalChunks: chunks.length
+      });
+
+      if (!result)          throw new Error('Timeout on chunk ' + (i+1) + ' — check internet');
+      if (!result.success)  throw new Error(result.error || 'Chunk ' + (i+1) + ' rejected by Sheets');
+    }
+
+    showSyncStatus('ok');
+    return true;
   } catch(e) {
     console.warn('Push to Sheets failed:', e);
     showSyncStatus('error');
