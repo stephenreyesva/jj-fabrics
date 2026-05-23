@@ -185,6 +185,8 @@
   .social-btn.instagram:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(220,39,67,0.4); }
   .social-btn.whatsapp  { background: #25D366; color: white; }
   .social-btn.whatsapp:hover  { background: #1fbc5a; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(37,211,102,0.4); }
+  .social-btn.youtube   { background: #FF0000; color: white; }
+  .social-btn.youtube:hover   { background: #cc0000; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(255,0,0,0.4); }
   .social-btn.location  { background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.2); }
   .social-btn.location:hover  { background: rgba(255,255,255,0.15); transform: translateY(-3px); }
 
@@ -220,6 +222,8 @@
   .fs-tiktok:hover { background: #69C9D0; color: #010101; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(105,201,208,0.5); }
   .fs-whatsapp { background: #25D366; color: white; }
   .fs-whatsapp:hover { background: #1fbc5a; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(37,211,102,0.5); }
+  .fs-youtube { background: #FF0000; color: white; }
+  .fs-youtube:hover { background: #cc0000; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(255,0,0,0.5); }
   .footer-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 10px; }
   .footer-bottom p { font-size: 12px; color: rgba(255,255,255,0.25); }
 
@@ -399,8 +403,8 @@
     <div class="section-title">Our <em>Categories</em></div>
     <div class="cat-grid" id="cat-grid">
       <div class="cat-card active" onclick="filterCat('')"><span class="cat-icon">🛍️</span><div class="cat-name">All Items</div><div class="cat-count" id="cnt-all">— items</div></div>
-      <div class="cat-card" onclick="filterCat(\"Women's Dress\")"><span class="cat-icon">👗</span><div class="cat-name">Ladies Suits</div><div class="cat-count" id="cnt-women">— items</div></div>
-      <div class="cat-card" onclick="filterCat(\"Men's Wear\")"><span class="cat-icon">👔</span><div class="cat-name">Gents Wear</div><div class="cat-count" id="cnt-men">— items</div></div>
+      <div class="cat-card" onclick="filterCat('Ladies Suiting')"><span class="cat-icon">👗</span><div class="cat-name">Ladies Suits</div><div class="cat-count" id="cnt-women">— items</div></div>
+      <div class="cat-card" onclick="filterCat('Gents Suiting')"><span class="cat-icon">👔</span><div class="cat-name">Gents Wear</div><div class="cat-count" id="cnt-men">— items</div></div>
       <div class="cat-card" onclick="filterCat('Accessories')"><span class="cat-icon">💍</span><div class="cat-name">Accessories</div><div class="cat-count" id="cnt-acc">— items</div></div>
     </div>
   </div>
@@ -427,7 +431,7 @@
       <div>
         <div class="section-label">Our Story</div>
         <div class="section-title">Attock's <em>House of Brands</em></div>
-        <div class="section-subtitle" id="about-text">We believe every outfit tells a story. At JJ Fabrics, we curate timeless pieces that celebrate your unique style — blending elegance, comfort, and affordability.</div>
+        <div class="section-subtitle" id="about-text">JJ Fabrics is Attock City's premier House of Brands, we curate timeless pieces that celebrate your unique style — blending elegance, comfort, and affordability.</div>
         <div class="about-features">
           <div class="about-feat"><div class="feat-icon">✨</div><div class="feat-text"><div class="ft-title">Premium Brands</div><div class="ft-desc">10+ top Pakistani fashion brands</div></div></div>
           <div class="about-feat"><div class="feat-icon">🏷️</div><div class="feat-text"><div class="ft-title">Original Products</div><div class="ft-desc">100% authentic, authorized retailer</div></div></div>
@@ -463,6 +467,7 @@
       <a class="social-btn whatsapp" id="link-wa" href="#" target="_blank">
         <span class="sb-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span> WhatsApp
       </a>
+      <a class="social-btn youtube" id="link-yt" href="https://youtube.com/@jjfabric786?si=HoEYFCJVncSEmGBm" target="_blank"><span class="sb-icon">▶️</span> YouTube</a>
       <a class="social-btn location" href="#contact"><span class="sb-icon">📍</span> Find Our Store</a>
     </div>
   </div>
@@ -510,6 +515,7 @@
         <a class="fs-btn fs-tiktok" id="fs-tt" href="#" target="_blank" title="TikTok">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>
         </a>
+        <a class="fs-btn fs-youtube" id="fs-yt" href="https://youtube.com/@jjfabric786?si=HoEYFCJVncSEmGBm" target="_blank" title="YouTube">▶️</a>
         <a class="fs-btn fs-whatsapp" id="fs-wa" href="#" target="_blank" title="WhatsApp">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         </a>
@@ -592,26 +598,26 @@ const getSite = () => _cachedSite     || getDefaultSite();
 // ═══════════════════════════════════════
 function getDefaultProducts() {
   return [
-    {sku:'LAD-001',name:'SAYA Embroidered 3-Piece',category:"Ladies Suits",size:'S/M/L/XL',price:4500,cost:2800,stock:15,minStock:3,desc:'Luxury embroidered lawn suit by SAYA',img:''},
-    {sku:'LAD-002',name:'Bonanza Satrangi Summer Lawn',category:"Ladies Suits",size:'S/M/L/XL/XXL',price:3200,cost:1800,stock:20,minStock:5,desc:'Vibrant summer lawn collection',img:''},
-    {sku:'LAD-003',name:'Sapphire Printed Suit',category:"Ladies Suits",size:'S/M/L/XL',price:5500,cost:3200,stock:10,minStock:3,desc:'Elegant Sapphire printed suit',img:''},
-    {sku:'LAD-004',name:'Maria.B Luxury Pret',category:"Ladies Suits",size:'S/M/L',price:8500,cost:5000,stock:6,minStock:2,desc:'Maria.B premium luxury pret collection',img:''},
-    {sku:'GEN-001',name:'J. Junaid Jamshed Kurta',category:"Gents Wear",size:'S/M/L/XL/XXL',price:3800,cost:2200,stock:18,minStock:5,desc:'Classic embroidered kurta by J.',img:''},
-    {sku:'GEN-002',name:'Bin Saeed Premium Shalwar Kameez',category:"Gents Wear",size:'S/M/L/XL',price:4200,cost:2500,stock:12,minStock:4,desc:'Fine cotton shalwar kameez',img:''},
-    {sku:'GEN-003',name:'Gents Waistcoat (Wasket)',category:"Gents Wear",size:'S/M/L/XL',price:2500,cost:1400,stock:15,minStock:4,desc:'Formal embroidered waistcoat',img:''},
-    {sku:'KID-001',name:'Kids Eid Suit',category:"Kids",size:'2Y–14Y',price:1800,cost:900,stock:20,minStock:5,desc:'Festive embroidered kids suit',img:''},
-    {sku:'ACC-001',name:'Dupatta — Embroidered',category:"Accessories",size:'One Size',price:1200,cost:600,stock:25,minStock:5,desc:'Heavy embroidered dupatta',img:''},
-    {sku:'ACC-002',name:'VIRSA Pret Kurta',category:"Ladies Suits",size:'S/M/L/XL',price:2800,cost:1600,stock:14,minStock:4,desc:'Ready-to-wear kurta by VIRSA Pret',img:''},
+    {sku:'P001',name:'Bin Saeed Embroidered Lawn',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:20,minStock:5,desc:'Premium embroidered lawn suit by Bin Saeed',img:'p1.jpeg'},
+    {sku:'P002',name:'Saya Printed Lawn 3-Piece',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:18,minStock:5,desc:'Vibrant printed lawn collection by Saya',img:'p2.jpeg'},
+    {sku:'P003',name:'Bonanza Satrangi Lawn Suit',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Colourful summer lawn by Bonanza Satrangi',img:'p3.jpeg'},
+    {sku:'P004',name:'Sapphire Embroidered 3-Piece',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Elegant embroidered suit by Sapphire',img:'p4.jpeg'},
+    {sku:'P005',name:'Maria.B Luxury Lawn',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Premium luxury lawn by Maria.B',img:'p5.jpeg'},
+    {sku:'P006',name:'J. Junaid Jamshed Lawn',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Classic embroidered lawn by J.',img:'p6.jpeg'},
+    {sku:'P007',name:'Grace Printed Suit',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:10,minStock:3,desc:'Elegant printed suit by Grace',img:'p7.jpeg'},
   ];
 }
 
 function getDefaultSite() {
   return {
     name:'JJ Fabrics', tagline:'Gents & Ladies Suiting Place',
-    about:'We believe every outfit tells a story. At JJ Fabrics, we curate timeless pieces that celebrate your unique style — blending elegance, comfort, and affordability.',
+    about:'JJ Fabrics is Attock City's premier House of Brands, we curate timeless pieces that celebrate your unique style — blending elegance, comfort, and affordability.',
     address:'Sher Bahadur Plaza, K-Block, Near Dr. Ibadat Hospital, Main Bazar, Attock City',
     phone:'923145777344', email:'jjfabrics@gmail.com',
-    facebook:'https://facebook.com', instagram:'https://instagram.com',
+    facebook:'https://www.facebook.com/share/r/17wrND2MNc/',
+    instagram:'https://www.instagram.com/muhammadhamzajaved11961?igsh=MXNrdWhwZ2FhMGw1Mw==',
+    tiktok:'https://www.tiktok.com/@hamzajaved04?_r=1&_t=ZS-96YCJS7LU6X',
+    youtube:'https://youtube.com/@jjfabric786?si=HoEYFCJVncSEmGBm',
     map:'https://maps.google.com/maps?q=Sher+Bahadur+Plaza+K+Block+Attock+City+Pakistan&output=embed',
     emoji:'🧵', heroColor:'#0a0a0a', accentColor:'#D4A017',
     featured:[], publishedAt: null
@@ -660,18 +666,21 @@ function applySiteData() {
   document.getElementById('cta-wa').href    = waLink;
   document.getElementById('fs-wa').href     = waLink;
   // Facebook
-  const fbLink = s.facebook || '#';
+  const fbLink = s.facebook || 'https://www.facebook.com/share/r/17wrND2MNc/';
   document.getElementById('link-fb').href   = fbLink;
   document.getElementById('cta-fb').href    = fbLink;
   document.getElementById('fs-fb').href     = fbLink;
   // Instagram
-  const igLink = s.instagram || '#';
+  const igLink = s.instagram || 'https://www.instagram.com/muhammadhamzajaved11961?igsh=MXNrdWhwZ2FhMGw1Mw==';
   document.getElementById('link-ig').href   = igLink;
   document.getElementById('fs-ig').href     = igLink;
   // TikTok
-  const ttLink = s.tiktok || '#';
+  const ttLink = s.tiktok || 'https://www.tiktok.com/@hamzajaved04?_r=1&_t=ZS-96YCJS7LU6X';
   document.getElementById('link-tt').href   = ttLink;
   document.getElementById('fs-tt').href     = ttLink;
+  const ytLink = s.youtube || 'https://youtube.com/@jjfabric786?si=HoEYFCJVncSEmGBm';
+  if(document.getElementById('link-yt')) document.getElementById('link-yt').href = ytLink;
+  if(document.getElementById('fs-yt'))   document.getElementById('fs-yt').href   = ytLink;
   // Contact
   document.getElementById('contact-address').innerHTML = (s.address || '—') + '<br><a href="https://maps.app.goo.gl/FpTpXPsSP61XQrkf9" target="_blank" style="color:var(--accent-dark);font-size:12px;font-weight:700;">📍 Open in Google Maps →</a>';
   const phoneDisplay = s.phone ? s.phone.replace(/(\d{2})(\d{3})(\d{3})(\d{4})/, '+$1 $2 $3 $4') : '—';
@@ -708,8 +717,8 @@ function loadProducts() {
   // Counts
   document.getElementById('stat-products').textContent = prods.length + '+';
   document.getElementById('cnt-all').textContent   = allProducts.length + ' items';
-  document.getElementById('cnt-women').textContent = allProducts.filter(p=>p.category==="Ladies Suits").length + ' items';
-  document.getElementById('cnt-men').textContent   = allProducts.filter(p=>p.category==="Gents Wear").length + ' items';
+  document.getElementById('cnt-women').textContent = allProducts.filter(p=>p.category==='Ladies Suiting').length + ' items';
+  document.getElementById('cnt-men').textContent   = allProducts.filter(p=>p.category==='Gents Suiting').length + ' items';
   document.getElementById('cnt-acc').textContent   = allProducts.filter(p=>p.category==='Accessories').length + ' items';
 
   // Hero cards
