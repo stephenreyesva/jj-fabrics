@@ -673,8 +673,8 @@
             <input type="text" id="pos-search" placeholder="🔍  Search by name or SKU…" oninput="renderProducts()">
             <select id="pos-cat" onchange="renderProducts()">
               <option value="">All Categories</option>
-              <option value="Ladies Suits">Ladies Suits</option>
-              <option value="Gents Wear">Gents Wear</option>
+              <option value="Ladies Suiting">Ladies Suiting</option>
+              <option value="Gents Suiting">Gents Suiting</option>
               <option value="Accessories">Accessories</option>
               <option value="Kids">Kids</option>
             </select>
@@ -748,8 +748,8 @@
         <input type="text" id="inv-search" placeholder="Search products…" oninput="renderInventory()">
         <select id="inv-cat" onchange="renderInventory()">
           <option value="">All Categories</option>
-          <option value="Ladies Suits">Ladies Suits</option>
-          <option value="Gents Wear">Gents Wear</option>
+          <option value="Ladies Suiting">Ladies Suiting</option>
+          <option value="Gents Suiting">Gents Suiting</option>
           <option value="Accessories">Accessories</option>
           <option value="Kids">Kids</option>
         </select>
@@ -1006,7 +1006,7 @@
     <div class="form-row">
       <div class="form-group"><label>Category</label>
         <select class="input-field" id="p-cat" style="margin-bottom:0">
-          <option>Ladies Suits</option><option>Gents Wear</option><option>Accessories</option><option>Kids</option>
+          <option>Ladies Suiting</option><option>Gents Suiting</option><option>Accessories</option><option>Kids</option>
         </select>
       </div>
       <div class="form-group"><label>Size(s)</label><input class="input-field" type="text" id="p-size" placeholder="S/M/L/XL" style="margin-bottom:0"></div>
@@ -1246,46 +1246,24 @@ async function testSheetsConnection() {
   }
 }
 
-// ── Push products back to Sheets (chunked) ──
-// Root cause of "Save failed": 23 products = ~12,000 char URL → rejected by Google.
-// Fix: send in chunks of 14 max (~7,300 chars each — safely under the 8,000 limit).
-// First chunk sends replaceAll:true to clear the sheet, subsequent chunks append.
+// ── Push products back to Sheets ──
+// Base64 images cannot go to Sheets (URL too long + Sheets can't render them).
+// Strip data: URIs before sending — they stay in localStorage for POS display only.
 async function pushProductsToSheets(products) {
   showSyncStatus('syncing');
   try {
-    // Strip base64 images — keep only https:// URLs (Sheets can't render base64)
+    // Strip base64 — keep only http/https URLs for Sheets
     const sheetsProds = products.map(p => ({
       ...p,
       img: (p.img && p.img.startsWith('http')) ? p.img : ''
     }));
 
-    const CHUNK = 14; // max safe chunk: 14 products ≈ 7,300 char URL
-    const chunks = [];
-    for (let i = 0; i < sheetsProds.length; i += CHUNK) {
-      chunks.push(sheetsProds.slice(i, i + CHUNK));
-    }
+    const result = await gsPost('saveProducts', { products: sheetsProds });
+    if (result && result.success) { showSyncStatus('ok'); return true; }
 
-    for (let i = 0; i < chunks.length; i++) {
-      const isFirst = i === 0;
-      const isLast  = i === chunks.length - 1;
-
-      // Update status bar so user can see progress
-      const info = document.getElementById('inv-sheets-info');
-      if (info) info.textContent = `Saving chunk ${i+1} of ${chunks.length}…`;
-
-      const result = await gsPost('saveProducts', {
-        products:   chunks[i],
-        replaceAll: isFirst,   // first chunk: clear sheet and write fresh
-        chunkIndex: i,
-        totalChunks: chunks.length
-      });
-
-      if (!result) throw new Error(`Timeout on chunk ${i+1} — check internet`);
-      if (!result.success) throw new Error(result.error || `Chunk ${i+1} rejected by Sheets`);
-    }
-
-    showSyncStatus('ok');
-    return true;
+    // null = timeout/network error
+    if (result === null) throw new Error('Timeout — check internet');
+    throw new Error(result && result.error ? result.error : 'Sheets rejected the save');
   } catch(e) {
     console.warn('Push to Sheets failed:', e);
     showSyncStatus('error');
@@ -1352,9 +1330,9 @@ function seed() {
     {sku:'LAD-002',name:'Bonanza Satrangi Summer Lawn',brand:'Bonanza Satrangi',category:'Ladies Suiting',size:'S/M/L/XXL',price:6000,cost:1800,stock:19,minStock:3,desc:'Vibrant summer lawn collection.',img:''},
     {sku:'LAD-003',name:'Sapphire Printed Suit',brand:'Sapphire',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:3200,stock:10,minStock:3,desc:'Elegant Sapphire printed suit.',img:''},
     {sku:'LAD-004',name:'Maria.B Luxury Pret',brand:'Maria.B',category:'Ladies Suiting',size:'S/M/L',price:4600,cost:5000,stock:4,minStock:2,desc:'Maria.B premium luxury pret collection.',img:''},
-    {sku:'GEN-001',name:'J. Junaid Jamshed Kurta',brand:'J.',category:'Gents Wear',size:'S/M/L/XL/XXL',price:4600,cost:2200,stock:15,minStock:5,desc:'Classic embroidered kurta by J. Junaid Jamshed.',img:''},
-    {sku:'GEN-002',name:'Bin Saeed Premium Shalwar Kameez',brand:'Bin Saeed',category:'Gents Wear',size:'S/M/L/XL',price:4600,cost:2500,stock:11,minStock:4,desc:'Fine cotton shalwar kameez.',img:''},
-    {sku:'GEN-003',name:'Gents Waistcoat (Wasket)',brand:'',category:'Gents Wear',size:'S/M/L/XL',price:4600,cost:1400,stock:12,minStock:4,desc:'Formal embroidered waistcoat.',img:''},
+    {sku:'GEN-001',name:'J. Junaid Jamshed Kurta',brand:'J.',category:'Gents Suiting',size:'S/M/L/XL/XXL',price:4600,cost:2200,stock:15,minStock:5,desc:'Classic embroidered kurta by J. Junaid Jamshed.',img:''},
+    {sku:'GEN-002',name:'Bin Saeed Premium Shalwar Kameez',brand:'Bin Saeed',category:'Gents Suiting',size:'S/M/L/XL',price:4600,cost:2500,stock:11,minStock:4,desc:'Fine cotton shalwar kameez.',img:''},
+    {sku:'GEN-003',name:'Gents Waistcoat (Wasket)',brand:'',category:'Gents Suiting',size:'S/M/L/XL',price:4600,cost:1400,stock:12,minStock:4,desc:'Formal embroidered waistcoat.',img:''},
     {sku:'KID-001',name:'Kids Eid Suit',brand:'',category:'Kids',size:'2Y-14Y',price:4600,cost:900,stock:19,minStock:5,desc:'Festive embroidered kids suit.',img:''},
     {sku:'ACC-001',name:'Dupatta — Embroidered',brand:'',category:'Accessories',size:'One Size',price:4600,cost:600,stock:25,minStock:5,desc:'Heavy embroidered dupatta.',img:''},
     {sku:'ACC-002',name:'VIRSA Pret Kurta',brand:'VIRSA',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:1600,stock:14,minStock:4,desc:'Ready-to-wear kurta by VIRSA Pret.',img:''},
@@ -1840,9 +1818,9 @@ async function loadDefaultsAndPush() {
     {sku:'LAD-002',name:'Bonanza Satrangi Summer Lawn',brand:'Bonanza Satrangi',category:'Ladies Suiting',size:'S/M/L/XXL',price:6000,cost:1800,stock:19,minStock:3,desc:'Vibrant summer lawn collection.',img:''},
     {sku:'LAD-003',name:'Sapphire Printed Suit',brand:'Sapphire',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:3200,stock:10,minStock:3,desc:'Elegant Sapphire printed suit.',img:''},
     {sku:'LAD-004',name:'Maria.B Luxury Pret',brand:'Maria.B',category:'Ladies Suiting',size:'S/M/L',price:4600,cost:5000,stock:4,minStock:2,desc:'Maria.B premium luxury pret collection.',img:''},
-    {sku:'GEN-001',name:'J. Junaid Jamshed Kurta',brand:'J.',category:'Gents Wear',size:'S/M/L/XL/XXL',price:4600,cost:2200,stock:15,minStock:5,desc:'Classic embroidered kurta by J. Junaid Jamshed.',img:''},
-    {sku:'GEN-002',name:'Bin Saeed Premium Shalwar Kameez',brand:'Bin Saeed',category:'Gents Wear',size:'S/M/L/XL',price:4600,cost:2500,stock:11,minStock:4,desc:'Fine cotton shalwar kameez.',img:''},
-    {sku:'GEN-003',name:'Gents Waistcoat (Wasket)',brand:'',category:'Gents Wear',size:'S/M/L/XL',price:4600,cost:1400,stock:12,minStock:4,desc:'Formal embroidered waistcoat.',img:''},
+    {sku:'GEN-001',name:'J. Junaid Jamshed Kurta',brand:'J.',category:'Gents Suiting',size:'S/M/L/XL/XXL',price:4600,cost:2200,stock:15,minStock:5,desc:'Classic embroidered kurta by J. Junaid Jamshed.',img:''},
+    {sku:'GEN-002',name:'Bin Saeed Premium Shalwar Kameez',brand:'Bin Saeed',category:'Gents Suiting',size:'S/M/L/XL',price:4600,cost:2500,stock:11,minStock:4,desc:'Fine cotton shalwar kameez.',img:''},
+    {sku:'GEN-003',name:'Gents Waistcoat (Wasket)',brand:'',category:'Gents Suiting',size:'S/M/L/XL',price:4600,cost:1400,stock:12,minStock:4,desc:'Formal embroidered waistcoat.',img:''},
     {sku:'KID-001',name:'Kids Eid Suit',brand:'',category:'Kids',size:'2Y-14Y',price:4600,cost:900,stock:19,minStock:5,desc:'Festive embroidered kids suit.',img:''},
     {sku:'ACC-001',name:'Dupatta — Embroidered',brand:'',category:'Accessories',size:'One Size',price:4600,cost:600,stock:25,minStock:5,desc:'Heavy embroidered dupatta.',img:''},
     {sku:'ACC-002',name:'VIRSA Pret Kurta',brand:'VIRSA',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:1600,stock:14,minStock:4,desc:'Ready-to-wear kurta by VIRSA Pret.',img:''},
