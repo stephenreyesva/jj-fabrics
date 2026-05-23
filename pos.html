@@ -1100,8 +1100,14 @@ function jsonpFetch(action, params='') {
   return new Promise((resolve, reject) => {
     const cbName = '_poscb_' + action + '_' + Date.now();
     const script = document.createElement('script');
-    const timeout = setTimeout(() => { delete window[cbName]; script.remove(); reject(new Error('Timeout')); }, 10000);
-    window[cbName] = data => { clearTimeout(timeout); delete window[cbName]; script.remove(); data&&data.success?resolve(data.data):reject(new Error('API error: '+action)); };
+    const timeout = setTimeout(() => { delete window[cbName]; script.remove(); reject(new Error('Timeout')); }, 12000);
+    window[cbName] = data => {
+      clearTimeout(timeout); delete window[cbName]; script.remove();
+      if (data && data.success) resolve(data.data);
+      else if (Array.isArray(data) && data.length) resolve(data);
+      else if (data && typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length) resolve(data);
+      else reject(new Error('Empty response: '+action));
+    };
     script.src = `${API_URL}?action=${action}${params}&callback=${cbName}`;
     script.onerror = () => { clearTimeout(timeout); delete window[cbName]; script.remove(); reject(new Error('Script load failed')); };
     document.head.appendChild(script);
@@ -1110,8 +1116,11 @@ function jsonpFetch(action, params='') {
 async function gsFetch(action, params='') {
   try {
     const res  = await fetch(`${API_URL}?action=${action}${params}`);
-    const data = await res.json();
-    if (data && data.success) return data.data;
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success) return data.data;
+      if (Array.isArray(data) && data.length) return data;
+    }
   } catch(_) {}
   return jsonpFetch(action, params).catch(() => null);
 }
@@ -1442,27 +1451,34 @@ function posText(id, val) { const e=posEl(id); if(e) e.textContent=val; }
 function posHtml(id, val) { const e=posEl(id); if(e) e.innerHTML=val; }
 
 // ── Image resolver: maps SKU → local image file as fallback when Sheets img is empty ──
+// ── Base URL for GitHub Pages hosted images ──
+const GITHUB_IMG_BASE = 'https://stephenreyesva.github.io/jj-fabrics/image/';
+
 const SKU_IMG_MAP = {
-  'BN-1075':'image/p1.jpeg',
-  'BN-1000':'image/p2.jpeg',
-  'BN-1056':'image/p3.jpeg',
-  'BN-1060':'image/p4.jpeg',
-  'BN-1025':'image/p5.jpeg',
-  'BN-1053':'image/p6.jpeg',
-  'BN-1059':'image/p7.jpeg',
-  'PS-001':'image/ps1.jpeg',
-  'PS-002':'image/ps2.jpeg',
-  'PS-003':'image/ps3.jpeg',
-  'PS-004':'image/ps4.jpeg',
-  'PS-005':'image/ps5.jpeg',
-  'PS-006':'image/ps6.jpeg',
-  'PS-007':'image/ps7.jpeg'
+  'BN-1075': GITHUB_IMG_BASE + 'p1.jpeg',
+  'BN-1000': GITHUB_IMG_BASE + 'p2.jpeg',
+  'BN-1056': GITHUB_IMG_BASE + 'p3.jpeg',
+  'BN-1060': GITHUB_IMG_BASE + 'p4.jpeg',
+  'BN-1025': GITHUB_IMG_BASE + 'p5.jpeg',
+  'BN-1053': GITHUB_IMG_BASE + 'p6.jpeg',
+  'BN-1059': GITHUB_IMG_BASE + 'p7.jpeg',
+  'PS-001':  GITHUB_IMG_BASE + 'ps1.jpeg',
+  'PS-002':  GITHUB_IMG_BASE + 'ps2.jpeg',
+  'PS-003':  GITHUB_IMG_BASE + 'ps3.jpeg',
+  'PS-004':  GITHUB_IMG_BASE + 'ps4.jpeg',
+  'PS-005':  GITHUB_IMG_BASE + 'ps5.jpeg',
+  'PS-006':  GITHUB_IMG_BASE + 'ps6.jpeg',
+  'PS-007':  GITHUB_IMG_BASE + 'ps7.jpeg'
 };
 function resolveImg(p) {
-  const imgVal = p.img || p.ImageURL || '';
-  if (imgVal && imgVal.trim()) return imgVal.trim();
+  // 1. Use Sheets ImageURL if it's a full valid URL
+  const imgVal = (p.img || p.ImageURL || '').trim();
+  if (imgVal && (imgVal.startsWith('http') || imgVal.startsWith('/'))) return imgVal;
+  // 2. Fall back to SKU map (absolute GitHub Pages URLs)
   const sku = p.sku || p.SKU || '';
   if (SKU_IMG_MAP[sku]) return SKU_IMG_MAP[sku];
+  // 3. Try local relative path as last resort
+  if (imgVal) return imgVal;
   return '';
 }
 
