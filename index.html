@@ -62,6 +62,65 @@
   .mobile-menu a { font-size: 22px; font-family: 'Playfair Display', serif; color: #1C1C14; text-decoration: none; font-weight: 600; }
 
   /* ── HERO — isolated bg, never bleeds into other sections ── */
+
+  /* ── BRANDS NAV STRIP ── */
+  .brands-nav {
+    background: #1C1C14;
+    border-bottom: 1px solid rgba(212,160,23,0.25);
+    padding: 0;
+    position: sticky;
+    top: 72px;
+    z-index: 98;
+    overflow: hidden;
+  }
+  .brands-nav-inner {
+    display: flex;
+    align-items: stretch;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .brands-nav-inner::-webkit-scrollbar { display: none; }
+  .brands-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+    border-right: 1px solid rgba(212,160,23,0.15);
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+  }
+  .brands-nav-item:last-child { border-right: none; }
+  .brands-nav-item:hover { background: rgba(212,160,23,0.08); }
+  .brands-nav-item.active { background: rgba(212,160,23,0.12); }
+  .brands-nav-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 11.5px;
+    font-style: italic;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 0.04em;
+    padding: 10px 18px 10px 20px;
+    white-space: nowrap;
+    transition: color 0.2s;
+  }
+  .brands-nav-item:hover .brands-nav-label,
+  .brands-nav-item.active .brands-nav-label { color: rgba(255,255,255,0.95); }
+  .brands-nav-plus {
+    font-size: 11px;
+    color: rgba(212,160,23,0.5);
+    padding: 10px 14px 10px 0;
+    font-style: normal;
+    transition: color 0.2s;
+    font-weight: 600;
+  }
+  .brands-nav-item:hover .brands-nav-plus,
+  .brands-nav-item.active .brands-nav-plus { color: var(--accent); }
+  @media (max-width:768px) {
+    .brands-nav { top: 60px; }
+    .brands-nav-label { font-size: 11px; padding: 9px 12px 9px 14px; }
+    .brands-nav-plus { padding: 9px 10px 9px 0; }
+  }
+
   /* ── MARQUEE TICKER STRIP ── */
   .marquee-wrap {
     background: #1C1C14;
@@ -97,7 +156,7 @@
   .hero {
     min-height: 100vh;
     background: var(--hero-section-bg, #1C1C14);
-    display: flex; align-items: center; padding: 100px 5% 60px;
+    display: flex; align-items: center; padding: 140px 5% 60px;
     position: relative; overflow: hidden;
   }
   .hero::before {
@@ -381,6 +440,36 @@
   <a href="#about" onclick="toggleMobile()">About</a>
   <a href="#contact" onclick="toggleMobile()">Contact</a>
   <a href="#" id="mob-wa" target="_blank" style="color:var(--accent-dark);">💬 WhatsApp</a>
+</div>
+
+<!-- BRANDS NAV STRIP -->
+<div class="brands-nav" id="brands-nav">
+  <div class="brands-nav-inner">
+    <a class="brands-nav-item active" onclick="filterBrandNav('all',this)" href="#collections">
+      <span class="brands-nav-label">All Collections</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this)" href="#collections">
+      <span class="brands-nav-label">SAYA · Bonanza · Sapphire</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this)" href="#collections">
+      <span class="brands-nav-label">Maria.B · Bareeze · Cross Stitch</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this)" href="#collections">
+      <span class="brands-nav-label">Veezal · Qalandari · Laam</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Gents Suiting',this)" href="#collections">
+      <span class="brands-nav-label">Gents &amp; Ladies Suiting</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Accessories',this)" href="#collections">
+      <span class="brands-nav-label">Accessories</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+  </div>
 </div>
 
 <!-- MARQUEE TICKER -->
@@ -853,6 +942,18 @@ function filterCat(cat) {
   if (idx >= 0) document.querySelectorAll('.cat-card')[idx]?.classList.add('active');
   renderProducts();
 }
+
+function filterBrandNav(cat, el) {
+  // Update active state on brands nav items
+  document.querySelectorAll('.brands-nav-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  // Apply the category filter
+  activeFilter = cat === 'all' ? '' : cat;
+  renderProducts();
+  // Smooth scroll to collections section
+  document.getElementById('collections')?.scrollIntoView({ behavior: 'smooth' });
+}
+
 
 function renderProducts() {
   const filtered = activeFilter ? allProducts.filter(p => p.category === activeFilter) : allProducts;
