@@ -703,6 +703,16 @@
 // ═══════════════════════════════════════
 //  GOOGLE SHEETS API CONFIG
 // ═══════════════════════════════════════
+// Normalize category names from POS/Sheets to store's expected values
+function normCat(c) {
+  c = (c || '').trim();
+  if (c === 'Ladies Suits' || c === 'Ladies Suit' || c === 'Ladies Suiting') return 'Ladies Suiting';
+  if (c === 'Gents Wear' || c === 'Gents Suiting' || c === 'Gents Suit') return 'Gents Suiting';
+  if (c === 'Kids' || c === 'Kids Wear') return 'Kids';
+  if (c === 'Accessories' || c === 'Accessory') return 'Accessories';
+  return c;
+}
+
 const API_URL = 'https://script.google.com/macros/s/AKfycbzIyZ1-ov6XyOK5CCmwQ9bEoBYeQcxqYIEynk57uA_RQtKwI-FNHmbEy4yN0Nxt8Bt-4w/exec';
 
 // In-memory store (replaces localStorage)
@@ -765,7 +775,7 @@ async function loadAllData() {
       sku      : p.sku      || p.SKU      || '',
       name     : p.name     || p.Name     || '',
       brand    : p.brand    || p.Brand    || '',
-      category : p.category || p.Category || '',
+      category : normCat(p.category || p.Category || ''),
       size     : p.size     || p.Size     || '',
       price    : Number(p.price  || p.Price)  || 0,
       cost     : Number(p.cost   || p.Cost)   || 0,
@@ -793,20 +803,36 @@ const getSite = () => _cachedSite     || getDefaultSite();
 function getDefaultProducts() {
   const b = 'https://stephenreyesva.github.io/jj-fabrics/image/';
   return [
+    // ── BN Series (Branded Luxury Lawn) ──
     {sku:'BN-1075',name:'Laam Luxury Lawn 3-Piece (BN-1075)',brand:'Laam',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:20,minStock:5,desc:'Laam Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Off-white with delicate blue floral embroidery.',img:b+'p1.jpeg',active:true},
-    {sku:'BN-1000',name:'Qalandari Luxury Lawn 3-Piece (BN-1000)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:18,minStock:5,desc:'Qalandari Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Deep navy blue with gold thread embroidery.',img:b+'p2.jpeg',active:true},
-    {sku:'BN-1056',name:'Veezal Luxury Lawn 3-Piece (BN-1056)',brand:'Veezal',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Veezal Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Warm beige with vibrant pink and green floral embroidery.',img:b+'p3.jpeg',active:true},
-    {sku:'BN-1060',name:'Maria.B Luxury Lawn 3-Piece (BN-1060)',brand:'Maria.B',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Maria.B Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Cornflower blue with elegant white embroidery.',img:b+'p4.jpeg',active:true},
-    {sku:'BN-1025',name:'Bareeze Luxury Lawn 3-Piece (BN-1025)',brand:'Bareeze',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Bareeze Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Jet black with rich crimson and silver embroidery.',img:b+'p5.jpeg',active:true},
-    {sku:'BN-1053',name:'Cross Stitch Luxury Lawn 3-Piece (BN-1053)',brand:'Cross Stitch',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Cross Stitch Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Dusty mauve with intricate gold embroidery.',img:b+'p6.jpeg',active:true},
-    {sku:'BN-1059',name:'Qalandari Luxury Lawn 3-Piece (BN-1059)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:10,minStock:3,desc:'Qalandari Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Soft grey with purple floral embroidery.',img:b+'p7.jpeg',active:true},
-    {sku:'PS-001',name:'Premium Lawn Suit (PS-001)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps1.jpeg',active:true},
-    {sku:'PS-002',name:'Premium Lawn Suit (PS-002)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps2.jpeg',active:true},
-    {sku:'PS-003',name:'Premium Lawn Suit (PS-003)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps3.jpeg',active:true},
-    {sku:'PS-004',name:'Premium Lawn Suit (PS-004)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps4.jpeg',active:true},
-    {sku:'PS-005',name:'Premium Lawn Suit (PS-005)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps5.jpeg',active:true},
-    {sku:'PS-006',name:'Premium Lawn Suit (PS-006)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps6.jpeg',active:true},
-    {sku:'PS-007',name:'Premium Lawn Suit (PS-007)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:b+'ps7.jpeg',active:true}
+    {sku:'BN-1000',name:'Qalandari Luxury Lawn 3-Piece (BN-1000)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:18,minStock:5,desc:'Qalandari Premium Embroidered Luxury Lawn — Deep navy blue with gold thread embroidery.',img:b+'p2.jpeg',active:true},
+    {sku:'BN-1056',name:'Veezal Luxury Lawn 3-Piece (BN-1056)',brand:'Veezal',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Veezal Premium Embroidered Luxury Lawn — Warm beige with vibrant pink and green floral embroidery.',img:b+'p3.jpeg',active:true},
+    {sku:'BN-1060',name:'Maria.B Luxury Lawn 3-Piece (BN-1060)',brand:'Maria.B',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Maria.B Premium Embroidered Luxury Lawn — Cornflower blue with elegant white embroidery.',img:b+'p4.jpeg',active:true},
+    {sku:'BN-1025',name:'Bareeze Luxury Lawn 3-Piece (BN-1025)',brand:'Bareeze',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Bareeze Premium Embroidered Luxury Lawn — Jet black with rich crimson and silver embroidery.',img:b+'p5.jpeg',active:true},
+    {sku:'BN-1053',name:'Cross Stitch Luxury Lawn 3-Piece (BN-1053)',brand:'Cross Stitch',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Cross Stitch Premium Embroidered Luxury Lawn — Dusty mauve with intricate gold embroidery.',img:b+'p6.jpeg',active:true},
+    {sku:'BN-1059',name:'Qalandari Luxury Lawn 3-Piece (BN-1059)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:10,minStock:3,desc:'Qalandari Premium Embroidered Luxury Lawn — Soft grey with purple floral embroidery.',img:b+'p7.jpeg',active:true},
+    // ── PS Series (Premium Lawn) ──
+    {sku:'PS-001',name:'Premium Lawn Suit (PS-001)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:b+'ps1.jpeg',active:true},
+    {sku:'PS-002',name:'Premium Lawn Suit (PS-002)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:b+'ps2.jpeg',active:true},
+    {sku:'PS-003',name:'Premium Lawn Suit (PS-003)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:b+'ps3.jpeg',active:true},
+    {sku:'PS-004',name:'Premium Lawn Suit (PS-004)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:b+'ps4.jpeg',active:true},
+    {sku:'PS-005',name:'Premium Lawn Suit (PS-005)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:b+'ps5.jpeg',active:true},
+    {sku:'PS-006',name:'Premium Lawn Suit (PS-006)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:b+'ps6.jpeg',active:true},
+    {sku:'PS-007',name:'Premium Lawn Suit (PS-007)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:b+'ps7.jpeg',active:true},
+    // ── LAD Series (Ladies Branded) ──
+    {sku:'LAD-001',name:'SAYA Embroidered 3-Piece',brand:'SAYA',category:'Ladies Suiting',size:'S/M/L/XL',price:6000,cost:2800,stock:13,minStock:3,desc:'Luxury embroidered lawn suit by SAYA.',img:'',active:true},
+    {sku:'LAD-002',name:'Bonanza Satrangi Summer Lawn',brand:'Bonanza Satrangi',category:'Ladies Suiting',size:'S/M/L/XXL',price:6000,cost:1800,stock:19,minStock:3,desc:'Vibrant summer lawn collection.',img:'',active:true},
+    {sku:'LAD-003',name:'Sapphire Printed Suit',brand:'Sapphire',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:3200,stock:10,minStock:3,desc:'Elegant Sapphire printed suit.',img:'',active:true},
+    {sku:'LAD-004',name:'Maria.B Luxury Pret',brand:'Maria.B',category:'Ladies Suiting',size:'S/M/L',price:4600,cost:5000,stock:4,minStock:2,desc:'Maria.B premium luxury pret collection.',img:'',active:true},
+    // ── GEN Series (Gents) ──
+    {sku:'GEN-001',name:'J. Junaid Jamshed Kurta',brand:'J.',category:'Gents Suiting',size:'S/M/L/XL/XXL',price:4600,cost:2200,stock:15,minStock:5,desc:'Classic embroidered kurta by J. Junaid Jamshed.',img:'',active:true},
+    {sku:'GEN-002',name:'Bin Saeed Premium Shalwar Kameez',brand:'Bin Saeed',category:'Gents Suiting',size:'S/M/L/XL',price:4600,cost:2500,stock:11,minStock:4,desc:'Fine cotton shalwar kameez.',img:'',active:true},
+    {sku:'GEN-003',name:'Gents Waistcoat (Wasket)',brand:'',category:'Gents Suiting',size:'S/M/L/XL',price:4600,cost:1400,stock:12,minStock:4,desc:'Formal embroidered waistcoat.',img:'',active:true},
+    // ── KID Series ──
+    {sku:'KID-001',name:'Kids Eid Suit',brand:'',category:'Kids',size:'2Y-14Y',price:4600,cost:900,stock:19,minStock:5,desc:'Festive embroidered kids suit.',img:'',active:true},
+    // ── ACC Series ──
+    {sku:'ACC-001',name:'Dupatta — Embroidered',brand:'',category:'Accessories',size:'One Size',price:4600,cost:600,stock:25,minStock:5,desc:'Heavy embroidered dupatta.',img:'',active:true},
+    {sku:'ACC-002',name:'VIRSA Pret Kurta',brand:'VIRSA',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:1600,stock:14,minStock:4,desc:'Ready-to-wear kurta by VIRSA Pret.',img:'',active:true}
   ];
 }
 
@@ -952,7 +978,7 @@ function loadProducts() {
   setText('cnt-acc',    allProducts.filter(p=>p.category==='Accessories').length + ' items');
 
   // Hero cards — show the 3 newest products (most recently added)
-  const heroItems = allProducts.slice(0, 3); // first 3 = same items marked NEW in collections
+  const heroItems = allProducts.slice(-3).reverse(); // last 3 added = newest
   ['hc1','hc2','hc3'].forEach((hcId, idx) => {
     const p = heroItems[idx]; if (!p) return;
     const e  = catEmoji[p.category] || '🛍️';
