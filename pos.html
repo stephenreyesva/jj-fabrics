@@ -145,7 +145,8 @@
   .product-card:hover { border-color: var(--gold-400); box-shadow: 0 4px 16px rgba(234,179,8,0.15); transform: translateY(-2px); }
   .product-card.out-of-stock { opacity: 0.45; cursor: not-allowed; }
   .product-card.out-of-stock:hover { transform: none; border-color: var(--gray-200); box-shadow: none; }
-  .product-card .pc-img { font-size: 32px; margin-bottom: 10px; display: block; }
+  .product-card .pc-img { font-size: 32px; margin-bottom: 10px; width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; overflow: hidden; background: var(--gray-100); display: flex; align-items: center; justify-content: center; }
+  .product-card .pc-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; display: block; }
   .product-card .pc-name { font-size: 12px; font-weight: 700; color: var(--gray-900); line-height: 1.35; margin-bottom: 4px; }
   .product-card .pc-price { font-size: 14px; color: var(--gold-600); font-weight: 700; }
   .product-card .pc-stock { font-size: 11px; color: var(--gray-400); margin-top: 3px; }
@@ -1350,9 +1351,13 @@ function renderProducts() {
   if (!prods.length) { grid.innerHTML='<p style="grid-column:1/-1;font-size:13px;color:var(--gray-400);">No products found.</p>'; return; }
   grid.innerHTML = prods.map(p=>{
     const isOut=p.stock===0, isLow=p.stock>0&&p.stock<=p.minStock;
+    const emoji = catEmoji[p.category]||'🛍️';
+    const imgHtml = p.img
+      ? `<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;" onerror="this.parentNode.innerHTML='<span style=font-size:32px>${emoji}</span>'">`
+      : `<span style="font-size:32px;">${emoji}</span>`;
     return `<div class="product-card ${isOut?'out-of-stock':''}" data-sku="${p.sku}" ${isOut?'':'style="cursor:pointer;"'}>
       ${isLow?'<span class="stock-badge low">Low</span>':''}${isOut?'<span class="stock-badge out">Out</span>':''}
-      <span class="pc-img">${p.img?`<img src="${p.img}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;" onerror="this.parentNode.textContent='${catEmoji[p.category]||'🛍️'}'">`:catEmoji[p.category]||'🛍️'}</span>
+      <div class="pc-img">${imgHtml}</div>
       <div class="pc-name">${p.name}</div>
       <div class="pc-price">Rs. ${Number(p.price).toLocaleString()}</div>
       <div class="pc-stock">${p.size} · ${p.stock} in stock</div>
@@ -1889,9 +1894,13 @@ function renderFeaturedList(){
   const featured=s.featured||[];
   document.getElementById('featured-product-list').innerHTML=prods.map(p=>{
     const checked=featured.includes(p.sku);
+    const emoji = catEmoji[p.category]||'🛍️';
+    const thumbHtml = p.img
+      ? `<img src="${p.img}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;flex-shrink:0;" onerror="this.outerHTML='<span style=font-size:22px>${emoji}</span>'">`
+      : `<span style="font-size:22px;">${emoji}</span>`;
     return`<label style="display:flex;align-items:center;gap:10px;padding:10px;border:1.5px solid ${checked?'var(--gold-400)':'var(--gray-200)'};border-radius:var(--radius-sm);cursor:pointer;background:${checked?'var(--gold-50)':'white'};transition:all 0.15s;">
       <input type="checkbox" ${checked?'checked':''} onchange="toggleFeatured('${p.sku}',this.checked)" style="accent-color:var(--gold-500);width:16px;height:16px;">
-      <span style="font-size:18px;">${catEmoji[p.category]||'🛍️'}</span>
+      ${thumbHtml}
       <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;color:var(--gray-900);">${p.name}</div><div style="font-size:11px;color:var(--gray-400);">Rs. ${Number(p.price).toLocaleString()} · ${p.stock} in stock</div></div>
     </label>`;
   }).join('');
