@@ -316,7 +316,7 @@
 
 <!-- LOADER -->
 <div id="page-loader">
-  <div class="loader-logo" style="display:flex;align-items:center;gap:10px;"><img src="image/logo.jpeg" style="width:50px;height:50px;object-fit:contain;border-radius:50%;" /><span>JJ Fabrics</span></div>
+  <div class="loader-logo" style="display:flex;align-items:center;gap:10px;"><img src="image/logo.jpeg" style="width:50px;height:50px;object-fit:contain;border-radius:50%;" onerror="this.style.display='none'" /><span>JJ Fabrics</span></div>
   <div class="loader-dot"></div>
 </div>
 
@@ -598,20 +598,20 @@ const getSite = () => _cachedSite     || getDefaultSite();
 // ═══════════════════════════════════════
 function getDefaultProducts() {
   return [
-    {sku:'P001',name:'Bin Saeed Embroidered Lawn',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:20,minStock:5,desc:'Premium embroidered lawn suit by Bin Saeed',img:'p1.jpeg'},
-    {sku:'P002',name:'Saya Printed Lawn 3-Piece',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:18,minStock:5,desc:'Vibrant printed lawn collection by Saya',img:'p2.jpeg'},
-    {sku:'P003',name:'Bonanza Satrangi Lawn Suit',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Colourful summer lawn by Bonanza Satrangi',img:'p3.jpeg'},
-    {sku:'P004',name:'Sapphire Embroidered 3-Piece',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Elegant embroidered suit by Sapphire',img:'p4.jpeg'},
-    {sku:'P005',name:'Maria.B Luxury Lawn',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Premium luxury lawn by Maria.B',img:'p5.jpeg'},
-    {sku:'P006',name:'J. Junaid Jamshed Lawn',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Classic embroidered lawn by J.',img:'p6.jpeg'},
-    {sku:'P007',name:'Grace Printed Suit',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:10,minStock:3,desc:'Elegant printed suit by Grace',img:'p7.jpeg'},
+    {sku:'P001',name:'Bin Saeed Embroidered Lawn',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:20,minStock:5,desc:'Premium embroidered lawn suit by Bin Saeed',img:'image/p1.jpeg'},
+    {sku:'P002',name:'Saya Printed Lawn 3-Piece',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:18,minStock:5,desc:'Vibrant printed lawn collection by Saya',img:'image/p2.jpeg'},
+    {sku:'P003',name:'Bonanza Satrangi Lawn Suit',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Colourful summer lawn by Bonanza Satrangi',img:'image/p3.jpeg'},
+    {sku:'P004',name:'Sapphire Embroidered 3-Piece',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Elegant embroidered suit by Sapphire',img:'image/p4.jpeg'},
+    {sku:'P005',name:'Maria.B Luxury Lawn',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Premium luxury lawn by Maria.B',img:'image/p5.jpeg'},
+    {sku:'P006',name:'J. Junaid Jamshed Lawn',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Classic embroidered lawn by J.',img:'image/p6.jpeg'},
+    {sku:'P007',name:'Grace Printed Suit',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:10,minStock:3,desc:'Elegant printed suit by Grace',img:'image/p7.jpeg'},
   ];
 }
 
 function getDefaultSite() {
   return {
     name:'JJ Fabrics', tagline:'Gents & Ladies Suiting Place',
-    about:'JJ Fabrics is Attock City's premier House of Brands, we curate timeless pieces that celebrate your unique style — blending elegance, comfort, and affordability.',
+    about:'JJ Fabrics is Attock City\'s premier House of Brands, we curate timeless pieces that celebrate your unique style — blending elegance, comfort, and affordability.',
     address:'Sher Bahadur Plaza, K-Block, Near Dr. Ibadat Hospital, Main Bazar, Attock City',
     phone:'923145777344', email:'jjfabrics@gmail.com',
     facebook:'https://www.facebook.com/share/r/17wrND2MNc/',
@@ -628,6 +628,28 @@ function getDefaultSite() {
 function seedPublicDefaults() {}
 
 // ═══════════════════════════════════════
+//  IMAGE RESOLVER
+//  When Sheets products have no img URL, fall back to local p1.jpeg–p7.jpeg
+// ═══════════════════════════════════════
+const SKU_IMG_MAP = {'P001':'image/p1.jpeg','P002':'image/p2.jpeg','P003':'image/p3.jpeg','P004':'image/p4.jpeg','P005':'image/p5.jpeg','P006':'image/p6.jpeg','P007':'image/p7.jpeg'};
+function resolveImg(p) {
+  if (p.img && p.img.trim()) return p.img.trim();
+  if (SKU_IMG_MAP[p.sku]) return SKU_IMG_MAP[p.sku];
+  const m = (p.sku || '').match(/(\d+)$/);
+  if (m) { const n = parseInt(m[1], 10); if (n >= 1 && n <= 7) return 'image/p' + n + '.jpeg'; }
+  return '';
+}
+
+// ═══════════════════════════════════════
+//  NULL-SAFE DOM HELPER
+//  Prevents "Cannot set textContent of null" crashes
+// ═══════════════════════════════════════
+function el(id) { return document.getElementById(id); }
+function setText(id, val) { const e = el(id); if (e) e.textContent = val; }
+function setHtml(id, val) { const e = el(id); if (e) e.innerHTML   = val; }
+function setHref(id, val) { const e = el(id); if (e) e.href        = val; }
+
+// ═══════════════════════════════════════
 //  APPLY SITE DATA
 // ═══════════════════════════════════════
 function applySiteData() {
@@ -638,61 +660,49 @@ function applySiteData() {
     document.documentElement.style.setProperty('--accent-dark', shadeColor(s.accentColor, -20));
     document.documentElement.style.setProperty('--accent-lt', shadeColor(s.accentColor, 80));
   }
-  // Hero color — ONLY applied to the hero section, never bleeds to nav or other sections
   const heroColor = s.heroColor || '#1C1C14';
   document.documentElement.style.setProperty('--hero-section-bg', heroColor);
-  // Hero is always assumed dark — keep text white regardless
-  // (the CSS already hardcodes white text for .hero)
-  // Text
+
   const name = s.name || 'JJ Fabrics';
-  const emoji = s.emoji || '👗';
-  document.getElementById('nav-name').textContent     = name;
-  // nav-emoji replaced by logo image
-  document.getElementById('footer-name').textContent  = name;
-  document.getElementById('footer-tagline').textContent = s.tagline || '';
-  document.getElementById('footer-copy').textContent  = `© ${new Date().getFullYear()} ${name}. All rights reserved.`;
+  setText('nav-name',       name);
+  setText('footer-name',    name);
+  setText('footer-tagline', s.tagline || '');
+  setText('footer-copy',    `© ${new Date().getFullYear()} ${name}. All rights reserved.`);
   document.title = name;
-  if (s.about) document.getElementById('about-text').textContent = s.about;
-  if (s.tagline) document.getElementById('hero-headline').innerHTML = s.tagline.includes(' ') ?
-    s.tagline.split(' ').map((w,i)=>i===Math.floor(s.tagline.split(' ').length/2)?`<em>${w}</em>`:w).join(' ') :
-    `Dress to<br><em>Express</em>`;
+
+  if (s.about)   setText('about-text', s.about);
+  if (s.tagline) setHtml('hero-headline', s.tagline.includes(' ')
+    ? s.tagline.split(' ').map((w,i)=>i===Math.floor(s.tagline.split(' ').length/2)?`<em>${w}</em>`:w).join(' ')
+    : `Dress to<br><em>Express</em>`);
+
   // WhatsApp
-  const waNum = (s.phone||'').replace(/\D/g,'');
+  const waNum  = (s.phone||'').replace(/\D/g,'');
   const waLink = waNum ? `https://wa.me/${waNum}?text=Hi! I'm interested in your products.` : '#';
-  document.getElementById('wa-btn').href    = waLink;
-  document.getElementById('nav-whatsapp').href = waLink;
-  document.getElementById('mob-wa').href    = waLink;
-  document.getElementById('link-wa').href   = waLink;
-  document.getElementById('cta-wa').href    = waLink;
-  document.getElementById('fs-wa').href     = waLink;
-  // Facebook
+  ['wa-btn','nav-whatsapp','mob-wa','link-wa','cta-wa','fs-wa'].forEach(id => setHref(id, waLink));
+
+  // Social links
   const fbLink = s.facebook || 'https://www.facebook.com/share/r/17wrND2MNc/';
-  document.getElementById('link-fb').href   = fbLink;
-  document.getElementById('cta-fb').href    = fbLink;
-  document.getElementById('fs-fb').href     = fbLink;
-  // Instagram
+  ['link-fb','cta-fb','fs-fb'].forEach(id => setHref(id, fbLink));
+
   const igLink = s.instagram || 'https://www.instagram.com/muhammadhamzajaved11961?igsh=MXNrdWhwZ2FhMGw1Mw==';
-  document.getElementById('link-ig').href   = igLink;
-  document.getElementById('fs-ig').href     = igLink;
-  // TikTok
+  ['link-ig','fs-ig'].forEach(id => setHref(id, igLink));
+
   const ttLink = s.tiktok || 'https://www.tiktok.com/@hamzajaved04?_r=1&_t=ZS-96YCJS7LU6X';
-  document.getElementById('link-tt').href   = ttLink;
-  document.getElementById('fs-tt').href     = ttLink;
+  ['link-tt','fs-tt'].forEach(id => setHref(id, ttLink));
+
   const ytLink = s.youtube || 'https://youtube.com/@jjfabric786?si=HoEYFCJVncSEmGBm';
-  if(document.getElementById('link-yt')) document.getElementById('link-yt').href = ytLink;
-  if(document.getElementById('fs-yt'))   document.getElementById('fs-yt').href   = ytLink;
+  ['link-yt','fs-yt'].forEach(id => setHref(id, ytLink));
+
   // Contact
-  document.getElementById('contact-address').innerHTML = (s.address || '—') + '<br><a href="https://maps.app.goo.gl/FpTpXPsSP61XQrkf9" target="_blank" style="color:var(--accent-dark);font-size:12px;font-weight:700;">📍 Open in Google Maps →</a>';
+  setHtml('contact-address', (s.address || '—') + '<br><a href="https://maps.app.goo.gl/FpTpXPsSP61XQrkf9" target="_blank" style="color:var(--accent-dark);font-size:12px;font-weight:700;">📍 Open in Google Maps →</a>');
   const phoneDisplay = s.phone ? s.phone.replace(/(\d{2})(\d{3})(\d{3})(\d{4})/, '+$1 $2 $3 $4') : '—';
-  document.getElementById('contact-phone-link').textContent = phoneDisplay;
-  document.getElementById('contact-phone-link').href = `tel:+${waNum}`;
-  document.getElementById('contact-email-link').textContent = s.email || '—';
-  document.getElementById('contact-email-link').href = s.email ? `mailto:${s.email}` : '#';
+  setText('contact-phone-link', phoneDisplay);
+  setHref('contact-phone-link', `tel:+${waNum}`);
+  setText('contact-email-link', s.email || '—');
+  setHref('contact-email-link', s.email ? `mailto:${s.email}` : '#');
+
   // Map
-  if (s.map) {
-    const mapSrc = s.map.includes('embed') ? s.map : s.map;
-    document.getElementById('map-container').innerHTML = `<iframe src="${mapSrc}" allowfullscreen loading="lazy"></iframe>`;
-  }
+  if (s.map) setHtml('map-container', `<iframe src="${s.map}" allowfullscreen loading="lazy"></iframe>`);
 }
 
 function shadeColor(hex, amt) {
@@ -707,40 +717,32 @@ function shadeColor(hex, amt) {
 //  LOAD PRODUCTS
 // ═══════════════════════════════════════
 function loadProducts() {
-  const s       = getSite();
-  const prods   = getData();
+  const s      = getSite();
+  const prods  = getData();
   const featured = s.featured && s.featured.length ? s.featured : null;
-  // Show only featured (if set) and in-stock
-  allProducts = prods.filter(p => p.stock > 0 && (!featured || featured.includes(p.sku)));
-  if (!allProducts.length) allProducts = prods.filter(p => p.stock > 0); // fallback
+  allProducts  = prods.filter(p => p.stock > 0 && (!featured || featured.includes(p.sku)));
+  if (!allProducts.length) allProducts = prods.filter(p => p.stock > 0);
 
   // Counts
-  document.getElementById('stat-products').textContent = prods.length + '+';
-  document.getElementById('cnt-all').textContent   = allProducts.length + ' items';
-  document.getElementById('cnt-women').textContent = allProducts.filter(p=>p.category==='Ladies Suiting').length + ' items';
-  document.getElementById('cnt-men').textContent   = allProducts.filter(p=>p.category==='Gents Suiting').length + ' items';
-  document.getElementById('cnt-acc').textContent   = allProducts.filter(p=>p.category==='Accessories').length + ' items';
+  setText('stat-products', prods.length + '+');
+  setText('cnt-all',    allProducts.length + ' items');
+  setText('cnt-women',  allProducts.filter(p=>p.category==='Ladies Suiting').length + ' items');
+  setText('cnt-men',    allProducts.filter(p=>p.category==='Gents Suiting').length + ' items');
+  setText('cnt-acc',    allProducts.filter(p=>p.category==='Accessories').length + ' items');
 
-  // Hero cards
+  // Hero cards — null-safe, onerror uses emoji text not parentNode.textContent
   const heroItems = allProducts.slice(0, 3);
-  if (heroItems[0]) {
-    const e = catEmoji[heroItems[0].category]||'🛍️';
-    document.getElementById('hc1').innerHTML = heroItems[0].img ? `<img src="${heroItems[0].img}" onerror="this.parentNode.textContent='${e}'">` : e;
-    document.getElementById('hc1-name').textContent  = heroItems[0].name;
-    document.getElementById('hc1-price').textContent = 'Rs. '+Number(heroItems[0].price).toLocaleString();
-  }
-  if (heroItems[1]) {
-    const e = catEmoji[heroItems[1].category]||'🛍️';
-    document.getElementById('hc2').innerHTML = heroItems[1].img ? `<img src="${heroItems[1].img}" onerror="this.parentNode.textContent='${e}'">` : e;
-    document.getElementById('hc2-name').textContent  = heroItems[1].name;
-    document.getElementById('hc2-price').textContent = 'Rs. '+Number(heroItems[1].price).toLocaleString();
-  }
-  if (heroItems[2]) {
-    const e = catEmoji[heroItems[2].category]||'🛍️';
-    document.getElementById('hc3').innerHTML = heroItems[2].img ? `<img src="${heroItems[2].img}" onerror="this.parentNode.textContent='${e}'">` : e;
-    document.getElementById('hc3-name').textContent  = heroItems[2].name;
-    document.getElementById('hc3-price').textContent = 'Rs. '+Number(heroItems[2].price).toLocaleString();
-  }
+  ['hc1','hc2','hc3'].forEach((hcId, idx) => {
+    const p = heroItems[idx]; if (!p) return;
+    const e   = catEmoji[p.category] || '🛍️';
+    const hc  = el(hcId); if (!hc) return;
+    const img = resolveImg(p);
+    hc.innerHTML = img
+      ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentNode.insertAdjacentText('beforeend','${e}')">`
+      : e;
+    setText(hcId + '-name',  p.name);
+    setText(hcId + '-price', 'Rs. ' + Number(p.price).toLocaleString());
+  });
 
   renderProducts();
 }
@@ -768,9 +770,11 @@ function renderProducts() {
     const waMsg = encodeURIComponent(`Hi! I'm interested in: ${p.name} (Rs. ${Number(p.price).toLocaleString()}). Is it available?`);
     const waHref = waNum ? `https://wa.me/${waNum}?text=${waMsg}` : '#';
     const isNew = i < 3;
-    const imgHtml = p.img
-      ? `<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML='<span style=font-size:64px>${emoji}</span>'">`
-      : `<span style="font-size:64px;">${emoji}</span>`;
+    const fallbackHtml = `<span style="font-size:64px">${emoji}</span>`;
+    const resolvedImg = resolveImg(p);
+    const imgHtml = resolvedImg
+      ? `<img src="${resolvedImg}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML=this.dataset.fb" data-fb="${fallbackHtml.replace(/"/g,'&quot;')}">`
+      : fallbackHtml;
     return `<div class="product-card" style="animation-delay:${i*0.06}s">
       ${isNew ? '<div class="pc-badge">New</div>' : ''}
       <div class="pc-image">${imgHtml}</div>
@@ -833,16 +837,15 @@ function hideLoader() {
   setTimeout(() => loader.style.display = 'none', 500);
 }
 
-window.addEventListener('load', () => {
-  // ── Step 1: Show page immediately with defaults (never stuck on loader)
+// ── Show content immediately on DOMContentLoaded — never wait for images/fonts ──
+document.addEventListener('DOMContentLoaded', () => {
   _cachedProducts = getDefaultProducts();
   _cachedSite     = getDefaultSite();
   applySiteData();
   loadProducts();
   hideLoader();
 
-  // ── Step 2: Silently fetch live data from Google Sheets in background
-  //    If it succeeds, refresh the page content without any flash
+  // ── Silently fetch live data from Google Sheets in background ──
   loadAllData().then(() => {
     applySiteData();
     loadProducts();
@@ -850,6 +853,9 @@ window.addEventListener('load', () => {
     console.warn('Google Sheets sync failed, showing defaults:', err);
   });
 });
+
+// ── Absolute safety net: if loader somehow still visible after 2s, force-hide it ──
+setTimeout(() => hideLoader(), 2000);
 </script>
 </body>
 </html>
