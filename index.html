@@ -63,6 +63,30 @@
 
   /* ── HERO — isolated bg, never bleeds into other sections ── */
 
+  /* ── MANUAL REFRESH BUTTON (owner tool, bottom-right) ── */
+  #manual-refresh-btn {
+    position: fixed; bottom: 18px; right: 18px; z-index: 200;
+    background: rgba(28,28,20,0.82); backdrop-filter: blur(10px);
+    border: 1px solid rgba(212,160,23,0.3); color: rgba(255,255,255,0.7);
+    font-size: 11px; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 7px 14px; border-radius: 20px; cursor: pointer;
+    transition: all 0.2s; letter-spacing: 0.3px;
+    opacity: 0; pointer-events: none;
+  }
+  #manual-refresh-btn.ready { opacity: 1; pointer-events: all; }
+  #manual-refresh-btn:hover { background: rgba(212,160,23,0.2); color: white; border-color: rgba(212,160,23,0.6); }
+  #manual-refresh-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* ── LIVE PILL ── */
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.75)} }
+  .live-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #d4f7de; color: #166534;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
+    padding: 3px 9px; border-radius: 20px; vertical-align: middle; margin-left: 8px;
+  }
+  .live-pill::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:#16a34a; animation: pulse-dot 1.2s ease-in-out infinite; }
+
   /* ── BRANDS NAV STRIP ── */
   .brands-nav {
     background: #1C1C14;
@@ -566,7 +590,10 @@
         <div class="section-label">Featured</div>
         <div class="section-title"><em>Collections</em></div>
       </div>
-      <div id="products-count" style="font-size:13px;color:var(--gray-400);font-weight:500;"></div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div id="products-count" style="font-size:13px;color:var(--gray-400);font-weight:500;"></div>
+        <span id="sync-pill"></span>
+      </div>
     </div>
     <div class="product-grid" id="product-grid"></div>
   </div>
@@ -646,6 +673,9 @@
 </section>
 
 <!-- FOOTER -->
+<!-- MANUAL REFRESH BUTTON (appears after first successful sync) -->
+<button id="manual-refresh-btn" onclick="manualRefresh()" title="Refresh inventory from spreadsheet">↻ Refresh</button>
+
 <footer>
   <div class="footer-inner">
     <div class="footer-top">
@@ -713,46 +743,6 @@ function jsonpFetch(action) {
     script.onerror = () => { clearTimeout(timeout); delete window[cbName]; script.remove(); reject(new Error('Script load failed')); };
     document.head.appendChild(script);
   });
-}
-
-async function loadAllData() {
-  // Try regular fetch first (works if CORS headers are set on the Apps Script)
-  // If that fails, fall back to JSONP
-  async function fetchAction(action) {
-    try {
-      const res = await fetch(`${API_URL}?action=${action}`);
-      const data = await res.json();
-      if (data && data.success) return data.data;
-    } catch(_) {}
-    // JSONP fallback
-    return jsonpFetch(action).catch(() => null);
-  }
-  const [products, site] = await Promise.all([
-    fetchAction('getProducts'),
-    fetchAction('getSiteSettings')
-  ]);
-  if (Array.isArray(products) && products.length) {
-    // Normalize Sheets column names (SKU → sku, Name → name, Price → price etc.)
-    _cachedProducts = products.map(p => ({
-      sku      : p.sku      || p.SKU      || '',
-      name     : p.name     || p.Name     || '',
-      brand    : p.brand    || p.Brand    || '',
-      category : p.category || p.Category || '',
-      size     : p.size     || p.Size     || '',
-      price    : Number(p.price  || p.Price)  || 0,
-      cost     : Number(p.cost   || p.Cost)   || 0,
-      stock    : Number(p.stock  || p.Stock)  || 0,
-      minStock : Number(p.minStock || p.MinStock) || 0,
-      desc     : p.desc || p.Description || '',
-      img      : p.img  || p.ImageURL    || '',
-      active   : String(p.active || p.Active || 'TRUE').toUpperCase() === 'TRUE'
-    })).filter(p => p.sku);
-  } else {
-    _cachedProducts = getDefaultProducts();
-  }
-  _cachedSite = (site && typeof site === 'object' && !Array.isArray(site))
-                ? site : getDefaultSite();
-  _dataLoaded = true;
 }
 
 const getData = () => _cachedProducts || getDefaultProducts();
@@ -957,8 +947,7 @@ function filterBrandNav(cat, el) {
 
 function renderProducts() {
   const filtered = activeFilter ? allProducts.filter(p => p.category === activeFilter) : allProducts;
-  const liveTag = _dataLoaded ? ' <span style="font-size:10px;background:#d4f7de;color:#166534;padding:2px 7px;border-radius:20px;font-weight:600;vertical-align:middle;">● LIVE</span>' : '';
-  document.getElementById('products-count').innerHTML = filtered.length + ' product' + (filtered.length !== 1 ? 's' : '') + ' shown' + liveTag;
+  document.getElementById('products-count').textContent = filtered.length + ' product' + (filtered.length !== 1 ? 's' : '') + ' shown';
   const s = getSite();
   const waNum = (s.phone||'').replace(/\D/g,'');
   const grid = document.getElementById('product-grid');
@@ -1039,23 +1028,136 @@ function hideLoader() {
 }
 
 // ── Show content immediately on DOMContentLoaded — never wait for images/fonts ──
+// ═══════════════════════════════════════
+//  LIVE SYNC ENGINE
+//  • Silent background sync — zero interruption to visitors
+//  • On success : shows a small "● LIVE" pill next to product count
+//  • On failure : retries quietly (console only), pill stays hidden
+//  • Manual refresh button for the owner (bottom-right corner)
+//  • Auto-refreshes every 5 min + on tab re-focus after 2 min away
+// ═══════════════════════════════════════
+let _lastSyncTime = null;
+let _syncTimer    = null;
+const SYNC_INTERVAL = 5 * 60 * 1000;  // 5 minutes
+
+// ── Live pill (only visual feedback — small, non-intrusive) ──
+function updateSyncPill(state) {
+  const pill = document.getElementById('sync-pill');
+  const btn  = document.getElementById('manual-refresh-btn');
+  if (pill) {
+    if (state === 'live') {
+      pill.innerHTML = '<span class="live-pill">LIVE</span>';
+      if (btn) btn.classList.add('ready'); // reveal refresh button after first success
+    } else {
+      pill.innerHTML = '';
+    }
+  }
+}
+
+// ── Manual refresh button (owner-facing, bottom-right corner) ──
+function manualRefresh() {
+  const btn = document.getElementById('manual-refresh-btn');
+  if (btn) { btn.textContent = '↻'; btn.disabled = true; }
+  _doSync().finally(() => {
+    if (btn) { btn.textContent = '↻ Refresh'; btn.disabled = false; }
+  });
+}
+
+// ── Core fetch — fully silent, all errors go to console only ──
+async function _doSync() {
+  async function fetchAction(action) {
+    try {
+      const res  = await fetch(`${API_URL}?action=${action}`);
+      const data = await res.json();
+      if (data && data.success) return data.data;
+    } catch(_) {}
+    return jsonpFetch(action).catch(() => null);
+  }
+
+  try {
+    const [products, site] = await Promise.all([
+      fetchAction('getProducts'),
+      fetchAction('getSiteSettings')
+    ]);
+
+    let gotData = false;
+    if (Array.isArray(products) && products.length) {
+      _cachedProducts = products.map(p => ({
+        sku      : p.sku      || p.SKU      || '',
+        name     : p.name     || p.Name     || '',
+        brand    : p.brand    || p.Brand    || '',
+        category : p.category || p.Category || '',
+        size     : p.size     || p.Size     || '',
+        price    : Number(p.price    || p.Price)    || 0,
+        cost     : Number(p.cost     || p.Cost)     || 0,
+        stock    : Number(p.stock    || p.Stock)    || 0,
+        minStock : Number(p.minStock || p.MinStock) || 5,
+        desc     : p.desc || p.Description || '',
+        img      : p.img  || p.ImageURL    || '',
+        active   : String(p.active || p.Active || 'TRUE').toUpperCase() === 'TRUE'
+      })).filter(p => p.sku);
+      gotData = true;
+    }
+    if (site && typeof site === 'object' && !Array.isArray(site)) {
+      _cachedSite = site;
+      gotData = true;
+    }
+    _dataLoaded = true;
+
+    if (gotData) {
+      _lastSyncTime = Date.now();
+      applySiteData();
+      loadProducts();
+      updateSyncPill('live');
+    } else {
+      throw new Error('Empty response from Sheets');
+    }
+  } catch(err) {
+    // Silent fail — console only, visitor sees nothing different
+    console.warn('[JJ Store] Sheets sync failed:', err.message);
+    updateSyncPill(''); // hide pill, show default data
+  }
+}
+
+// ── Retry with back-off (silent) ──
+async function syncFromSheets() {
+  const delays = [0, 6000, 15000]; // immediate, 6s, 15s
+  for (const delay of delays) {
+    if (delay) await new Promise(r => setTimeout(r, delay));
+    try { await _doSync(); return; } catch(_) {}
+  }
+  // All attempts exhausted — silent, visitor unaffected
+}
+
+// ── Legacy shim ──
+async function loadAllData() { return _doSync(); }
+
+// ── Auto-refresh every 5 minutes ──
+setInterval(syncFromSheets, SYNC_INTERVAL);
+
+// ── Refresh on tab re-focus after >2 min away ──
+let _hiddenAt = null;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    _hiddenAt = Date.now();
+  } else if (_hiddenAt && Date.now() - _hiddenAt > 2 * 60 * 1000) {
+    _hiddenAt = null;
+    syncFromSheets();
+  }
+});
+
+// ── Boot sequence ──
 document.addEventListener('DOMContentLoaded', () => {
+  // Show default data instantly — no blank screen ever
   _cachedProducts = getDefaultProducts();
   _cachedSite     = getDefaultSite();
   applySiteData();
   loadProducts();
   hideLoader();
-
-  // ── Silently fetch live data from Google Sheets in background ──
-  loadAllData().then(() => {
-    applySiteData();
-    loadProducts();
-  }).catch(err => {
-    console.warn('Google Sheets sync failed, showing defaults:', err);
-  });
+  // Then silently fetch live Sheets data in background
+  syncFromSheets();
 });
 
-// ── Absolute safety net: if loader somehow still visible after 2s, force-hide it ──
 setTimeout(() => hideLoader(), 2000);
 </script>
 </body>
