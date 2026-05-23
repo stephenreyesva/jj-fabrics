@@ -739,6 +739,7 @@
           <span id="inv-pending-dot" class="pending-dot" style="display:none;"></span>
           <span id="inv-sheets-info">Inventory sync status</span>
         </div>
+        <button class="btn btn-outline btn-sm" onclick="testSheetsConnection()" style="font-size:11px;padding:3px 10px;" title="Test if Google Sheets is reachable">🔌 Test Connection</button>
         <span class="sheets-status-pill synced" id="inv-sheets-pill">☁ Synced</span>
         <span style="font-size:11px;color:var(--gray-400);" id="inv-last-saved"></span>
       </div>
@@ -1149,15 +1150,21 @@ async function gsPost(action, body) {
     const script = document.createElement('script');
     const timeout = setTimeout(() => {
       delete window[cbName]; script.remove();
+      console.warn('[gsPost] Timeout after 18s for action:', action);
       resolve(null);
-    }, 12000);
+    }, 18000); // increased to 18s — Apps Script cold starts can be slow
     window[cbName] = data => {
       clearTimeout(timeout); delete window[cbName]; script.remove();
       resolve(data);
     };
     // Encode body as base64 so it survives URL encoding intact
     const payload = btoa(unescape(encodeURIComponent(JSON.stringify(body))));
-    script.src = `${API_URL}?action=${action}&payload=${encodeURIComponent(payload)}&callback=${cbName}`;
+    const url = API_URL + '?action=' + action + '&payload=' + encodeURIComponent(payload) + '&callback=' + cbName;
+    // Warn if URL is dangerously long (browser limit ~8000 chars)
+    if (url.length > 7500) {
+      console.warn('[gsPost] URL too long (' + url.length + ' chars) for action:', action, '— payload may be rejected');
+    }
+    script.src = url;
     script.onerror = () => { clearTimeout(timeout); delete window[cbName]; script.remove(); resolve(null); };
     document.head.appendChild(script);
   });
@@ -1218,13 +1225,45 @@ async function loadSheetsData() {
   }
 }
 
+// ── Test Sheets connection ──
+async function testSheetsConnection() {
+  showToast('Testing connection to Google Sheets…', '');
+  document.getElementById('inv-sheets-info').textContent = 'Testing connection…';
+  try {
+    const result = await gsFetch('getProducts');
+    if (Array.isArray(result) && result.length) {
+      showToast('✅ Connected! Sheets returned ' + result.length + ' products.', 'success');
+      document.getElementById('inv-sheets-info').textContent = 'Connected ✅ — ' + result.length + ' products in Sheets';
+    } else if (result !== null) {
+      showToast('⚠ Sheets reachable but returned empty data.', 'error');
+      document.getElementById('inv-sheets-info').textContent = 'Reachable but empty response';
+    } else {
+      showToast('❌ Cannot reach Google Sheets — check internet connection.', 'error');
+      document.getElementById('inv-sheets-info').textContent = 'Cannot reach Sheets — check internet';
+    }
+  } catch(e) {
+    showToast('❌ Connection failed: ' + e.message, 'error');
+  }
+}
+
 // ── Push products back to Sheets ──
+// Base64 images cannot go to Sheets (URL too long + Sheets can't render them).
+// Strip data: URIs before sending — they stay in localStorage for POS display only.
 async function pushProductsToSheets(products) {
   showSyncStatus('syncing');
   try {
-    const result = await gsPost('saveProducts', { products });
+    // Strip base64 — keep only http/https URLs for Sheets
+    const sheetsProds = products.map(p => ({
+      ...p,
+      img: (p.img && p.img.startsWith('http')) ? p.img : ''
+    }));
+
+    const result = await gsPost('saveProducts', { products: sheetsProds });
     if (result && result.success) { showSyncStatus('ok'); return true; }
-    throw new Error('Save failed');
+
+    // null = timeout/network error
+    if (result === null) throw new Error('Timeout — check internet');
+    throw new Error(result && result.error ? result.error : 'Sheets rejected the save');
   } catch(e) {
     console.warn('Push to Sheets failed:', e);
     showSyncStatus('error');
