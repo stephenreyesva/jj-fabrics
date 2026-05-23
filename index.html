@@ -62,6 +62,38 @@
   .mobile-menu a { font-size: 22px; font-family: 'Playfair Display', serif; color: #1C1C14; text-decoration: none; font-weight: 600; }
 
   /* ── HERO — isolated bg, never bleeds into other sections ── */
+  /* ── MARQUEE TICKER STRIP ── */
+  .marquee-wrap {
+    background: #1C1C14;
+    padding: 13px 0;
+    overflow: hidden;
+    border-top: 1px solid rgba(212,160,23,0.25);
+    border-bottom: 1px solid rgba(212,160,23,0.25);
+    position: relative;
+    z-index: 99;
+  }
+  .marquee-track {
+    display: flex;
+    animation: marquee-scroll 28s linear infinite;
+    white-space: nowrap;
+    will-change: transform;
+  }
+  .marquee-track:hover { animation-play-state: paused; }
+  .marquee-item {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-style: italic;
+    color: rgba(255,255,255,0.55);
+    padding: 0 36px;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+  }
+  .marquee-item .mdot { color: var(--accent); margin: 0 8px; font-style: normal; font-size: 10px; }
+  @keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
   .hero {
     min-height: 100vh;
     background: var(--hero-section-bg, #1C1C14);
@@ -349,6 +381,33 @@
   <a href="#about" onclick="toggleMobile()">About</a>
   <a href="#contact" onclick="toggleMobile()">Contact</a>
   <a href="#" id="mob-wa" target="_blank" style="color:var(--accent-dark);">💬 WhatsApp</a>
+</div>
+
+<!-- MARQUEE TICKER -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">JJ Fabrics — Attock City <span class="mdot">✦</span></span>
+    <span class="marquee-item">House of Brands <span class="mdot">✦</span></span>
+    <span class="marquee-item">Premium Embroidered Lawn <span class="mdot">✦</span></span>
+    <span class="marquee-item">Gents &amp; Ladies Suiting <span class="mdot">✦</span></span>
+    <span class="marquee-item">SAYA · Bonanza · Sapphire <span class="mdot">✦</span></span>
+    <span class="marquee-item">Maria.B · Cross Stitch · Bareeze <span class="mdot">✦</span></span>
+    <span class="marquee-item">100% Authentic <span class="mdot">✦</span></span>
+    <span class="marquee-item">New Arrivals Every Season <span class="mdot">✦</span></span>
+    <span class="marquee-item">Main Bazar, Attock City <span class="mdot">✦</span></span>
+    <span class="marquee-item">03145777344 <span class="mdot">✦</span></span>
+    <!-- Duplicate set for seamless loop -->
+    <span class="marquee-item">JJ Fabrics — Attock City <span class="mdot">✦</span></span>
+    <span class="marquee-item">House of Brands <span class="mdot">✦</span></span>
+    <span class="marquee-item">Premium Embroidered Lawn <span class="mdot">✦</span></span>
+    <span class="marquee-item">Gents &amp; Ladies Suiting <span class="mdot">✦</span></span>
+    <span class="marquee-item">SAYA · Bonanza · Sapphire <span class="mdot">✦</span></span>
+    <span class="marquee-item">Maria.B · Cross Stitch · Bareeze <span class="mdot">✦</span></span>
+    <span class="marquee-item">100% Authentic <span class="mdot">✦</span></span>
+    <span class="marquee-item">New Arrivals Every Season <span class="mdot">✦</span></span>
+    <span class="marquee-item">Main Bazar, Attock City <span class="mdot">✦</span></span>
+    <span class="marquee-item">03145777344 <span class="mdot">✦</span></span>
+  </div>
 </div>
 
 <!-- HERO -->
