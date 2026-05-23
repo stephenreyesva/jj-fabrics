@@ -529,6 +529,10 @@
     #print-report-area, #print-report-area * { visibility: visible; }
     #print-report-area { position: fixed; top: 0; left: 0; width: 100%; padding: 24px; background: white; }
   }
+
+  /* ── Drag & Drop image zone ── */
+  #img-drop-zone.drag-over { background: #fef9ec; border-color: #b45309; }
+  #img-drop-zone:hover { background: #fef9ec; }
 </style>
 </head>
 <body>
@@ -761,7 +765,6 @@
           <option value="out">Out of Stock</option>
         </select>
         <div class="spacer"></div>
-        <button class="btn btn-outline" onclick="loadDefaultsAndPush()" style="font-size:12px;" title="Load all built-in products with images and push to Sheets">⟳ Load All Defaults</button>
         <button class="btn btn-gold" onclick="openAddProduct()">+ Add Product</button>
       </div>
       <div class="card scrollable-table">
@@ -1022,28 +1025,30 @@
     </div>
     <div class="form-group"><label>Description</label><input class="input-field" type="text" id="p-desc" placeholder="Brief description" style="margin-bottom:0"></div>
     <div class="form-group">
-      <label>Photo <span style="font-size:11px;font-weight:400;color:var(--gray-400);">— upload a file OR paste a URL</span></label>
-      <!-- Tab toggle -->
-      <div style="display:flex;gap:0;margin-bottom:8px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;width:fit-content;">
-        <button type="button" id="img-tab-upload" onclick="switchImgTab('upload')" style="padding:5px 14px;font-size:12px;font-weight:600;border:none;background:var(--gold);color:#111;cursor:pointer;">📁 Upload File</button>
-        <button type="button" id="img-tab-url" onclick="switchImgTab('url')" style="padding:5px 14px;font-size:12px;font-weight:600;border:none;background:#f3f4f6;color:#555;cursor:pointer;">🔗 Paste URL</button>
+      <label>Photo</label>
+      <!-- Drag & Drop Zone -->
+      <div id="img-drop-zone" onclick="document.getElementById('p-img-file').click()"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="event.preventDefault();this.classList.remove('drag-over');handleImgFile({files:event.dataTransfer.files})"
+        style="border:2px dashed #d4a017;border-radius:12px;padding:22px;text-align:center;cursor:pointer;background:#fffdf5;transition:background 0.2s;margin-bottom:6px;">
+        <div id="img-drop-label" style="font-size:13px;color:#92400e;">
+          🖼 Drag &amp; drop photo here, or <span style="color:var(--gold);font-weight:700;">click to browse</span>
+        </div>
+        <input type="file" id="p-img-file" accept="image/*" style="display:none;" onchange="handleImgFile(this)">
       </div>
-      <!-- File upload panel -->
-      <div id="img-panel-upload">
-        <input type="file" id="p-img-file" accept="image/*" style="font-size:13px;width:100%;" onchange="handleImgFile(this)">
-        <div style="font-size:11px;color:var(--gray-400);margin-top:4px;">Photo will be saved as base64 (works offline, no hosting needed)</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+        <span style="font-size:11px;color:#9ca3af;">or paste URL</span>
+        <div style="flex:1;height:1px;background:#e5e7eb;"></div>
       </div>
-      <!-- URL panel -->
-      <div id="img-panel-url" style="display:none;">
-        <input class="input-field" type="text" id="p-img" placeholder="https://... e.g. from imgbb.com or GitHub" style="margin-bottom:4px" oninput="onImgUrlInput(this.value)">
-        <div style="font-size:11px;color:var(--gray-400);">💡 Upload to <a href="https://imgbb.com" target="_blank" style="color:var(--gold);">imgbb.com</a> free → copy "Direct link"</div>
-      </div>
+      <input class="input-field" type="text" id="p-img" placeholder="https://... (imgbb.com, GitHub, etc.)" style="margin-bottom:4px" oninput="onImgUrlInput(this.value)">
       <!-- Hidden field that always holds the final value -->
       <input type="hidden" id="p-img-final">
       <!-- Preview -->
-      <div id="p-img-preview" style="margin-top:8px;display:none;">
-        <img id="p-img-thumb" src="" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1.5px solid #e5e7eb;" onerror="document.getElementById('p-img-preview').style.display='none'">
-        <button type="button" onclick="clearImgField()" style="display:block;margin-top:4px;font-size:11px;color:#ef4444;background:none;border:none;cursor:pointer;">✕ Remove photo</button>
+      <div id="p-img-preview" style="margin-top:8px;display:none;align-items:center;gap:12px;" id="p-img-preview">
+        <img id="p-img-thumb" src="" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1.5px solid #e5e7eb;" onerror="document.getElementById('p-img-preview').style.display='none'">
+        <button type="button" onclick="clearImgField()" style="font-size:11px;color:#ef4444;background:none;border:none;cursor:pointer;">✕ Remove</button>
       </div>
     </div>
     <div class="modal-footer">
@@ -1342,39 +1347,7 @@ function seed() {
     featured:[], publishedAt: null
   });
 
-  // Default product list
-  const GITHUB = 'https://stephenreyesva.github.io/jj-fabrics/image/';
-  const defaultProducts = [
-    // ── Spreadsheet items (LAD / GEN / KID / ACC series) ──
-    {sku:'LAD-001',name:'SAYA Embroidered 3-Piece',brand:'SAYA',category:'Ladies Suiting',size:'S/M/L/XL',price:6000,cost:2800,stock:13,minStock:3,desc:'Luxury embroidered lawn suit by SAYA.',img:''},
-    {sku:'LAD-002',name:'Bonanza Satrangi Summer Lawn',brand:'Bonanza Satrangi',category:'Ladies Suiting',size:'S/M/L/XXL',price:6000,cost:1800,stock:19,minStock:3,desc:'Vibrant summer lawn collection.',img:''},
-    {sku:'LAD-003',name:'Sapphire Printed Suit',brand:'Sapphire',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:3200,stock:10,minStock:3,desc:'Elegant Sapphire printed suit.',img:''},
-    {sku:'LAD-004',name:'Maria.B Luxury Pret',brand:'Maria.B',category:'Ladies Suiting',size:'S/M/L',price:4600,cost:5000,stock:4,minStock:2,desc:'Maria.B premium luxury pret collection.',img:''},
-    {sku:'GEN-001',name:'J. Junaid Jamshed Kurta',brand:'J.',category:'Gents Suiting',size:'S/M/L/XL/XXL',price:4600,cost:2200,stock:15,minStock:5,desc:'Classic embroidered kurta by J. Junaid Jamshed.',img:''},
-    {sku:'GEN-002',name:'Bin Saeed Premium Shalwar Kameez',brand:'Bin Saeed',category:'Gents Suiting',size:'S/M/L/XL',price:4600,cost:2500,stock:11,minStock:4,desc:'Fine cotton shalwar kameez.',img:''},
-    {sku:'GEN-003',name:'Gents Waistcoat (Wasket)',brand:'',category:'Gents Suiting',size:'S/M/L/XL',price:4600,cost:1400,stock:12,minStock:4,desc:'Formal embroidered waistcoat.',img:''},
-    {sku:'KID-001',name:'Kids Eid Suit',brand:'',category:'Kids',size:'2Y-14Y',price:4600,cost:900,stock:19,minStock:5,desc:'Festive embroidered kids suit.',img:''},
-    {sku:'ACC-001',name:'Dupatta — Embroidered',brand:'',category:'Accessories',size:'One Size',price:4600,cost:600,stock:25,minStock:5,desc:'Heavy embroidered dupatta.',img:''},
-    {sku:'ACC-002',name:'VIRSA Pret Kurta',brand:'VIRSA',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:1600,stock:14,minStock:4,desc:'Ready-to-wear kurta by VIRSA Pret.',img:''},
-    // ── Existing lawn/premium items (with absolute GitHub image URLs) ──
-    {sku:'BN-1075',name:'Laam Luxury Lawn 3-Piece (BN-1075)',brand:'Laam',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:20,minStock:5,desc:'Laam Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Off-white with delicate blue floral embroidery.',img:GITHUB+'p1.jpeg'},
-    {sku:'BN-1000',name:'Qalandari Luxury Lawn 3-Piece (BN-1000)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:18,minStock:5,desc:'Qalandari Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Deep navy blue with gold thread embroidery.',img:GITHUB+'p2.jpeg'},
-    {sku:'BN-1056',name:'Veezal Luxury Lawn 3-Piece (BN-1056)',brand:'Veezal',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Veezal Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Warm beige with vibrant pink and green floral embroidery.',img:GITHUB+'p3.jpeg'},
-    {sku:'BN-1060',name:'Maria.B Luxury Lawn 3-Piece (BN-1060)',brand:'Maria.B',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Maria.B Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Cornflower blue with elegant white embroidery.',img:GITHUB+'p4.jpeg'},
-    {sku:'BN-1025',name:'Bareeze Luxury Lawn 3-Piece (BN-1025)',brand:'Bareeze',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Bareeze Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Jet black with rich crimson and silver embroidery.',img:GITHUB+'p5.jpeg'},
-    {sku:'BN-1053',name:'Cross Stitch Luxury Lawn 3-Piece (BN-1053)',brand:'Cross Stitch',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Cross Stitch Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Dusty mauve with intricate gold embroidery.',img:GITHUB+'p6.jpeg'},
-    {sku:'BN-1059',name:'Qalandari Luxury Lawn 3-Piece (BN-1059)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:10,minStock:3,desc:'Qalandari Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser. Soft grey with purple floral embroidery.',img:GITHUB+'p7.jpeg'},
-    {sku:'PS-001',name:'Premium Lawn Suit (PS-001)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:GITHUB+'ps1.jpeg'},
-    {sku:'PS-002',name:'Premium Lawn Suit (PS-002)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:GITHUB+'ps2.jpeg'},
-    {sku:'PS-003',name:'Premium Lawn Suit (PS-003)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:GITHUB+'ps3.jpeg'},
-    {sku:'PS-004',name:'Premium Lawn Suit (PS-004)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:GITHUB+'ps4.jpeg'},
-    {sku:'PS-005',name:'Premium Lawn Suit (PS-005)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:GITHUB+'ps5.jpeg'},
-    {sku:'PS-006',name:'Premium Lawn Suit (PS-006)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:GITHUB+'ps6.jpeg'},
-    {sku:'PS-007',name:'Premium Lawn Suit (PS-007)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn — Embroidered Lawn Shirt, Embroidered Bamber Dupatta, Dyed Trouser.',img:GITHUB+'ps7.jpeg'}
-  ];
-  // Seed products if missing OR if previously wiped to empty array
-  const storedProds = get(K.products);
-  if (!storedProds || storedProds.length === 0) set(K.products, defaultProducts);
+  // No default products — all products added manually via + Add Product
   if (!localStorage.getItem(K.sales)) set(K.sales, []);
 }
 
@@ -1761,31 +1734,24 @@ function renderInventory(){
 // ═══════════════════════════════════
 //  IMAGE FIELD HELPERS
 // ═══════════════════════════════════
-function switchImgTab(tab) {
-  const isUpload = tab === 'upload';
-  document.getElementById('img-panel-upload').style.display = isUpload ? '' : 'none';
-  document.getElementById('img-panel-url').style.display   = isUpload ? 'none' : '';
-  document.getElementById('img-tab-upload').style.background = isUpload ? 'var(--gold)' : '#f3f4f6';
-  document.getElementById('img-tab-upload').style.color      = isUpload ? '#111' : '#555';
-  document.getElementById('img-tab-url').style.background    = isUpload ? '#f3f4f6' : 'var(--gold)';
-  document.getElementById('img-tab-url').style.color         = isUpload ? '#555' : '#111';
-}
 function handleImgFile(input) {
-  const file = input.files[0]; if (!file) return;
-  // Resize + compress before storing as base64
+  const file = (input.files || input)[0]; if (!file) return;
+  const label = document.getElementById('img-drop-label');
+  if (label) label.textContent = '⏳ Processing ' + file.name + '…';
   const reader = new FileReader();
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
-      const MAX = 600;
+      const MAX = 800;
       const scale = Math.min(1, MAX / Math.max(img.width, img.height));
       const canvas = document.createElement('canvas');
       canvas.width  = Math.round(img.width  * scale);
       canvas.height = Math.round(img.height * scale);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      const b64 = canvas.toDataURL('image/jpeg', 0.78);
+      const b64 = canvas.toDataURL('image/jpeg', 0.82);
       setImgPreview(b64);
       document.getElementById('p-img-final').value = b64;
+      if (label) label.innerHTML = '✅ ' + file.name + ' — <span style="color:var(--gold);font-weight:700;">change photo</span>';
     };
     img.src = e.target.result;
   };
@@ -1798,23 +1764,23 @@ function onImgUrlInput(val) {
 }
 function setImgPreview(src) {
   document.getElementById('p-img-thumb').src = src;
-  document.getElementById('p-img-preview').style.display = 'block';
+  document.getElementById('p-img-preview').style.display = 'flex';
 }
 function clearImgField() {
   document.getElementById('p-img-final').value = '';
   document.getElementById('p-img-file').value  = '';
   document.getElementById('p-img').value       = '';
   document.getElementById('p-img-preview').style.display = 'none';
+  const label = document.getElementById('img-drop-label');
+  if (label) label.innerHTML = '🖼 Drag &amp; drop photo here, or <span style="color:var(--gold);font-weight:700;">click to browse</span>';
 }
 function _setModalImg(val) {
   // Called by openEditProduct to pre-fill image
   document.getElementById('p-img-final').value = val || '';
   if (val && val.startsWith('http')) {
-    switchImgTab('url');
     document.getElementById('p-img').value = val;
     setImgPreview(val);
   } else if (val && val.startsWith('data:')) {
-    switchImgTab('upload');
     setImgPreview(val);
   } else {
     clearImgField();
@@ -1824,77 +1790,7 @@ function _setModalImg(val) {
 // ═══════════════════════════════════
 //  LOAD ALL DEFAULTS → PUSH TO SHEETS
 // ═══════════════════════════════════
-async function loadDefaultsAndPush() {
-  const GITHUB = 'https://stephenreyesva.github.io/jj-fabrics/image/';
-  const existing = get(K.products);
 
-  // Build a map of existing SKUs so we don't overwrite edited products
-  const existingMap = {};
-  existing.forEach(p => { existingMap[p.sku] = p; });
-
-  // Full default list with all GitHub image URLs
-  const defaults = [
-    {sku:'LAD-001',name:'SAYA Embroidered 3-Piece',brand:'SAYA',category:'Ladies Suiting',size:'S/M/L/XL',price:6000,cost:2800,stock:13,minStock:3,desc:'Luxury embroidered lawn suit by SAYA.',img:''},
-    {sku:'LAD-002',name:'Bonanza Satrangi Summer Lawn',brand:'Bonanza Satrangi',category:'Ladies Suiting',size:'S/M/L/XXL',price:6000,cost:1800,stock:19,minStock:3,desc:'Vibrant summer lawn collection.',img:''},
-    {sku:'LAD-003',name:'Sapphire Printed Suit',brand:'Sapphire',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:3200,stock:10,minStock:3,desc:'Elegant Sapphire printed suit.',img:''},
-    {sku:'LAD-004',name:'Maria.B Luxury Pret',brand:'Maria.B',category:'Ladies Suiting',size:'S/M/L',price:4600,cost:5000,stock:4,minStock:2,desc:'Maria.B premium luxury pret collection.',img:''},
-    {sku:'GEN-001',name:'J. Junaid Jamshed Kurta',brand:'J.',category:'Gents Suiting',size:'S/M/L/XL/XXL',price:4600,cost:2200,stock:15,minStock:5,desc:'Classic embroidered kurta by J. Junaid Jamshed.',img:''},
-    {sku:'GEN-002',name:'Bin Saeed Premium Shalwar Kameez',brand:'Bin Saeed',category:'Gents Suiting',size:'S/M/L/XL',price:4600,cost:2500,stock:11,minStock:4,desc:'Fine cotton shalwar kameez.',img:''},
-    {sku:'GEN-003',name:'Gents Waistcoat (Wasket)',brand:'',category:'Gents Suiting',size:'S/M/L/XL',price:4600,cost:1400,stock:12,minStock:4,desc:'Formal embroidered waistcoat.',img:''},
-    {sku:'KID-001',name:'Kids Eid Suit',brand:'',category:'Kids',size:'2Y-14Y',price:4600,cost:900,stock:19,minStock:5,desc:'Festive embroidered kids suit.',img:''},
-    {sku:'ACC-001',name:'Dupatta — Embroidered',brand:'',category:'Accessories',size:'One Size',price:4600,cost:600,stock:25,minStock:5,desc:'Heavy embroidered dupatta.',img:''},
-    {sku:'ACC-002',name:'VIRSA Pret Kurta',brand:'VIRSA',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:1600,stock:14,minStock:4,desc:'Ready-to-wear kurta by VIRSA Pret.',img:''},
-    {sku:'BN-1075',name:'Laam Luxury Lawn 3-Piece (BN-1075)',brand:'Laam',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:20,minStock:5,desc:'Laam Premium Embroidered Luxury Lawn — Off-white with delicate blue floral embroidery.',img:GITHUB+'p1.jpeg'},
-    {sku:'BN-1000',name:'Qalandari Luxury Lawn 3-Piece (BN-1000)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:18,minStock:5,desc:'Qalandari Premium Embroidered Luxury Lawn — Deep navy blue with gold thread embroidery.',img:GITHUB+'p2.jpeg'},
-    {sku:'BN-1056',name:'Veezal Luxury Lawn 3-Piece (BN-1056)',brand:'Veezal',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Veezal Premium Embroidered Luxury Lawn — Warm beige with vibrant pink and green floral embroidery.',img:GITHUB+'p3.jpeg'},
-    {sku:'BN-1060',name:'Maria.B Luxury Lawn 3-Piece (BN-1060)',brand:'Maria.B',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:15,minStock:4,desc:'Maria.B Premium Embroidered Luxury Lawn — Cornflower blue with elegant white embroidery.',img:GITHUB+'p4.jpeg'},
-    {sku:'BN-1025',name:'Bareeze Luxury Lawn 3-Piece (BN-1025)',brand:'Bareeze',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Bareeze Premium Embroidered Luxury Lawn — Jet black with rich crimson and silver embroidery.',img:GITHUB+'p5.jpeg'},
-    {sku:'BN-1053',name:'Cross Stitch Luxury Lawn 3-Piece (BN-1053)',brand:'Cross Stitch',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:12,minStock:3,desc:'Cross Stitch Premium Embroidered Luxury Lawn — Dusty mauve with intricate gold embroidery.',img:GITHUB+'p6.jpeg'},
-    {sku:'BN-1059',name:'Qalandari Luxury Lawn 3-Piece (BN-1059)',brand:'Qalandari',category:'Ladies Suiting',size:'S/M/L/XL',price:4600,cost:2800,stock:10,minStock:3,desc:'Qalandari Premium Embroidered Luxury Lawn — Soft grey with purple floral embroidery.',img:GITHUB+'p7.jpeg'},
-    {sku:'PS-001',name:'Premium Lawn Suit (PS-001)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:GITHUB+'ps1.jpeg'},
-    {sku:'PS-002',name:'Premium Lawn Suit (PS-002)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:GITHUB+'ps2.jpeg'},
-    {sku:'PS-003',name:'Premium Lawn Suit (PS-003)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:GITHUB+'ps3.jpeg'},
-    {sku:'PS-004',name:'Premium Lawn Suit (PS-004)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:GITHUB+'ps4.jpeg'},
-    {sku:'PS-005',name:'Premium Lawn Suit (PS-005)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:GITHUB+'ps5.jpeg'},
-    {sku:'PS-006',name:'Premium Lawn Suit (PS-006)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:GITHUB+'ps6.jpeg'},
-    {sku:'PS-007',name:'Premium Lawn Suit (PS-007)',brand:'Premium',category:'Ladies Suiting',size:'S/M/L/XL',price:2650,cost:1500,stock:20,minStock:5,desc:'Premium Embroidered Luxury Lawn 3-Piece.',img:GITHUB+'ps7.jpeg'},
-  ];
-
-  // Merge: keep existing edits, add any missing defaults
-  let added = 0, updated = 0;
-  defaults.forEach(def => {
-    if (existingMap[def.sku]) {
-      // Only update img URL if existing has no image
-      if (!existingMap[def.sku].img && def.img) {
-        existingMap[def.sku].img = def.img;
-        updated++;
-      }
-    } else {
-      existingMap[def.sku] = def;
-      added++;
-    }
-  });
-
-  const merged = defaults.map(d => existingMap[d.sku]).filter(Boolean);
-  // Also keep any custom products the user added that aren't in defaults
-  existing.forEach(p => { if (!merged.find(m => m.sku === p.sku)) merged.push(p); });
-
-  set(K.products, merged);
-  renderInventory();
-  markInvPending();
-
-  const msg = `✅ ${added} added, ${updated} image URLs updated. Pushing to Sheets…`;
-  showToast(msg, 'success');
-  setInvSaveState('saving');
-  const ok = await pushProductsToSheets(merged);
-  if (ok) {
-    showToast('All products pushed to Sheets! ✅', 'success');
-    setInvSaveState('synced');
-  } else {
-    showToast('⚠ Saved locally — Sheets push failed. Click "Save to Sheets".', 'error');
-    setInvSaveState('error');
-  }
-}
 
 function openAddProduct(){
   if(CU.role==='cashier'){showToast('Access denied','error');return;}
@@ -1903,7 +1799,6 @@ function openAddProduct(){
   ['p-sku','p-name','p-size','p-desc','p-img'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
   ['p-price','p-cost','p-stock','p-minstock'].forEach(id=>document.getElementById(id).value='');
   clearImgField();
-  switchImgTab('upload');
   openModal('product-modal');
 }
 function openEditProduct(sku){
