@@ -1148,8 +1148,23 @@ async function loadSheetsData() {
       gsFetch('getUsers')
     ]);
     if (Array.isArray(products) && products.length) {
-      _gsProducts = products;
-      set(K.products, products);
+      // Normalize column names: Sheets returns capitalized headers (SKU, Name, ImageURL…)
+      // Storing lowercase keys means resolveImg, SKU_IMG_MAP, and all other lookups work correctly.
+      const normalized = products.map(p => ({
+        sku      : p.sku      || p.SKU      || '',
+        name     : p.name     || p.Name     || '',
+        brand    : p.brand    || p.Brand    || '',
+        category : p.category || p.Category || '',
+        size     : p.size     || p.Size     || '',
+        price    : Number(p.price    || p.Price)    || 0,
+        cost     : Number(p.cost     || p.Cost)     || 0,
+        stock    : Number(p.stock    || p.Stock)    || 0,
+        minStock : Number(p.minStock || p.MinStock) || 5,
+        desc     : p.desc || p.Description || '',
+        img      : p.img  || p.ImageURL    || ''
+      })).filter(p => p.sku);
+      _gsProducts = normalized;
+      set(K.products, normalized);
     }
     if (site && typeof site === 'object' && !Array.isArray(site)) {
       _gsSite = site;
@@ -1442,7 +1457,8 @@ const SKU_IMG_MAP = {
 function resolveImg(p) {
   const imgVal = p.img || p.ImageURL || '';
   if (imgVal && imgVal.trim()) return imgVal.trim();
-  if (SKU_IMG_MAP[p.sku]) return SKU_IMG_MAP[p.sku];
+  const sku = p.sku || p.SKU || '';
+  if (SKU_IMG_MAP[sku]) return SKU_IMG_MAP[sku];
   return '';
 }
 
