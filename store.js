@@ -68,7 +68,19 @@ function applySiteData(s) {
     document.documentElement.style.setProperty('--accent-dark', shadeColor(accent, -20));
     document.documentElement.style.setProperty('--accent-lt',   shadeColor(accent,  80));
   }
-  if (s.hero_color) document.documentElement.style.setProperty('--hero-section-bg', s.hero_color);
+  if (s.hero_color) {
+    document.documentElement.style.setProperty('--hero-section-bg', s.hero_color);
+    // Auto-detect if background is light → use dark text; dark bg → white text
+    try {
+      const hex = s.hero_color.replace('#','');
+      const r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
+      const brightness = (r*299 + g*587 + b*114) / 1000;
+      const textColor = brightness > 140 ? '#1C1C14' : '#FFFFFF';
+      const textMuted = brightness > 140 ? 'rgba(28,28,20,0.65)' : 'rgba(255,255,255,0.7)';
+      document.documentElement.style.setProperty('--hero-text', textColor);
+      document.documentElement.style.setProperty('--hero-text-muted', textMuted);
+    } catch(e){}
+  }
 
   // Supabase key: store_name
   const name = s.store_name || 'JJ Fabrics';
