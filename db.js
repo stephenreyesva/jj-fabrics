@@ -133,7 +133,7 @@ async function dbSaveSettings(entries) {
 
 async function dbGetAllUsers() {
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/users?select=id,username,role,full_name,fullname,name&order=role.asc`,
+    `${SUPABASE_URL}/rest/v1/users?select=*&order=role.asc`,
     { headers: HEADERS }
   );
   if (!res.ok) throw new Error('Failed to fetch users');
