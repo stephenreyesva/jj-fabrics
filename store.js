@@ -3,6 +3,21 @@
 //  Backend: Supabase (via db.js)
 // ============================================================
 
+
+// Priority sort: sale+new first, then new only, then sale only, then rest
+function sortProducts(prods) {
+  return [...prods].sort((a, b) => {
+    const aNew  = a.is_new === true || a.is_new === 'true';
+    const bNew  = b.is_new === true || b.is_new === 'true';
+    const aSale = a.sale_price && Number(a.sale_price) > 0 && Number(a.sale_price) < Number(a.price);
+    const bSale = b.sale_price && Number(b.sale_price) > 0 && Number(b.sale_price) < Number(b.price);
+    const aPri  = (aNew ? 2 : 0) + (aSale ? 1 : 0);
+    const bPri  = (bNew ? 2 : 0) + (bSale ? 1 : 0);
+    if (bPri !== aPri) return bPri - aPri;
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
+}
+
 const catEmoji = { 'Ladies Suiting': '👘', 'Gents Suiting': '👔', 'Accessories': '💎', 'Kids': '👦' };
 
 let allProducts   = [];
@@ -278,6 +293,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 1. Apply defaults immediately — page is fully visible right away
   applySiteData(DEFAULT_SETTINGS);
   hideLoader();
+  allProducts = sortProducts(allProducts);
   loadProducts(); // renders empty state while Supabase loads
 
   try {
