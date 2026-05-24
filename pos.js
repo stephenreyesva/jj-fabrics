@@ -718,31 +718,30 @@ async function renderWebsiteEditor() {
   if (noAccess) noAccess.style.display = 'none';
   if (editor)   editor.style.display   = 'block';
 
-  // Load current settings from Supabase and populate fields
   try {
     const s = await dbGetSettings();
     const v = (id, val) => { const e = document.getElementById(id); if (e) e.value = val || ''; };
-    v('ws-name',     s.name);
-    v('ws-tagline',  s.tagline);
-    v('ws-about',    s.about);
-    v('ws-address',  s.address);
-    v('ws-phone',    s.phone);
-    v('ws-email',    s.email);
-    v('ws-fb',       s.facebook);
-    v('ws-ig',       s.instagram);
-    v('ws-map',      s.map);
-    v('ws-emoji',    s.emoji);
-    v('ws-hero-color',     s.hero_color     || '#FFFDF0');
-    v('ws-hero-color-txt', s.hero_color     || '#FFFDF0');
-    v('ws-accent-color',     s.accent_color || '#EAB308');
-    v('ws-accent-color-txt', s.accent_color || '#EAB308');
+    // Map Supabase keys → form field IDs
+    v('ws-name',             s.store_name);
+    v('ws-tagline',          s.tagline);
+    v('ws-about',            s.about);
+    v('ws-address',          s.address);
+    v('ws-phone',            s.whatsapp || s.phone);
+    v('ws-email',            s.email);
+    v('ws-fb',               s.facebook);
+    v('ws-ig',               s.instagram);
+    v('ws-map',              s.map_embed);
+    v('ws-emoji',            s.emoji);
+    v('ws-hero-color',       s.hero_color   || '#FFFDF0');
+    v('ws-hero-color-txt',   s.hero_color   || '#FFFDF0');
+    v('ws-accent-color',     s.accent_color || '#D4A017');
+    v('ws-accent-color-txt', s.accent_color || '#D4A017');
 
-    // Sync color pickers with text inputs
     ['hero-color','accent-color'].forEach(key => {
       const picker = document.getElementById('ws-' + key);
       const txt    = document.getElementById('ws-' + key + '-txt');
       if (picker && txt) {
-        picker.oninput = () => txt.value   = picker.value;
+        picker.oninput = () => txt.value    = picker.value;
         txt.oninput    = () => picker.value = txt.value;
       }
     });
@@ -756,17 +755,18 @@ async function renderWebsiteEditor() {
 async function publishSiteData() {
   const g = id => (document.getElementById(id)?.value || '').trim();
 
-  // Build array of {key, value} pairs matching the Supabase settings table schema
+  // Keys must match the Supabase settings table exactly
   const entries = [
-    { key: 'name',         value: g('ws-name')            },
+    { key: 'store_name',   value: g('ws-name')            },
     { key: 'tagline',      value: g('ws-tagline')          },
     { key: 'about',        value: g('ws-about')            },
     { key: 'address',      value: g('ws-address')          },
+    { key: 'whatsapp',     value: g('ws-phone')            },
     { key: 'phone',        value: g('ws-phone')            },
     { key: 'email',        value: g('ws-email')            },
     { key: 'facebook',     value: g('ws-fb')               },
     { key: 'instagram',    value: g('ws-ig')               },
-    { key: 'map',          value: g('ws-map')              },
+    { key: 'map_embed',    value: g('ws-map')              },
     { key: 'emoji',        value: g('ws-emoji')            },
     { key: 'hero_color',   value: g('ws-hero-color-txt')   },
     { key: 'accent_color', value: g('ws-accent-color-txt') },
