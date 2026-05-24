@@ -252,12 +252,13 @@
   .social-strip p { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 36px; }
   .social-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
   .social-btn {
-    display: flex; align-items: center; gap: 10px; padding: 14px 24px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 14px 24px; min-width: 150px;
     border-radius: 14px; font-size: 14px; font-weight: 700; text-decoration: none;
     transition: all 0.25s; border: 2px solid transparent;
   }
   .social-btn .sb-icon { font-size: 20px; }
-  .social-btn.tiktok   { background: #010101; color: white; }
+  .social-btn.tiktok   { background: #010101; color: white; border-color: rgba(255,255,255,0.15); }
   .social-btn.tiktok:hover   { background: #69C9D0; color: #010101; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(105,201,208,0.4); }
   .social-btn.facebook  { background: #1877F2; color: white; }
   .social-btn.facebook:hover  { background: #0d65d9; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(24,119,242,0.4); }
