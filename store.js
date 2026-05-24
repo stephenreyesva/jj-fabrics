@@ -211,10 +211,7 @@ function renderProducts() {
 }
 
 // ── NAV SCROLL ────────────────────────────────────────────
-window.addEventListener('scroll', () => {
-  el('navbar')?.classList.toggle('scrolled', window.scrollY > 40);
-  el('back-top')?.classList.toggle('visible', window.scrollY > 300);
-});
+// Registered inside DOMContentLoaded so element references are safe
 
 // ── MOBILE MENU ───────────────────────────────────────────
 function toggleMobile() {
@@ -225,7 +222,6 @@ function toggleMobile() {
 const revealObserver = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.12 });
-document.querySelectorAll('.reveal').forEach(e => revealObserver.observe(e));
 
 // ── QR CODE DOWNLOAD ──────────────────────────────────────
 function downloadQR() {
@@ -238,6 +234,15 @@ function downloadQR() {
 
 // ── INIT ──────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  // Observe all .reveal elements for scroll animations
+  document.querySelectorAll('.reveal').forEach(e => revealObserver.observe(e));
+
+  // Scroll: navbar shadow + back-to-top button
+  window.addEventListener('scroll', () => {
+    el('navbar')?.classList.toggle('scrolled', window.scrollY > 40);
+    el('back-top')?.classList.toggle('visible', window.scrollY > 300);
+  });
+
   // 1. Apply defaults immediately — page is fully visible right away
   applySiteData(DEFAULT_SETTINGS);
   hideLoader();
