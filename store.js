@@ -118,7 +118,7 @@ function loadProducts() {
   allProducts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
   // Category counts
-  const newCount = allProducts.filter(p => p.created_at && (new Date() - new Date(p.created_at)) < 30 * 24 * 60 * 60 * 1000).length;
+  const newCount = allProducts.filter(p => p.is_new === true || p.is_new === 'true').length;
   setText('stat-products', allProducts.length + '+');
   setText('cnt-all',   allProducts.length + ' items');
   setText('cnt-new',   newCount + ' items');
@@ -162,7 +162,7 @@ function filterBrandNav(cat, elem) {
 
 function renderProducts() {
   const filtered = activeFilter === '__new__'
-    ? allProducts.filter(p => p.created_at && (new Date() - new Date(p.created_at)) < 30 * 24 * 60 * 60 * 1000)
+    ? allProducts.filter(p => p.is_new === true || p.is_new === 'true')
     : activeFilter
       ? allProducts.filter(p => p.category === activeFilter)
       : allProducts;
@@ -190,7 +190,7 @@ function renderProducts() {
     const emoji    = catEmoji[p.category] || '🛍️';
     const waMsg    = encodeURIComponent(`Hi! I'm interested in: ${p.name} (Rs. ${Number(p.price).toLocaleString()}). Is it available?`);
     const waHref   = waNum ? `https://wa.me/${waNum}?text=${waMsg}` : '#';
-    const isNew    = p.created_at && (new Date() - new Date(p.created_at)) < 30 * 24 * 60 * 60 * 1000;
+    const isNew    = p.is_new === true || p.is_new === 'true';
     const fallback = `<span style="font-size:64px">${emoji}</span>`;
     const imgHtml  = (p.img && p.img.trim())
       ? `<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;"
