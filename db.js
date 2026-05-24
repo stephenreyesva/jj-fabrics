@@ -4,7 +4,7 @@
 // ============================================================
 
 const SUPABASE_URL = 'https://qkinurfvnhpywfvzwgpi.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_DJDFFhc7nCm-vQsksDgRJg_mWvN3fYg';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFraW51cmZ2bmhweXdmdnp3Z3BpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTMyNjQsImV4cCI6MjA5NTE2OTI2NH0.8ZVj7grTG_dmyNs-m89uumr9WhGgpvSzsenLpXe0Kec';
 
 const HEADERS = {
   'Content-Type': 'application/json',
@@ -24,6 +24,7 @@ async function dbGetProducts() {
 }
 
 async function dbSaveProduct(product) {
+  // upsert by SKU
   const res = await fetch(`${SUPABASE_URL}/rest/v1/products?on_conflict=sku`, {
     method: 'POST',
     headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
@@ -111,4 +112,18 @@ async function dbGetSettings() {
   const out = {};
   rows.forEach(r => out[r.key] = r.value);
   return out;
+}
+
+async function dbSaveSettings(entries) {
+  // entries = [{key, value}, ...] — upsert each row by key
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/settings?on_conflict=key`, {
+    method: 'POST',
+    headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify(entries)
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error('Settings save failed: ' + err);
+  }
+  return res.json();
 }
