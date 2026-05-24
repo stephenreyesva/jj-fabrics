@@ -1,39 +1,55 @@
 // ============================================================
-//  JJ Fabrics POS — Main Logic
+//  JJ Fabrics POS — Application Logic
+//  Backend: Supabase (via db.js)
 // ============================================================
 
-let currentUser = null;
-let products = [];
-let cart = [];
-let editingSku = null;
+// ── State ──
+let CU        = null;   // current user
+let allProducts = [];   // in-memory product cache
+let cart      = [];
+let activeTab = 'sales';
 let activeCat = 'all';
 
-// ── INIT ─────────────────────────────────────────────────
-
-window.addEventListener('DOMContentLoaded', () => {
-  const saved = sessionStorage.getItem('jj-user');
-  if (saved) {
-    currentUser = JSON.parse(saved);
-    startApp();
-  }
-});
-
-// ── LOGIN ─────────────────────────────────────────────────
-
+// ─────────────────────────────────────────
+//  AUTH
+// ─────────────────────────────────────────
 async function doLogin() {
-  const user = document.getElementById('l-user').value.trim();
-  const pass = document.getElementById('l-pass').value.trim();
-  const err  = document.getElementById('login-err');
-  err.textContent = '';
-  if (!user || !pass) { err.textContent = 'Please enter username and password.'; return; }
+  const username = document.getElementById('l-user').value.trim();
+  const password = document.getElementById('l-pass').value;
+  const errEl    = document.getElementById('login-err');
+  const btn      = document.querySelector('#login-screen .btn-primary');
+
+  errEl.textContent = '';
+  if (!username || !password) { errEl.textContent = 'Enter username and password.'; return; }
+
+  btn.textContent = 'Signing in…';
+  btn.disabled    = true;
+
   try {
-    const u = await dbLogin(user, pass);
-    if (!u) { err.textContent = 'Invalid username or password.'; return; }
-    currentUser = u;
-    sessionStorage.setItem('jj-user', JSON.stringify(u));
-    startApp();
-  } catch(e) {
-    err.textContent = 'Connection error. Please try again.';
+    const user = await dbLogin(username, password);
+    if (!user) {
+      errEl.textContent = 'Invalid username or password.';
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
+      return;
+    }
+    CU = user;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display          = 'flex';
+    document.getElementById('sidebar-user').textContent   = user.username;
+
+    // Role-based nav visibility
+    if (user.role === 'cashier') {
+      document.querySelector('[data-tab="inventory"]').style.display = 'none';
+      document.querySelector('[data-tab="reports"]').style.display   = 'none';
+    }
+
+    await loadProducts();
+    showTab('sales');
+  } catch (e) {
+    errEl.textContent = 'Login error — check connection.';
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
   }
 }
 
@@ -42,393 +58,484 @@ document.addEventListener('keydown', e => {
 });
 
 function doLogout() {
-  sessionStorage.removeItem('jj-user');
-  location.reload();
+  CU = null;
+  cart = [];
+  allProducts = [];
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display          = 'none';
+  document.getElementById('l-user').value               = '';
+  document.getElementById('l-pass').value               = '';
+  document.getElementById('login-err').textContent      = '';
+  // Restore nav items
+  document.querySelectorAll('.nav-item').forEach(el => el.style.display = '');
 }
 
-async function startApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-  document.getElementById('sidebar-user').textContent = currentUser.username + ' (' + currentUser.role + ')';
-  await loadProducts();
-}
-
-// ── TABS ─────────────────────────────────────────────────
-
+// ─────────────────────────────────────────
+//  NAVIGATION
+// ─────────────────────────────────────────
 function showTab(tab) {
+  activeTab = tab;
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
-  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-  if (tab === 'inventory') renderInventory();
-  if (tab === 'reports') loadReports();
+  document.querySelector(`.nav-item[data-tab="${tab}"]`)?.classList.add('active');
+
+  if (tab === 'sales')     renderProducts();
+  if (tab === 'inventory') loadAndRenderInventory();
+  if (tab === 'reports')   loadAndRenderReports();
 }
 
-// ── PRODUCTS ─────────────────────────────────────────────
-
+// ─────────────────────────────────────────
+//  PRODUCTS — load & cache
+// ─────────────────────────────────────────
 async function loadProducts() {
   try {
-    products = await dbGetProducts();
-    renderProductGrid();
-    setStatus('☁ Connected — ' + products.length + ' products', 'ok');
-  } catch(e) {
-    setStatus('⚠ Cannot reach database', 'err');
+    allProducts = await dbGetProducts();
+  } catch (e) {
+    console.error('Failed to load products:', e);
+    allProducts = [];
   }
 }
 
-function setStatus(msg, cls) {
-  const el = document.getElementById('db-status');
-  if (!el) return;
-  el.textContent = msg;
-  el.className = 'db-status ' + (cls || '');
-}
+// ─────────────────────────────────────────
+//  SALES TAB — Product Grid
+// ─────────────────────────────────────────
+let salesSearchQ = '';
 
 function filterCat(cat, btn) {
   activeCat = cat;
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  renderProductGrid();
+  renderProducts();
 }
 
-function filterProducts() { renderProductGrid(); }
+function filterProducts() {
+  salesSearchQ = document.getElementById('search-box').value.toLowerCase();
+  renderProducts();
+}
 
-function renderProductGrid() {
-  const q = (document.getElementById('search-box').value || '').toLowerCase();
+function renderProducts() {
   const grid = document.getElementById('product-grid');
-  let list = products.filter(p => {
-    const matchCat = activeCat === 'all' || p.category === activeCat;
-    const matchQ   = !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q);
-    return matchCat && matchQ;
-  });
+  let list = allProducts;
+
+  if (activeCat !== 'all') list = list.filter(p => p.category === activeCat);
+  if (salesSearchQ)        list = list.filter(p =>
+    p.name.toLowerCase().includes(salesSearchQ) ||
+    p.sku.toLowerCase().includes(salesSearchQ)
+  );
 
   if (!list.length) {
-    grid.innerHTML = '<div class="empty-state"><span>📦</span>No products found</div>';
+    grid.innerHTML = '<div class="empty-state"><span>🧵</span>No products found.</div>';
     return;
   }
 
   grid.innerHTML = list.map(p => {
-    const oos = p.stock <= 0;
-    return `<div class="product-card ${oos ? 'out-of-stock' : ''}" onclick="${oos ? '' : `addToCart('${p.sku}')`}">
-      <img src="${p.img || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22/>'}" 
-           onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22/>'"/>
+    const isOut = p.stock <= 0;
+    const isLow = p.stock > 0 && p.stock <= 5;
+    return `<div class="product-card ${isOut ? 'out-of-stock' : ''}" onclick="${isOut ? '' : `addToCart('${p.sku}')`}">
+      ${p.img ? `<img src="${p.img}" alt="${p.name}" onerror="this.style.display='none'"/>` : ''}
       <div class="pc-name">${p.name}</div>
       <div class="pc-price">Rs. ${Number(p.price).toLocaleString()}</div>
-      <div class="pc-stock">${oos ? 'Out of stock' : p.stock + ' in stock'}</div>
+      <div class="pc-stock ${isLow ? 'low' : ''}">${isOut ? 'Out of stock' : isLow ? p.stock + ' left' : p.stock + ' in stock'}</div>
     </div>`;
   }).join('');
 }
 
-// ── CART ─────────────────────────────────────────────────
-
+// ─────────────────────────────────────────
+//  CART
+// ─────────────────────────────────────────
 function addToCart(sku) {
-  const p = products.find(x => x.sku === sku);
+  const p = allProducts.find(x => x.sku === sku);
   if (!p || p.stock <= 0) return;
-  const existing = cart.find(x => x.sku === sku);
+  const existing = cart.find(c => c.sku === sku);
   if (existing) {
-    if (existing.qty >= p.stock) return;
+    if (existing.qty >= p.stock) { showToast('Max stock reached!', 'error'); return; }
     existing.qty++;
   } else {
-    cart.push({ sku: p.sku, name: p.name, price: p.price, qty: 1 });
+    cart.push({ sku: p.sku, name: p.name, price: p.price, qty: 1, maxStock: p.stock });
   }
   renderCart();
 }
 
-function changeQty(sku, delta) {
-  const item = cart.find(x => x.sku === sku);
-  if (!item) return;
-  const p = products.find(x => x.sku === sku);
-  item.qty += delta;
-  if (item.qty <= 0) cart = cart.filter(x => x.sku !== sku);
-  if (p && item.qty > p.stock) item.qty = p.stock;
+function changeQty(index, delta) {
+  cart[index].qty += delta;
+  if (cart[index].qty <= 0) cart.splice(index, 1);
+  else if (cart[index].qty > cart[index].maxStock) cart[index].qty = cart[index].maxStock;
   renderCart();
 }
 
-function removeFromCart(sku) {
-  cart = cart.filter(x => x.sku !== sku);
+function removeFromCart(index) {
+  cart.splice(index, 1);
   renderCart();
 }
 
-function clearCart() { cart = []; renderCart(); }
+function clearCart() {
+  cart = [];
+  document.getElementById('s-discount').value = '0';
+  renderCart();
+}
 
 function renderCart() {
-  const el = document.getElementById('cart-list');
+  const listEl = document.getElementById('cart-list');
   if (!cart.length) {
-    el.innerHTML = '<div class="empty-state"><span>🛒</span>Cart is empty</div>';
-    recalc();
-    return;
-  }
-  el.innerHTML = cart.map(i => `
-    <div class="cart-item">
-      <div class="cart-item-top">
-        <span class="cart-item-name">${i.name}</span>
-        <button class="cart-item-remove" onclick="removeFromCart('${i.sku}')">✕</button>
-      </div>
-      <div class="cart-item-bottom">
-        <span class="cart-item-price">Rs. ${Number(i.price).toLocaleString()} × ${i.qty}</span>
-        <div class="qty-control">
-          <button class="qty-btn" onclick="changeQty('${i.sku}',-1)">−</button>
-          <span class="qty-val">${i.qty}</span>
-          <button class="qty-btn" onclick="changeQty('${i.sku}',1)">+</button>
+    listEl.innerHTML = '<div class="empty-state"><span>🛒</span>Cart is empty</div>';
+  } else {
+    listEl.innerHTML = cart.map((it, i) => `
+      <div class="cart-item">
+        <div class="cart-item-top">
+          <span class="cart-item-name">${it.name}</span>
+          <button class="cart-item-remove" onclick="removeFromCart(${i})">✕</button>
         </div>
-      </div>
-    </div>`).join('');
+        <div class="cart-item-bottom">
+          <span class="cart-item-price">Rs. ${Number(it.price).toLocaleString()} × ${it.qty}</span>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty(${i},-1)">−</button>
+            <span class="qty-val">${it.qty}</span>
+            <button class="qty-btn" onclick="changeQty(${i},1)">+</button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
   recalc();
 }
 
 function recalc() {
-  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const discount = parseFloat(document.getElementById('s-discount').value) || 0;
-  const total = Math.max(0, subtotal - discount);
-  document.getElementById('s-subtotal').textContent = 'Rs. ' + subtotal.toLocaleString();
-  document.getElementById('s-total').textContent = 'Rs. ' + total.toLocaleString();
-}
-
-// ── CHECKOUT ─────────────────────────────────────────────
-
-async function checkout() {
-  if (!cart.length) { alert('Cart is empty.'); return; }
-  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const subtotal = cart.reduce((a, c) => a + c.qty * c.price, 0);
   const discount = parseFloat(document.getElementById('s-discount').value) || 0;
   const total    = Math.max(0, subtotal - discount);
-  const payment  = document.getElementById('s-payment').value;
-  const ref      = 'SALE-' + Date.now();
+  document.getElementById('s-subtotal').textContent = 'Rs. ' + subtotal.toLocaleString();
+  document.getElementById('s-total').textContent    = 'Rs. ' + total.toLocaleString();
+}
+
+// ─────────────────────────────────────────
+//  CHECKOUT
+// ─────────────────────────────────────────
+async function checkout() {
+  if (!cart.length) { showToast('Cart is empty!', 'error'); return; }
+
+  const subtotal = cart.reduce((a, c) => a + c.qty * c.price, 0);
+  const discount = parseFloat(document.getElementById('s-discount').value) || 0;
+  const total    = Math.max(0, subtotal - discount);
+  const method   = document.getElementById('s-payment').value;
+  const ref      = 'TXN-' + Date.now();
+
+  const btn = document.querySelector('.btn-checkout');
+  btn.textContent = 'Processing…';
+  btn.disabled = true;
 
   try {
-    // Save sale
-    await dbSaveSale({ ref, items: cart, subtotal, discount, total, paymentMethod: payment, cashier: currentUser.username });
+    // 1. Save sale to Supabase
+    await dbSaveSale({
+      ref,
+      items: cart.map(i => ({ sku: i.sku, name: i.name, qty: i.qty, price: i.price })),
+      subtotal,
+      discount,
+      total,
+      paymentMethod: method,
+      cashier: CU.username
+    });
 
-    // Deduct stock
+    // 2. Update stock for each item
     for (const item of cart) {
-      const p = products.find(x => x.sku === item.sku);
-      if (p) {
-        const newStock = Math.max(0, p.stock - item.qty);
+      const prod = allProducts.find(p => p.sku === item.sku);
+      if (prod) {
+        const newStock = Math.max(0, prod.stock - item.qty);
         await dbUpdateStock(item.sku, newStock);
-        p.stock = newStock;
+        prod.stock = newStock; // update local cache
       }
     }
 
-    showReceipt({ ref, items: [...cart], subtotal, discount, total, payment });
-    cart = [];
-    document.getElementById('s-discount').value = 0;
-    renderCart();
-    renderProductGrid();
-  } catch(e) {
-    alert('Sale failed: ' + e.message);
+    // 3. Show receipt
+    showReceipt({ ref, items: [...cart], subtotal, discount, total, paymentMethod: method });
+
+    clearCart();
+    renderProducts();
+    showToast(ref + ' completed ✅', 'success');
+  } catch (e) {
+    showToast('Checkout failed: ' + e.message, 'error');
+  } finally {
+    btn.textContent = 'Complete Sale';
+    btn.disabled = false;
   }
 }
 
 function showReceipt(sale) {
-  const rows = sale.items.map(i =>
-    `<div class="r-row"><span>${i.name} × ${i.qty}</span><span>Rs. ${(i.price * i.qty).toLocaleString()}</span></div>`
-  ).join('');
-  document.getElementById('receipt-body').innerHTML = `
-    <div class="r-row"><span>Ref:</span><span>${sale.ref}</span></div>
+  const el = document.getElementById('receipt-body');
+  el.innerHTML = `
+    <div class="r-row"><span>Ref</span><span>${sale.ref}</span></div>
+    <div class="r-row"><span>Date</span><span>${new Date().toLocaleString()}</span></div>
+    <div class="r-row"><span>Cashier</span><span>${CU.username}</span></div>
     <hr class="r-divider"/>
-    ${rows}
+    ${sale.items.map(i => `
+      <div class="r-row">
+        <span>${i.name} × ${i.qty}</span>
+        <span>Rs. ${(i.qty * i.price).toLocaleString()}</span>
+      </div>`).join('')}
     <hr class="r-divider"/>
     <div class="r-row"><span>Subtotal</span><span>Rs. ${sale.subtotal.toLocaleString()}</span></div>
-    ${sale.discount ? `<div class="r-row"><span>Discount</span><span>−Rs. ${sale.discount.toLocaleString()}</span></div>` : ''}
-    <div class="r-row r-total"><span>Total</span><span>Rs. ${sale.total.toLocaleString()}</span></div>
-    <div class="r-row" style="margin-top:8px;color:#888;font-size:.8rem"><span>Payment</span><span>${sale.payment}</span></div>
+    ${sale.discount > 0 ? `<div class="r-row"><span>Discount</span><span>-Rs. ${sale.discount.toLocaleString()}</span></div>` : ''}
+    <div class="r-row r-total"><span>TOTAL</span><span>Rs. ${sale.total.toLocaleString()}</span></div>
+    <div class="r-row"><span>Payment</span><span>${sale.paymentMethod.toUpperCase()}</span></div>
   `;
   document.getElementById('receipt-modal').style.display = 'flex';
 }
 
-function closeReceipt() { document.getElementById('receipt-modal').style.display = 'none'; }
+function closeReceipt() {
+  document.getElementById('receipt-modal').style.display = 'none';
+}
 
-// ── INVENTORY ─────────────────────────────────────────────
+// ─────────────────────────────────────────
+//  INVENTORY TAB
+// ─────────────────────────────────────────
+async function loadAndRenderInventory() {
+  const statusEl = document.getElementById('db-status');
+  statusEl.textContent = 'Loading from Supabase…';
+  statusEl.className = 'db-status';
+  try {
+    allProducts = await dbGetProducts();
+    statusEl.textContent = '✓ Connected — ' + allProducts.length + ' products';
+    statusEl.className = 'db-status ok';
+    renderInventory();
+  } catch (e) {
+    statusEl.textContent = '✗ Connection failed';
+    statusEl.className = 'db-status err';
+  }
+}
 
 function renderInventory() {
-  const q = (document.getElementById('inv-search').value || '').toLowerCase();
-  const list = products.filter(p => !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
-  const body = document.getElementById('inv-body');
+  const q    = (document.getElementById('inv-search')?.value || '').toLowerCase();
+  const list = q
+    ? allProducts.filter(p => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q))
+    : allProducts;
 
-  if (!list.length) {
-    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#666">No products yet. Click + Add Product to get started.</td></tr>';
-    return;
-  }
+  const badgeClass = cat => {
+    if (cat === 'Ladies Suiting') return 'badge-ladies';
+    if (cat === 'Gents Suiting')  return 'badge-gents';
+    if (cat === 'Kids Wear')      return 'badge-kids';
+    return 'badge-acc';
+  };
 
-  body.innerHTML = list.map(p => {
-    const badge = catBadge(p.category);
-    return `<tr>
-      <td><img class="thumb" src="${p.img || ''}" onerror="this.style.display='none'"/></td>
-      <td style="font-family:monospace;color:#888">${p.sku}</td>
+  const canEdit = CU && CU.role !== 'cashier';
+
+  document.getElementById('inv-body').innerHTML = list.map(p => `
+    <tr>
+      <td>${p.img ? `<img class="thumb" src="${p.img}" alt="${p.name}" onerror="this.style.display='none'"/>` : '—'}</td>
+      <td><code>${p.sku}</code></td>
       <td>${p.name}</td>
-      <td><span class="badge ${badge}">${p.category}</span></td>
+      <td><span class="badge ${badgeClass(p.category)}">${p.category}</span></td>
       <td>Rs. ${Number(p.price).toLocaleString()}</td>
-      <td>${p.stock}</td>
+      <td class="${p.stock <= 0 ? 'low' : p.stock <= 5 ? 'low' : ''}">${p.stock}</td>
       <td>
-        <button class="btn-edit" onclick="openEditProduct('${p.sku}')">Edit</button>
-        <button class="btn-del"  onclick="deleteProduct('${p.sku}')">Delete</button>
+        ${canEdit ? `
+          <button class="btn-edit" onclick="openEditProduct('${p.sku}')">Edit</button>
+          <button class="btn-del"  onclick="deleteProduct('${p.sku}')">Delete</button>
+        ` : '—'}
       </td>
-    </tr>`;
-  }).join('');
+    </tr>`).join('');
 }
 
-function catBadge(cat) {
-  if (cat.includes('Ladies')) return 'badge-ladies';
-  if (cat.includes('Gents'))  return 'badge-gents';
-  if (cat.includes('Kids'))   return 'badge-kids';
-  return 'badge-acc';
-}
-
-// ── ADD / EDIT PRODUCT ────────────────────────────────────
+// ─────────────────────────────────────────
+//  PRODUCT MODAL — Add / Edit
+// ─────────────────────────────────────────
+let _editingSku = null;
+let _imgData    = '';
 
 function openAddProduct() {
-  editingSku = null;
+  _editingSku = null;
+  _imgData    = '';
   document.getElementById('modal-title').textContent = 'Add Product';
-  document.getElementById('p-sku').disabled = false;
-  ['p-sku','p-name','p-desc','p-img-url'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('p-price').value = '';
-  document.getElementById('p-stock').value = '';
+  ['p-sku','p-name','p-price','p-stock','p-desc','p-img-url'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
   document.getElementById('p-cat').value = 'Ladies Suiting';
-  clearImg();
+  document.getElementById('p-img-preview').style.display = 'none';
+  document.getElementById('drop-zone').classList.remove('has-img');
+  document.getElementById('drop-label').textContent = '📁 Drag & drop image here or click to browse';
   document.getElementById('product-modal').style.display = 'flex';
 }
 
 function openEditProduct(sku) {
-  const p = products.find(x => x.sku === sku);
+  const p = allProducts.find(x => x.sku === sku);
   if (!p) return;
-  editingSku = sku;
+  _editingSku = sku;
+  _imgData    = p.img || '';
+
   document.getElementById('modal-title').textContent = 'Edit Product';
-  document.getElementById('p-sku').value = p.sku;
-  document.getElementById('p-sku').disabled = true;
-  document.getElementById('p-name').value = p.name;
-  document.getElementById('p-cat').value = p.category;
+  document.getElementById('p-sku').value   = p.sku;
+  document.getElementById('p-name').value  = p.name;
+  document.getElementById('p-cat').value   = p.category;
   document.getElementById('p-price').value = p.price;
   document.getElementById('p-stock').value = p.stock;
-  document.getElementById('p-desc').value = p.description || '';
-  // set image
-  clearImg();
+  document.getElementById('p-desc').value  = p.description || '';
+
   if (p.img) {
-    if (p.img.startsWith('data:')) {
-      setImgValue(p.img);
-    } else {
-      document.getElementById('p-img-url').value = p.img;
-      setImgValue(p.img);
-    }
+    document.getElementById('p-img-url').value = p.img.startsWith('http') ? p.img : '';
+    const preview = document.getElementById('p-img-preview');
+    preview.src     = p.img;
+    preview.style.display = 'block';
+    document.getElementById('drop-zone').classList.add('has-img');
+  } else {
+    document.getElementById('p-img-url').value = '';
+    document.getElementById('p-img-preview').style.display = 'none';
+    document.getElementById('drop-zone').classList.remove('has-img');
   }
+
   document.getElementById('product-modal').style.display = 'flex';
 }
 
-function closeModal() { document.getElementById('product-modal').style.display = 'none'; }
-
-async function saveProduct() {
-  const sku   = editingSku || document.getElementById('p-sku').value.trim().toUpperCase();
-  const name  = document.getElementById('p-name').value.trim();
-  const cat   = document.getElementById('p-cat').value;
-  const price = parseFloat(document.getElementById('p-price').value);
-  const stock = parseInt(document.getElementById('p-stock').value) || 0;
-  const desc  = document.getElementById('p-desc').value.trim();
-  const img   = document.getElementById('p-img-final').textContent.trim() ||
-                document.getElementById('p-img-url').value.trim() || '';
-
-  if (!sku || !name || !cat || isNaN(price)) { alert('Please fill in SKU, Name, Category, and Price.'); return; }
-
-  try {
-    const saved = await dbSaveProduct({ sku, name, category: cat, price, stock, img, description: desc });
-    closeModal();
-    await loadProducts();
-    renderInventory();
-    setStatus('☁ Saved — ' + products.length + ' products', 'ok');
-  } catch(e) {
-    alert('Save failed: ' + e.message);
-  }
+function closeModal() {
+  document.getElementById('product-modal').style.display = 'none';
 }
 
-async function deleteProduct(sku) {
-  if (!confirm('Delete ' + sku + '? This cannot be undone.')) return;
-  try {
-    await dbDeleteProduct(sku);
-    await loadProducts();
-    renderInventory();
-  } catch(e) {
-    alert('Delete failed: ' + e.message);
-  }
-}
-
-// ── IMAGE HANDLING ────────────────────────────────────────
-
-function setImgValue(val) {
-  document.getElementById('p-img-final').textContent = val;
-  const prev = document.getElementById('p-img-preview');
-  if (val) {
-    prev.src = val;
-    prev.style.display = 'block';
-    document.getElementById('drop-zone').classList.add('has-img');
-    document.getElementById('drop-label').textContent = '✓ Image ready';
-  }
-}
-
-function clearImg() {
-  document.getElementById('p-img-final').textContent = '';
-  document.getElementById('p-img-url').value = '';
-  document.getElementById('p-img-preview').style.display = 'none';
-  document.getElementById('p-img-preview').src = '';
-  document.getElementById('drop-zone').classList.remove('has-img');
-  document.getElementById('drop-label').textContent = '📁 Drag & drop image here or click to browse';
-  document.getElementById('p-img-file').value = '';
-}
-
-function handleUrlInput() {
-  const url = document.getElementById('p-img-url').value.trim();
-  if (url) {
-    document.getElementById('p-img-final').textContent = '';
-    setImgValue(url);
-  }
-}
-
-function handleImgDrop(e) {
-  e.preventDefault();
-  const file = e.dataTransfer.files[0];
-  if (file) processImgFile(file);
-}
-
+// Image handling
 function handleImgFile(input) {
   const file = input.files[0];
-  if (file) processImgFile(file);
-}
-
-function processImgFile(file) {
+  if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(e) {
-    // Compress
+  reader.onload = e => {
     const img = new Image();
-    img.onload = function() {
+    img.onload = () => {
+      const MAX = 800;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
       const canvas = document.createElement('canvas');
-      const MAX = 600;
-      let w = img.width, h = img.height;
-      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
-      if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const data = canvas.toDataURL('image/jpeg', 0.75);
-      document.getElementById('p-img-url').value = '';
-      setImgValue(data);
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      _imgData = canvas.toDataURL('image/jpeg', 0.82);
+      document.getElementById('p-img-preview').src   = _imgData;
+      document.getElementById('p-img-preview').style.display = 'block';
+      document.getElementById('drop-zone').classList.add('has-img');
+      document.getElementById('drop-label').textContent = '✅ Image loaded — click to change';
     };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
-// ── REPORTS ──────────────────────────────────────────────
+function handleImgDrop(e) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) handleImgFile({ files: [file] });
+}
 
-async function loadReports() {
+function handleUrlInput() {
+  const url = document.getElementById('p-img-url').value.trim();
+  _imgData  = url;
+  if (url) {
+    document.getElementById('p-img-preview').src = url;
+    document.getElementById('p-img-preview').style.display = 'block';
+    document.getElementById('drop-zone').classList.add('has-img');
+  }
+}
+
+function clearImg() {
+  _imgData = '';
+  document.getElementById('p-img-url').value            = '';
+  document.getElementById('p-img-preview').style.display = 'none';
+  document.getElementById('p-img-file').value            = '';
+  document.getElementById('drop-zone').classList.remove('has-img');
+  document.getElementById('drop-label').textContent = '📁 Drag & drop image here or click to browse';
+}
+
+async function saveProduct() {
+  const sku   = document.getElementById('p-sku').value.trim();
+  const name  = document.getElementById('p-name').value.trim();
+  if (!sku || !name) { showToast('SKU and Name are required!', 'error'); return; }
+
+  // Use URL from the text field if no file was uploaded
+  const urlInput = document.getElementById('p-img-url').value.trim();
+  const imgToSave = _imgData || urlInput;
+
+  const product = {
+    sku,
+    name,
+    category:    document.getElementById('p-cat').value,
+    price:       parseFloat(document.getElementById('p-price').value) || 0,
+    stock:       parseInt(document.getElementById('p-stock').value)   || 0,
+    description: document.getElementById('p-desc').value.trim(),
+    img:         imgToSave
+  };
+
+  const btn = document.querySelector('#product-modal .btn-primary');
+  btn.textContent = 'Saving…';
+  btn.disabled    = true;
+
+  try {
+    await dbSaveProduct(product);
+    allProducts = await dbGetProducts(); // refresh cache
+    closeModal();
+    renderInventory();
+    renderProducts();
+    showToast('Product saved ✅', 'success');
+  } catch (e) {
+    showToast('Save failed: ' + e.message, 'error');
+  } finally {
+    btn.textContent = 'Save & Push to Database';
+    btn.disabled    = false;
+  }
+}
+
+async function deleteProduct(sku) {
+  if (!confirm('Delete this product from the database?')) return;
+  try {
+    await dbDeleteProduct(sku);
+    allProducts = allProducts.filter(p => p.sku !== sku);
+    renderInventory();
+    renderProducts();
+    showToast('Product deleted ✅', 'success');
+  } catch (e) {
+    showToast('Delete failed: ' + e.message, 'error');
+  }
+}
+
+// ─────────────────────────────────────────
+//  REPORTS TAB
+// ─────────────────────────────────────────
+async function loadAndRenderReports() {
   const el = document.getElementById('reports-body');
-  el.innerHTML = '<div style="color:#666;padding:20px">Loading…</div>';
+  el.innerHTML = '<div style="text-align:center;padding:40px;color:#888;">Loading sales…</div>';
   try {
     const sales = await dbGetSales();
-    if (!sales.length) { el.innerHTML = '<div class="empty-state"><span>📊</span>No sales yet</div>'; return; }
+    if (!sales.length) {
+      el.innerHTML = '<div class="empty-state"><span>📊</span>No sales recorded yet.</div>';
+      return;
+    }
+
+    const fmt = n => 'Rs. ' + Number(n).toLocaleString();
+
     el.innerHTML = sales.map(s => {
       const items = Array.isArray(s.items) ? s.items : [];
+      const date  = new Date(s.created_at).toLocaleString();
       return `<div class="report-card">
         <div class="report-ref">${s.sale_ref}</div>
-        <div class="report-meta">${new Date(s.created_at).toLocaleString()} · ${s.cashier} · ${s.payment_method}</div>
-        <div style="font-size:.8rem;color:#666;margin-top:6px">${items.map(i => i.name + ' ×' + i.qty).join(', ')}</div>
-        <div class="report-total">Rs. ${Number(s.total).toLocaleString()}</div>
+        <div class="report-meta">${date} · ${s.cashier} · ${s.payment_method?.toUpperCase()}</div>
+        <div class="report-meta">${items.length} item(s)${s.discount > 0 ? ' · Discount: ' + fmt(s.discount) : ''}</div>
+        <div class="report-total">${fmt(s.total)}</div>
       </div>`;
     }).join('');
-  } catch(e) {
-    el.innerHTML = '<div class="empty-state"><span>⚠</span>Failed to load reports</div>';
+  } catch (e) {
+    el.innerHTML = '<div class="empty-state"><span>⚠️</span>Failed to load reports.</div>';
   }
+}
+
+// ─────────────────────────────────────────
+//  TOAST
+// ─────────────────────────────────────────
+function showToast(msg, type = '') {
+  // Reuse existing toast container if pos.html has one, else body
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
+    document.body.appendChild(container);
+  }
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = `padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;
+    background:${type === 'error' ? '#e74c3c' : type === 'success' ? '#2ecc71' : '#333'};
+    color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.4);animation:fadeIn .2s ease;`;
+  container.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
 }
