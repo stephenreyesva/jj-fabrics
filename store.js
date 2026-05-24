@@ -69,17 +69,20 @@ function applySiteData(s) {
     document.documentElement.style.setProperty('--accent-lt',   shadeColor(accent,  80));
   }
   if (s.hero_color) {
-    document.documentElement.style.setProperty('--hero-section-bg', s.hero_color);
-    // Auto-detect if background is light → use dark text; dark bg → white text
     try {
       const hex = s.hero_color.replace('#','');
       const r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
       const brightness = (r*299 + g*587 + b*114) / 1000;
-      const textColor = brightness > 140 ? '#1C1C14' : '#FFFFFF';
-      const textMuted = brightness > 140 ? 'rgba(28,28,20,0.65)' : 'rgba(255,255,255,0.7)';
+      // Only apply if dark enough for the hero section; light colors break the white text
+      const heroBg = brightness > 140 ? '#1C1C14' : s.hero_color;
+      const textColor = brightness > 140 ? '#FFFFFF' : '#FFFFFF';
+      const textMuted = 'rgba(255,255,255,0.7)';
+      document.documentElement.style.setProperty('--hero-section-bg', heroBg);
       document.documentElement.style.setProperty('--hero-text', textColor);
       document.documentElement.style.setProperty('--hero-text-muted', textMuted);
-    } catch(e){}
+    } catch(e){
+      document.documentElement.style.setProperty('--hero-section-bg', '#1C1C14');
+    }
   }
 
   // Supabase key: store_name
@@ -139,8 +142,11 @@ function loadProducts() {
   setText('cnt-acc',   allProducts.filter(p => p.category === 'Accessories').length    + ' items');
 
   // Hero cards — top 3 products with images
-  const heroWithImg = allProducts.filter(p => p.img && p.img.trim().length > 4);
-  const heroItems   = (heroWithImg.length ? heroWithImg : allProducts).slice(0, 3);
+  // Hero: prefer is_new items with images, fallback to any with images
+  const newWithImg = allProducts.filter(p => p.is_new && p.img && p.img.trim().length > 4);
+  const anyWithImg = allProducts.filter(p => p.img && p.img.trim().length > 4);
+  const heroPool   = newWithImg.length ? newWithImg : anyWithImg.length ? anyWithImg : allProducts;
+  const heroItems  = heroPool.slice(0, 3);
   ['hc1','hc2','hc3'].forEach((hcId, idx) => {
     const p = heroItems[idx]; if (!p) return;
     const emoji = catEmoji[p.category] || '🛍️';
