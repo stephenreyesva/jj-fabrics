@@ -1,212 +1,593 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>JJ Fabrics — POS</title>
-  <link rel="stylesheet" href="pos.css"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JJ Fabrics — POS System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pos.css">
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- ═══════ LOGIN ═══════ -->
 <div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">JJ<span>Fabrics</span></div>
-    <h2>Point of Sale</h2>
-    <div class="field">
+  <div class="login-card">
+    <div class="brand-logo">
+      <span class="icon"><img src="image/logo.jpeg" style="width:60px;height:60px;object-fit:contain;border-radius:50%;background:#000;display:block;margin:0 auto;" /></span>
+      <h1>JJ Fabrics</h1>
+      <p>Point of Sale System</p>
+    </div>
+    <div class="form-group">
       <label>Username</label>
-      <input type="text" id="l-user" placeholder="Enter username" autocomplete="off"/>
+      <input type="text" id="login-user" placeholder="Enter username" autocomplete="off">
     </div>
-    <div class="field">
+    <div class="form-group">
       <label>Password</label>
-      <input type="password" id="l-pass" placeholder="Enter password"/>
+      <input type="password" id="login-pass" placeholder="Enter password">
     </div>
-    <button class="btn-primary" onclick="doLogin()">Login</button>
-    <div id="login-err" class="err-msg"></div>
+    <button class="btn-primary" id="login-btn" onclick="doLogin()">Sign In →</button>
+    <p class="login-error" id="login-error">Invalid username or password.</p>
+    <p class="login-hint">Use your Google Sheets username &amp; password</p>
   </div>
 </div>
 
-<!-- MAIN APP -->
-<div id="app" style="display:none">
+<!-- ═══════ MAIN APP ═══════ -->
+<div id="app">
 
-  <!-- SIDEBAR -->
+  <!-- Mobile top bar -->
+  <div class="mobile-topbar">
+    <button class="hamburger" onclick="toggleMobileSidebar()">☰</button>
+    <span class="brand-name">JJ Fabrics</span>
+    <span class="mob-user" id="mob-user-label">—</span>
+  </div>
+
+  <!-- Sidebar overlay (tap to close) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
   <aside class="sidebar">
-    <div class="brand">JJ<span>Fabrics</span></div>
+    <div class="sidebar-brand">
+      <h2 style="display:flex;align-items:center;gap:8px;"><img src="image/logo.jpeg" style="width:32px;height:32px;object-fit:contain;border-radius:50%;background:#000;" /> JJ Fabrics</h2>
+      <div class="sub">Gents &amp; Ladies POS</div>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-label">Signed in as</div>
+      <div class="user-name" id="user-display">—</div>
+      <span class="sidebar-badge" id="role-display">—</span>
+    </div>
     <nav>
-      <a class="nav-item active" onclick="showTab('sales')" data-tab="sales">
-        <span class="nav-icon">🛒</span> Sales
-      </a>
-      <a class="nav-item" onclick="showTab('inventory')" data-tab="inventory">
-        <span class="nav-icon">📦</span> Inventory
-      </a>
-      <a class="nav-item" onclick="showTab('reports')" data-tab="reports">
-        <span class="nav-icon">📊</span> Reports
-      </a>
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span> Dashboard</div>
+      <div class="nav-item" data-page="pos" onclick="showPage('pos')"><span class="nav-icon">🛍️</span> Cashier / POS</div>
+      <div class="nav-section">Management</div>
+      <div class="nav-item" data-page="inventory" onclick="showPage('inventory')"><span class="nav-icon">📦</span> Inventory</div>
+      <div class="nav-item" data-page="sales" onclick="showPage('sales')"><span class="nav-icon">🧾</span> Sales History</div>
+      <div class="nav-item" data-page="reports" onclick="showPage('reports')"><span class="nav-icon">📊</span> Reports</div>
+      <div class="nav-section">System</div>
+      <div class="nav-item" data-page="website" id="nav-website" onclick="showPage('website')"><span class="nav-icon">🌐</span> Public Website</div>
+      <div class="nav-item" data-page="settings" id="nav-settings" onclick="showPage('settings')"><span class="nav-icon">⚙️</span> Settings</div>
     </nav>
     <div class="sidebar-footer">
-      <div class="user-info">
-        <span class="user-icon">👤</span>
-        <span id="sidebar-user">—</span>
-      </div>
-      <button class="btn-signout" onclick="doLogout()">Sign Out</button>
+      <div id="sync-status" style="font-size:11px;font-weight:600;margin-bottom:10px;text-align:center;letter-spacing:0.3px;color:var(--gray-400);">☁ Not synced</div>
+      <button class="btn-logout" onclick="doLogout()">↩ Sign Out</button>
+      <button class="btn-logout" style="margin-top:6px;background:rgba(239,68,68,0.12);color:#ef4444;font-size:10px;" onclick="if(confirm('Clear all local data and reload? This will re-sync from Sheets.')){localStorage.clear();location.reload();}">🗑 Clear Cache & Reload</button>
     </div>
   </aside>
 
-  <!-- CONTENT -->
-  <main class="content">
+  <main class="main-content">
 
-    <!-- SALES TAB -->
-    <div id="tab-sales" class="tab-panel active">
-      <div class="sales-layout">
-        <!-- Product Grid -->
-        <div class="product-area">
-          <div class="panel-header">
-            <h2>Products</h2>
-            <input type="text" id="search-box" placeholder="Search products…" oninput="filterProducts()"/>
-          </div>
-          <div class="category-filter">
-            <button class="cat-btn active" onclick="filterCat('all',this)">All</button>
-            <button class="cat-btn" onclick="filterCat('Ladies Suiting',this)">Ladies</button>
-            <button class="cat-btn" onclick="filterCat('Gents Suiting',this)">Gents</button>
-            <button class="cat-btn" onclick="filterCat('Kids Wear',this)">Kids</button>
-            <button class="cat-btn" onclick="filterCat('Accessories',this)">Accessories</button>
-          </div>
-          <div id="product-grid" class="product-grid"></div>
+    <!-- ── POS TICKER STRIP ── -->
+    <div class="pos-marquee">
+      <div class="pos-marquee-track">
+        <span class="pos-marquee-item">JJ Fabrics <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">House of Brands <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">SAYA · Bonanza · Sapphire <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">Maria.B · Bareeze · Cross Stitch <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">Veezal · Qalandari · Laam <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">Gents &amp; Ladies Suiting <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">Main Bazar, Attock City <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">03145777344 <span class="mdot">✦</span></span>
+        <!-- duplicate for seamless loop -->
+        <span class="pos-marquee-item">JJ Fabrics <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">House of Brands <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">SAYA · Bonanza · Sapphire <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">Maria.B · Bareeze · Cross Stitch <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">Veezal · Qalandari · Laam <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">Gents &amp; Ladies Suiting <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">Main Bazar, Attock City <span class="mdot">✦</span></span>
+        <span class="pos-marquee-item">03145777344 <span class="mdot">✦</span></span>
+      </div>
+    </div>
+
+    <div class="main-inner">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="dashboard-page">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>Good day, <span id="dash-name">—</span> 👋</h2>
+          <p id="dash-date">—</p>
         </div>
-        <!-- Cart -->
-        <div class="cart-area">
-          <div class="panel-header"><h2>Cart</h2></div>
-          <div id="cart-list" class="cart-list"></div>
-          <div class="cart-summary">
-            <div class="summary-row"><span>Subtotal</span><span id="s-subtotal">Rs. 0</span></div>
-            <div class="summary-row discount-row">
-              <span>Discount</span>
-              <input type="number" id="s-discount" value="0" min="0" oninput="recalc()"/>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-outline btn-sm" onclick="syncDashboard()" id="dash-sync-btn">⟳ Refresh Data</button>
+          <button class="btn btn-danger btn-sm" id="dash-reset-btn" style="display:none;" onclick="ownerResetData()">🗑 Reset to Clean Start</button>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card yellow"><div class="stat-icon">💰</div><div class="stat-label">Today's Sales</div><div class="stat-value" id="dash-today-sales">Rs. 0</div><div class="stat-sub" id="dash-today-txn">0 transactions</div></div>
+        <div class="stat-card green"><div class="stat-icon">📅</div><div class="stat-label">This Month</div><div class="stat-value" id="dash-month-sales">Rs. 0</div><div class="stat-sub" id="dash-month-txn">0 transactions</div></div>
+        <div class="stat-card orange"><div class="stat-icon">🏷️</div><div class="stat-label">Total Products</div><div class="stat-value" id="dash-products">0</div><div class="stat-sub" id="dash-low-stock">0 low stock</div></div>
+        <div class="stat-card red"><div class="stat-icon">⚠️</div><div class="stat-label">Stock Alerts</div><div class="stat-value" id="dash-alerts">0</div><div class="stat-sub">need restocking</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="card">
+          <h3 style="font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:14px;">⚠️ Stock Alerts</h3>
+          <div id="dash-alerts-list"></div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:14px;">🕓 Recent Transactions</h3>
+          <div id="dash-recent-list"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:20px;">
+        <h3 style="font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:4px;">📈 Sales This Week</h3>
+        <div id="dash-chart"></div>
+      </div>
+    </div>
+
+    <!-- ── POS ── -->
+    <div class="page" id="pos-page">
+      <div class="page-header" style="margin-bottom:14px;">
+        <div class="page-header-left"><h2>🛍️ Cashier Counter</h2><p>Click a product to add it to the cart</p></div>
+      </div>
+      <!-- Mobile cart toggle -->
+      <div class="cart-toggle-bar" id="cart-toggle-bar" onclick="toggleMobileCart()">
+        <span>🛒 View Cart</span>
+        <span class="ct-badge" id="cart-toggle-count">0 items</span>
+      </div>
+      <div class="pos-layout">
+        <div class="pos-left">
+          <div class="search-row">
+            <input type="text" id="pos-search" placeholder="🔍  Search by name or SKU…" oninput="renderProducts()">
+            <select id="pos-cat" onchange="renderProducts()">
+              <option value="">All Categories</option>
+              <option value="Ladies Suiting">Ladies Suiting</option>
+              <option value="Gents Suiting">Gents Suiting</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Kids">Kids</option>
+            </select>
+          </div>
+          <div class="product-grid" id="product-grid"></div>
+        </div>
+        <div class="pos-right">
+          <div class="cart-panel">
+            <div class="cart-header">
+              <h3>🛒 Cart</h3>
+              <span class="cart-count-badge" id="cart-count">0</span>
             </div>
-            <div class="summary-row total-row"><span>Total</span><span id="s-total">Rs. 0</span></div>
-            <div class="payment-row">
-              <label>Payment</label>
-              <select id="s-payment">
-                <option value="cash">Cash</option>
-                <option value="card">Card</option>
-                <option value="online">Online Transfer</option>
-              </select>
+            <div class="cart-items" id="cart-items">
+              <div class="cart-empty"><div class="empty-icon">🛍️</div><p>Cart is empty</p></div>
             </div>
-            <button class="btn-checkout" onclick="checkout()">Complete Sale</button>
-            <button class="btn-clear" onclick="clearCart()">Clear Cart</button>
+            <div class="cart-footer">
+              <input class="input-field" type="text" id="customer-name" placeholder="👤 Customer name (optional)">
+              <div class="discount-row">
+                <input type="number" id="discount-val" placeholder="Discount" min="0" oninput="updateCartTotals()">
+                <select id="discount-type" onchange="updateCartTotals()">
+                  <option value="flat">Rs.  Flat</option>
+                  <option value="pct">% Pct</option>
+                </select>
+              </div>
+              <div class="cart-totals">
+                <div class="cart-row"><span>Subtotal</span><span id="cart-subtotal">Rs. 0.00</span></div>
+                <div class="cart-row"><span>Discount</span><span id="cart-discount" style="color:var(--green);">Rs. 0.00</span></div>
+                <div class="cart-row grand"><span>TOTAL</span><span id="cart-total">Rs. 0.00</span></div>
+              </div>
+              <div class="pay-btns">
+                <button class="btn-pay cash" onclick="checkout('cash')">💵 Cash + Invoice</button>
+                <button class="btn-pay card" onclick="checkout('card')" onmouseenter="document.getElementById('card-info-box').style.display='block'" onmouseleave="document.getElementById('card-info-box').style.display='none'">💳 Card</button>
+              </div>
+              <div class="card-info-box" id="card-info-box" style="display:none;">💳 <strong>Card Payment</strong> — Process on your physical card machine, then click <em>Card</em> to record the sale. Stock will be deducted automatically.</div>
+              <div id="cash-calc" style="display:none;margin-bottom:8px;">
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <input class="input-field" type="number" id="cash-tendered" placeholder="Cash received" min="0" oninput="calcChange()" style="margin-bottom:0;flex:1;">
+                  <div style="font-size:13px;font-weight:700;white-space:nowrap;">Change: <span id="cash-change" style="color:var(--green);">Rs. 0.00</span></div>
+                </div>
+              </div>
+              <button class="btn-clear" onclick="clearCart()">✕ Clear Cart</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- INVENTORY TAB -->
-    <div id="tab-inventory" class="tab-panel">
-      <div class="panel-header">
-        <h2>Inventory</h2>
-        <div class="inv-actions">
-          <input type="text" id="inv-search" placeholder="Search…" oninput="renderInventory()"/>
-          <button class="btn-primary" onclick="openAddProduct()">+ Add Product</button>
+    <!-- ── INVENTORY ── -->
+    <div class="page" id="inventory-page">
+      <div class="page-header">
+        <div class="page-header-left"><h2>📦 Inventory</h2><p>Manage stock and product catalogue</p></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-outline btn-sm" onclick="syncFromSheets()" style="font-size:12px;">⟳ Sync from Sheets</button>
+          <button class="btn-save-sheets" id="inv-save-btn" onclick="saveInventoryToSheets()">
+            <span id="inv-save-icon">☁</span> Save to Sheets
+          </button>
         </div>
       </div>
-      <div id="db-status" class="db-status">Connecting…</div>
-      <div class="table-wrap">
-        <table id="inv-table">
+      <!-- Sheets Status Bar -->
+      <div class="sheets-bar" id="inv-sheets-bar">
+        <div class="sb-label">
+          <span id="inv-pending-dot" class="pending-dot" style="display:none;"></span>
+          <span id="inv-sheets-info">Inventory sync status</span>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="testSheetsConnection()" style="font-size:11px;padding:3px 10px;" title="Test if Google Sheets is reachable">🔌 Test Connection</button>
+        <span class="sheets-status-pill synced" id="inv-sheets-pill">☁ Synced</span>
+        <span style="font-size:11px;color:var(--gray-400);" id="inv-last-saved"></span>
+      </div>
+      <div id="inv-alerts"></div>
+      <div class="table-controls">
+        <input type="text" id="inv-search" placeholder="Search products…" oninput="renderInventory()">
+        <select id="inv-cat" onchange="renderInventory()">
+          <option value="">All Categories</option>
+          <option value="Ladies Suiting">Ladies Suiting</option>
+          <option value="Gents Suiting">Gents Suiting</option>
+          <option value="Accessories">Accessories</option>
+          <option value="Kids">Kids</option>
+        </select>
+        <select id="inv-status" onchange="renderInventory()">
+          <option value="">All Status</option>
+          <option value="in">In Stock</option>
+          <option value="low">Low Stock</option>
+          <option value="out">Out of Stock</option>
+        </select>
+        <div class="spacer"></div>
+        <button class="btn btn-gold" onclick="openAddProduct()">+ Add Product</button>
+      </div>
+      <div class="card scrollable-table">
+        <table>
           <thead>
-            <tr>
-              <th>Image</th><th>SKU</th><th>Name</th><th>Category</th>
-              <th>Price</th><th>Stock</th><th>Actions</th>
-            </tr>
+            <tr><th>SKU</th><th>Product</th><th>Category</th><th>Size</th><th>Price</th><th>Cost</th><th>Stock</th><th>Min</th><th>Status</th><th>Actions</th></tr>
           </thead>
-          <tbody id="inv-body"></tbody>
+          <tbody id="inv-tbody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- REPORTS TAB -->
-    <div id="tab-reports" class="tab-panel">
-      <div class="panel-header"><h2>Sales Reports</h2></div>
-      <div id="reports-body" class="reports-body"></div>
+    <!-- ── SALES ── -->
+    <div class="page" id="sales-page">
+      <div class="page-header">
+        <div class="page-header-left"><h2>🧾 Sales History</h2><p>All transaction records</p></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn-push-sales" onclick="pushAllSalesToSheets()">
+            ☁ Push Sales to Sheets
+          </button>
+          <button class="btn btn-danger btn-sm" id="clear-all-sales-btn" style="display:none;" onclick="clearAllSales()">🗑 Clear All Records</button>
+        </div>
+      </div>
+      <!-- Sheets Status Bar for Sales -->
+      <div class="sheets-bar" id="sales-sheets-bar">
+        <div class="sb-label">
+          <span id="sales-pending-dot" class="pending-dot" style="display:none;"></span>
+          <span id="sales-sheets-info">Sales sync status</span>
+        </div>
+        <span class="sheets-status-pill synced" id="sales-sheets-pill">☁ Synced</span>
+        <span style="font-size:11px;color:var(--gray-400);" id="sales-last-saved"></span>
+        <button class="sheets-inline-btn blue" onclick="toggleSaveLog()" style="margin-left:4px;">📋 Log</button>
+      </div>
+      <div class="save-log" id="save-log"><div style="font-weight:700;margin-bottom:8px;color:var(--gray-700);">Save Log</div><div id="save-log-entries">No entries yet.</div></div>
+      <div class="table-controls">
+        <input type="date" id="sales-from">
+        <input type="date" id="sales-to">
+        <select id="sales-pay" onchange="renderSales()">
+          <option value="">All Payment</option>
+          <option value="cash">Cash</option>
+          <option value="card">Card</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="renderSales()">Filter</button>
+        <div class="spacer"></div>
+        <button class="btn btn-gold btn-sm" onclick="exportSalesCSV()">⬇ Export CSV</button>
+      </div>
+      <div class="card scrollable-table">
+        <table>
+          <thead><tr><th>Txn #</th><th>Date & Time</th><th>Customer</th><th>Items</th><th>Payment</th><th>Discount</th><th>Total</th><th>Action</th><th id="sales-void-th" style="display:none;">Owner</th></tr></thead>
+          <tbody id="sales-tbody"></tbody>
+        </table>
+      </div>
     </div>
 
-  </main>
-</div>
-
-<!-- PRODUCT MODAL -->
-<div id="product-modal" class="modal-overlay" style="display:none">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="modal-title">Add Product</h3>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+    <!-- ── REPORTS ── -->
+    <div class="page" id="reports-page">
+      <div class="page-header">
+        <div class="page-header-left"><h2>📊 Reports</h2><p>Sales and inventory analytics</p></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="date" id="rpt-from" style="padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;">
+          <input type="date" id="rpt-to"   style="padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;">
+          <button class="btn btn-outline btn-sm" onclick="renderReports()">Filter</button>
+          <button class="btn btn-outline btn-sm" onclick="window.print()">🖨️ Print</button>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab active" onclick="switchReport('sales-report',this)">Sales Report</div>
+        <div class="tab" onclick="switchReport('inv-report',this)">Inventory Report</div>
+      </div>
+      <div id="print-report-area">
+      <div id="sales-report">
+        <div class="mini-grid" id="report-mini"></div>
+        <div class="card">
+          <h4 style="font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:14px;">🏆 Top Selling Products</h4>
+          <table><thead><tr><th>#</th><th>Product</th><th>Category</th><th>Units Sold</th><th>Revenue</th></tr></thead><tbody id="report-top"></tbody></table>
+        </div>
+      </div>
+      <div id="inv-report" style="display:none;">
+        <div class="card">
+          <h4 style="font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:14px;">📦 Inventory Valuation</h4>
+          <table><thead><tr><th>SKU</th><th>Product</th><th>Category</th><th>Stock</th><th>Sold (Period)</th><th>Cost</th><th>Price</th><th>Stock Value</th><th>Status</th></tr></thead><tbody id="report-inv"></tbody></table>
+        </div>
+      </div>
+      </div>
     </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="field">
-          <label>SKU *</label>
-          <input type="text" id="p-sku" placeholder="e.g. LAD-001"/>
-        </div>
-        <div class="field">
-          <label>Name *</label>
-          <input type="text" id="p-name" placeholder="Product name"/>
-        </div>
-        <div class="field">
-          <label>Category *</label>
-          <select id="p-cat">
-            <option value="Ladies Suiting">Ladies Suiting</option>
-            <option value="Gents Suiting">Gents Suiting</option>
-            <option value="Kids Wear">Kids Wear</option>
-            <option value="Accessories">Accessories</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Price (Rs.) *</label>
-          <input type="number" id="p-price" placeholder="0" min="0"/>
-        </div>
-        <div class="field">
-          <label>Stock (units)</label>
-          <input type="number" id="p-stock" placeholder="0" min="0"/>
-        </div>
-        <div class="field full">
-          <label>Description</label>
-          <input type="text" id="p-desc" placeholder="Optional description"/>
-        </div>
-        <div class="field full">
-          <label>Product Image</label>
-          <div id="drop-zone" class="drop-zone" onclick="document.getElementById('p-img-file').click()"
-               ondragover="event.preventDefault()" ondrop="handleImgDrop(event)">
-            <div id="drop-label">📁 Drag & drop image here or click to browse</div>
-            <img id="p-img-preview" src="" style="display:none;max-height:120px;margin-top:8px;border-radius:6px;"/>
-            <input type="file" id="p-img-file" accept="image/*" style="display:none" onchange="handleImgFile(this)"/>
+
+    <!-- ── PUBLIC WEBSITE EDITOR (dev only) ── -->
+    <div class="page" id="website-page">
+      <div class="page-header">
+        <div class="page-header-left"><h2>🌐 Public Website Editor</h2><p>Update the public storefront — developer access only</p></div>
+        <button class="btn btn-gold" onclick="publishSiteData()">🚀 Publish Changes</button>
+      </div>
+      <div id="website-no-access" style="display:none;">
+        <div class="no-access"><span style="font-size:48px;">🔒</span><p>Developer access only</p></div>
+      </div>
+      <div id="website-editor">
+        <div class="site-editor">
+          <!-- Store Info -->
+          <div class="card">
+            <h4 style="font-size:14px;font-weight:700;margin-bottom:16px;">🏪 Store Information</h4>
+            <div class="form-group"><label>Store Name</label><input class="input-field" type="text" id="ws-name" style="margin-bottom:0"></div>
+            <div class="form-group"><label>Tagline / Slogan</label><input class="input-field" type="text" id="ws-tagline" style="margin-bottom:0"></div>
+            <div class="form-group"><label>About Description</label><textarea class="input-field" id="ws-about" rows="3" style="resize:vertical;margin-bottom:0"></textarea></div>
+            <div class="form-group"><label>Address</label><input class="input-field" type="text" id="ws-address" style="margin-bottom:0"></div>
+            <div class="form-group"><label>Phone / WhatsApp Number (with country code, e.g. 923145777344)</label><input class="input-field" type="text" id="ws-phone" style="margin-bottom:0"></div>
+            <div class="form-group"><label>Email</label><input class="input-field" type="text" id="ws-email" style="margin-bottom:0"></div>
           </div>
-          <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
-            <input type="text" id="p-img-url" placeholder="Or paste image URL (https://…)" oninput="handleUrlInput()"/>
-            <button class="btn-sm" onclick="clearImg()">✕</button>
+          <!-- Social Links -->
+          <div class="card">
+            <h4 style="font-size:14px;font-weight:700;margin-bottom:16px;">📱 Social Media Links</h4>
+            <div class="form-group"><label>Facebook Page URL</label><input class="input-field" type="text" id="ws-fb" placeholder="https://facebook.com/yourpage" style="margin-bottom:0"></div>
+            <div class="form-group"><label>Instagram Profile URL</label><input class="input-field" type="text" id="ws-ig" placeholder="https://instagram.com/yourhandle" style="margin-bottom:0"></div>
+            <div class="form-group"><label>Google Maps Embed URL</label><input class="input-field" type="text" id="ws-map" placeholder="https://maps.google.com/..." style="margin-bottom:0"></div>
+            <div class="form-group"><label>Store Logo Emoji (or leave blank)</label><input class="input-field" type="text" id="ws-emoji" placeholder="👗" maxlength="4" style="margin-bottom:0"></div>
+            <div class="form-group"><label>Hero Banner Color (top background)</label>
+              <div class="color-row"><input type="color" id="ws-hero-color" value="#FFFDF0"><input class="input-field" type="text" id="ws-hero-color-txt" value="#FFFDF0" style="margin-bottom:0;flex:1"></div>
+            </div>
+            <div class="form-group"><label>Accent Color (buttons &amp; highlights)</label>
+              <div class="color-row"><input type="color" id="ws-accent-color" value="#EAB308"><input class="input-field" type="text" id="ws-accent-color-txt" value="#EAB308" style="margin-bottom:0;flex:1"></div>
+            </div>
           </div>
-          <div id="p-img-final" style="display:none"></div>
+          <!-- Featured Products -->
+          <div class="card site-editor-full">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <h4 style="font-size:14px;font-weight:700;">🏷️ Featured Products on Public Site</h4>
+              <button class="btn btn-outline btn-sm" onclick="syncFeaturedFromInventory()">↻ Sync from Inventory</button>
+            </div>
+            <p style="font-size:12px;color:var(--gray-400);margin-bottom:14px;">Toggle which products appear on the public website. Click sync to load all in-stock items.</p>
+            <div id="featured-product-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;"></div>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="page" id="settings-page">
+      <div class="page-header">
+        <div class="page-header-left"><h2>⚙️ Settings</h2><p>System configuration</p></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="card">
+          <h3 style="font-size:15px;font-weight:700;margin-bottom:18px;">🏪 Store Info (Invoice)</h3>
+          <div class="form-group"><label>Store Name</label><input class="input-field" type="text" id="cfg-name" style="margin-bottom:0"></div>
+          <div class="form-group"><label>Address</label><input class="input-field" type="text" id="cfg-address" style="margin-bottom:0"></div>
+          <div class="form-group"><label>Phone</label><input class="input-field" type="text" id="cfg-phone" style="margin-bottom:0"></div>
+          <div class="form-group"><label>VAT Rate (%)</label><input class="input-field" type="number" id="cfg-vat" min="0" max="100" style="margin-bottom:0"></div>
+          <button class="btn btn-gold" onclick="saveConfig()">Save Settings</button>
+        </div>
+        <div class="card" id="users-card">
+          <h3 style="font-size:15px;font-weight:700;margin-bottom:18px;">👥 User Accounts</h3>
+          <table><thead><tr><th>Username</th><th>Name</th><th>Role</th></tr></thead><tbody id="users-tbody"></tbody></table>
+          <p style="font-size:11px;color:var(--gray-400);margin-top:14px;">Only admins and developers can see this panel.</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:20px;">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:14px;">💾 Data Management</h3>
+        <p style="font-size:13px;color:var(--gray-500);margin-bottom:14px;">Export data as CSV for spreadsheet backup or external reporting.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-outline" onclick="exportProductsCSV()">⬇ Products CSV</button>
+          <button class="btn btn-outline" onclick="exportSalesCSV()">⬇ Sales CSV</button>
+          <button class="btn btn-gold" onclick="openModal('import-modal')">⬆ Import Products CSV</button>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /main-inner -->
+
+  </main>
+
+  <!-- Mobile bottom nav -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <div class="mob-nav-inner">
+      <button class="mob-nav-item active" data-page="dashboard" onclick="showPage('dashboard');setMobNav(this)">
+        <span class="mn-icon">🏠</span>Home
+      </button>
+      <button class="mob-nav-item" data-page="pos" onclick="showPage('pos');setMobNav(this)">
+        <span class="mn-icon">🛍️</span>POS
+      </button>
+      <button class="mob-nav-item" data-page="inventory" onclick="showPage('inventory');setMobNav(this)">
+        <span class="mn-icon">📦</span>Stock
+      </button>
+      <button class="mob-nav-item" data-page="sales" onclick="showPage('sales');setMobNav(this)">
+        <span class="mn-icon">🧾</span>Sales
+      </button>
+      <button class="mob-nav-item" data-page="reports" onclick="showPage('reports');setMobNav(this)">
+        <span class="mn-icon">📊</span>Reports
+      </button>
+    </div>
+  </nav>
+
+</div>
+
+<!-- ═══════ MODALS ═══════ -->
+<!-- INVOICE -->
+<div class="modal-overlay" id="invoice-modal">
+  <div class="modal" style="max-width:480px;">
+    <div id="invoice-print">
+      <div class="invoice-header">
+        <h1 id="inv-store-name">JJ Fabrics</h1>
+        <p id="inv-store-addr">—</p>
+        <p id="inv-store-phone">—</p>
+        <div class="inv-type">CASH INVOICE</div>
+      </div>
+      <div class="invoice-meta">
+        <span><strong>Invoice #:</strong> <span id="inv-num">—</span></span>
+        <span><strong>Date:</strong> <span id="inv-date">—</span></span>
+      </div>
+      <p style="font-size:13px;margin-bottom:14px;"><strong>Customer:</strong> <span id="inv-customer">Walk-in</span></p>
+      <table class="invoice-table">
+        <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr></thead>
+        <tbody id="inv-items"></tbody>
+      </table>
+      <div class="invoice-totals">
+        <div class="inv-row"><span>Subtotal</span><span id="inv-subtotal">Rs. 0.00</span></div>
+        <div class="inv-row"><span>Discount</span><span id="inv-discount">Rs. 0.00</span></div>
+        <div class="inv-row"><span id="inv-vat-label">VAT (0%)</span><span id="inv-vat">Rs. 0.00</span></div>
+        <div class="inv-row grand"><span>TOTAL DUE</span><span id="inv-grand">Rs. 0.00</span></div>
+        <div class="inv-row" id="inv-tendered-row" style="display:none;margin-top:8px;padding-top:8px;border-top:1px dashed var(--gray-200);"><span>Cash Tendered</span><span id="inv-tendered">Rs. 0.00</span></div>
+        <div class="inv-row" id="inv-change-row" style="display:none;"><span>Change</span><span id="inv-change-amt" style="color:var(--green);font-weight:700;">Rs. 0.00</span></div>
+      </div>
+      <div class="invoice-footer-note">
+        <p>Thank you for shopping at <strong id="inv-store-name2">JJ Fabrics</strong>!</p>
+        <p>Returns accepted within 7 days with this receipt.</p>
+        <p style="margin-top:6px;font-size:10px;">Cashier: <span id="inv-cashier">—</span></p>
+      </div>
+    </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
-      <button class="btn-primary" onclick="saveProduct()">Save & Push to Database</button>
+      <button class="btn btn-outline" onclick="closeModal('invoice-modal')">Close</button>
+      <button class="btn btn-gold" onclick="window.print()">🖨️ Print Invoice</button>
     </div>
   </div>
 </div>
 
-<!-- RECEIPT MODAL -->
-<div id="receipt-modal" class="modal-overlay" style="display:none">
-  <div class="modal modal-sm">
-    <div class="modal-header">
-      <h3>Sale Complete ✓</h3>
-      <button class="modal-close" onclick="closeReceipt()">✕</button>
+<!-- ADD / EDIT PRODUCT -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <h3 id="product-modal-title">Add Product</h3>
+    <input type="hidden" id="edit-sku-orig">
+    <div class="form-row">
+      <div class="form-group"><label>SKU</label><input class="input-field" type="text" id="p-sku" placeholder="e.g. DRS-001" style="margin-bottom:0"></div>
+      <div class="form-group"><label>Product Name</label><input class="input-field" type="text" id="p-name" placeholder="Product name" style="margin-bottom:0"></div>
     </div>
-    <div id="receipt-body" class="receipt-body"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Category</label>
+        <select class="input-field" id="p-cat" style="margin-bottom:0">
+          <option>Ladies Suiting</option><option>Gents Suiting</option><option>Accessories</option><option>Kids</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Size(s)</label><input class="input-field" type="text" id="p-size" placeholder="S/M/L/XL" style="margin-bottom:0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Selling Price (Rs. )</label><input class="input-field" type="number" id="p-price" placeholder="0.00" min="0" step="0.01" style="margin-bottom:0"></div>
+      <div class="form-group"><label>Cost Price (Rs. )</label><input class="input-field" type="number" id="p-cost" placeholder="0.00" min="0" step="0.01" style="margin-bottom:0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Current Stock</label><input class="input-field" type="number" id="p-stock" placeholder="0" min="0" style="margin-bottom:0"></div>
+      <div class="form-group"><label>Min Stock Alert</label><input class="input-field" type="number" id="p-minstock" placeholder="5" min="0" style="margin-bottom:0"></div>
+    </div>
+    <div class="form-group"><label>Description</label><input class="input-field" type="text" id="p-desc" placeholder="Brief description" style="margin-bottom:0"></div>
+    <div class="form-group">
+      <label>Photo</label>
+      <!-- Drag & Drop Zone -->
+      <div id="img-drop-zone" onclick="document.getElementById('p-img-file').click()"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="event.preventDefault();this.classList.remove('drag-over');handleImgFile({files:event.dataTransfer.files})"
+        style="border:2px dashed #d4a017;border-radius:12px;padding:22px;text-align:center;cursor:pointer;background:#fffdf5;transition:background 0.2s;margin-bottom:6px;">
+        <div id="img-drop-label" style="font-size:13px;color:#92400e;">
+          🖼 Drag &amp; drop photo here, or <span style="color:var(--gold);font-weight:700;">click to browse</span>
+        </div>
+        <input type="file" id="p-img-file" accept="image/*" style="display:none;" onchange="handleImgFile(this)">
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+        <span style="font-size:11px;color:#9ca3af;">or paste URL</span>
+        <div style="flex:1;height:1px;background:#e5e7eb;"></div>
+      </div>
+      <input class="input-field" type="text" id="p-img" placeholder="https://... (imgbb.com, GitHub, etc.)" style="margin-bottom:4px" oninput="onImgUrlInput(this.value)">
+      <!-- Hidden field that always holds the final value -->
+      <input type="hidden" id="p-img-final">
+      <!-- Preview -->
+      <div id="p-img-preview" style="margin-top:8px;display:none;align-items:center;gap:12px;" id="p-img-preview">
+        <img id="p-img-thumb" src="" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1.5px solid #e5e7eb;" onerror="document.getElementById('p-img-preview').style.display='none'">
+        <button type="button" onclick="clearImgField()" style="font-size:11px;color:#ef4444;background:none;border:none;cursor:pointer;">✕ Remove</button>
+      </div>
+    </div>
     <div class="modal-footer">
-      <button class="btn-primary" onclick="closeReceipt()">Done</button>
+      <button class="btn btn-outline" onclick="closeModal('product-modal')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveProduct(false)">💾 Save Locally</button>
+      <button class="btn-save-sheets" onclick="saveProduct(true)" style="padding:9px 16px;font-size:13px;">☁ Save &amp; Push to Sheets</button>
     </div>
   </div>
 </div>
 
-<script src="db.js"></script>
+<!-- IMPORT CSV -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal">
+    <h3>Import Products CSV</h3>
+    <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px;">Required columns: SKU, Name, Category, Size, Price, Cost, Stock, MinStock, Description</p>
+    <div class="form-group"><label>Select CSV File</label><input type="file" id="import-file" accept=".csv" style="font-size:13px;"></div>
+    <div id="import-preview" style="margin-top:12px;font-size:12px;color:var(--gray-500);"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('import-modal')">Cancel</button>
+      <button class="btn btn-gold" onclick="doImportCSV()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESTOCK MODAL -->
+<div class="modal-overlay" id="restock-modal">
+  <div class="modal" style="max-width:380px;">
+    <h3>📦 Restock Product</h3>
+    <p id="restock-product-name" style="font-size:14px;font-weight:600;color:var(--gray-700);margin-bottom:4px;"></p>
+    <p id="restock-current-stock" style="font-size:13px;color:var(--gray-400);margin-bottom:20px;"></p>
+    <div class="form-group"><label>Quantity to Add</label><input class="input-field" type="number" id="restock-qty" placeholder="e.g. 10" min="1" style="margin-bottom:0;"></div>
+    <div class="form-group"><label>Supplier / Note (optional)</label><input class="input-field" type="text" id="restock-note" placeholder="e.g. Supplier: ABC Trading" style="margin-bottom:0;"></div>
+    <input type="hidden" id="restock-sku">
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('restock-modal')">Cancel</button>
+      <button class="btn btn-green" onclick="doRestock(false)">✓ Save Locally</button>
+      <button class="btn-save-sheets" onclick="doRestock(true)" style="padding:9px 16px;">☁ Restock & Push</button>
+    </div>
+  </div>
+</div>
+
+<!-- VOID CONFIRMATION MODAL -->
+<div class="modal-overlay" id="void-modal">
+  <div class="modal" style="max-width:420px;">
+    <h3 style="color:var(--red);">⊘ <span id="void-action-label">VOID</span> Transaction</h3>
+    <div style="background:var(--gray-50);border-radius:var(--radius-sm);padding:16px;margin-bottom:18px;border:1px solid var(--gray-200);">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;"><span style="color:var(--gray-500);">Transaction</span><span style="font-weight:700;font-family:monospace;" id="void-txn-num">—</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;"><span style="color:var(--gray-500);">Customer</span><span id="void-customer">—</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--gray-500);">Amount</span><span style="font-weight:700;color:var(--gold-600);" id="void-total">—</span></div>
+    </div>
+    <div id="void-warn-note" style="margin-bottom:14px;">
+      <div style="font-size:12px;color:var(--gray-500);margin-bottom:6px;font-weight:600;">Reason for voiding <span style="color:var(--red);">*</span></div>
+      <textarea id="void-reason" class="input-field" rows="3" placeholder="e.g. Customer returned item, wrong item entered, duplicate transaction…" style="resize:vertical;margin-bottom:4px;"></textarea>
+      <div style="font-size:11px;color:var(--gray-400);">Stock will be automatically restored. This is reversible.</div>
+    </div>
+    <div id="void-restore-note" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--green);line-height:1.6;margin-bottom:18px;">
+      ✅ Restoring will remove the VOID status, re-deduct stock, and include it back in revenue totals.
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('void-modal')">Cancel</button>
+      <button class="btn btn-danger" id="void-confirm-btn">⊘ Yes, Void Transaction</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
 <script src="pos.js"></script>
 </body>
 </html>
