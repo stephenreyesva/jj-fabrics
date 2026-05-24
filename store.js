@@ -5,17 +5,36 @@
 
 const catEmoji = { 'Ladies Suiting': '👘', 'Gents Suiting': '👔', 'Accessories': '💎', 'Kids': '👦' };
 
-let allProducts  = [];
-let activeFilter = '';
+let allProducts   = [];
+let activeFilter  = '';
 let _siteSettings = null;
 
+// Hardcoded defaults — shown immediately and used as fallback
+// if the Supabase settings table is empty or unreachable.
+// Update these to match your store, or publish via the POS Website Editor.
+const DEFAULT_SETTINGS = {
+  name:         'JJ Fabrics',
+  tagline:      'Gents & Ladies Suiting Place',
+  about:        'JJ Fabrics is Attock City\'s premier House of Brands, we curate timeless pieces that celebrate your unique style — blending elegance, comfort, and affordability.',
+  address:      'Sher Bahadur Plaza, K-Block, Near Dr. Ibadat Hospital, Main Bazar, Attock City',
+  phone:        '923145777344',
+  email:        'jjfabrics@gmail.com',
+  facebook:     'https://www.facebook.com/share/r/17wrND2MNc/',
+  instagram:    'https://www.instagram.com/muhammadhamzajaved11961?igsh=MXNrdWhwZ2FhMGw1Mw==',
+  tiktok:       'https://www.tiktok.com/@hamzajaved04?_r=1&_t=ZS-96YCJS7LU6X',
+  youtube:      'https://youtube.com/@jjfabric786?si=HoEYFCJVncSEmGBm',
+  map:          'https://maps.google.com/maps?q=Sher+Bahadur+Plaza+K+Block+Attock+City+Pakistan&output=embed',
+  map_url:      'https://maps.app.goo.gl/FpTpXPsSP61XQrkf9',
+  accent_color: '#EAB308',
+  hero_color:   '#1C1C14',
+};
+
 // ── NULL-SAFE DOM HELPERS ──────────────────────────────────
-function el(id)          { return document.getElementById(id); }
+function el(id)           { return document.getElementById(id); }
 function setText(id, val) { const e = el(id); if (e) e.textContent = val; }
 function setHtml(id, val) { const e = el(id); if (e) e.innerHTML   = val; }
 function setHref(id, val) { const e = el(id); if (e) e.href        = val; }
 
-// ── SHADE COLOR HELPER ────────────────────────────────────
 function shadeColor(hex, amt) {
   try {
     let r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
@@ -31,20 +50,25 @@ function hideLoader() {
   loader.style.opacity = '0';
   setTimeout(() => loader.style.display = 'none', 500);
 }
-// Safety net: force-hide loader after 3s no matter what
-setTimeout(() => hideLoader(), 3000);
+setTimeout(() => hideLoader(), 3000); // safety net
 
 // ── APPLY SITE SETTINGS ───────────────────────────────────
+// Supabase settings table stores rows as {key, value} pairs.
+// dbGetSettings() converts them to a flat object, e.g. { phone: '923...', facebook: 'https://...' }
+// Keys used here must match exactly what is stored in the settings table.
 function applySiteData(s) {
-  if (!s) return;
+  if (!s || !Object.keys(s).length) return;
   _siteSettings = s;
 
-  if (s.accent_color) {
-    document.documentElement.style.setProperty('--accent', s.accent_color);
-    document.documentElement.style.setProperty('--accent-dark', shadeColor(s.accent_color, -20));
-    document.documentElement.style.setProperty('--accent-lt',   shadeColor(s.accent_color,  80));
+  // Colors — keys: accent_color, hero_color
+  const accent = s.accent_color || s.accentColor;
+  if (accent) {
+    document.documentElement.style.setProperty('--accent',      accent);
+    document.documentElement.style.setProperty('--accent-dark', shadeColor(accent, -20));
+    document.documentElement.style.setProperty('--accent-lt',   shadeColor(accent,  80));
   }
-  if (s.hero_color) document.documentElement.style.setProperty('--hero-section-bg', s.hero_color);
+  const heroColor = s.hero_color || s.heroColor;
+  if (heroColor) document.documentElement.style.setProperty('--hero-section-bg', heroColor);
 
   const name = s.name || 'JJ Fabrics';
   setText('nav-name',       name);
@@ -55,51 +79,57 @@ function applySiteData(s) {
 
   if (s.about) setText('about-text', s.about);
 
-  // WhatsApp
+  // WhatsApp — key: phone (stored as '923145777344' or '+923145777344')
   const waNum  = (s.phone || '').replace(/\D/g, '');
   const waLink = waNum ? `https://wa.me/${waNum}?text=Hi! I'm interested in your products.` : '#';
   ['wa-btn','nav-whatsapp','mob-wa','link-wa','cta-wa','fs-wa'].forEach(id => setHref(id, waLink));
 
-  // Social links
+  // Social — keys: facebook, instagram, tiktok, youtube
   if (s.facebook)  ['link-fb','cta-fb','fs-fb'].forEach(id => setHref(id, s.facebook));
   if (s.instagram) ['link-ig','fs-ig'].forEach(id => setHref(id, s.instagram));
   if (s.tiktok)    ['link-tt','fs-tt'].forEach(id => setHref(id, s.tiktok));
   if (s.youtube)   ['link-yt','fs-yt'].forEach(id => setHref(id, s.youtube));
 
-  // Contact info
+  // Contact
   const phoneDisplay = waNum ? waNum.replace(/(\d{2})(\d{3})(\d{3})(\d{4})/, '+$1 $2 $3 $4') : '—';
+  // Map link — key: map_url (direct Google Maps URL for the "Open in Maps" link)
+  const mapUrl = s.map_url || s.mapUrl || 'https://maps.app.goo.gl/FpTpXPsSP61XQrkf9';
   setHtml('contact-address',
-    (s.address || '—') + (s.map_url
-      ? `<br><a href="${s.map_url}" target="_blank" style="color:var(--accent-dark);font-size:12px;font-weight:700;">📍 Open in Google Maps →</a>`
-      : ''));
+    (s.address || '—') +
+    `<br><a href="${mapUrl}" target="_blank" style="color:var(--accent-dark);font-size:12px;font-weight:700;">📍 Open in Google Maps →</a>`
+  );
   setText('contact-phone-link', phoneDisplay);
   setHref('contact-phone-link', waNum ? `tel:+${waNum}` : '#');
   setText('contact-email-link', s.email || '—');
   setHref('contact-email-link', s.email ? `mailto:${s.email}` : '#');
 
-  // Embedded map
-  if (s.map) setHtml('map-container', `<iframe src="${s.map}" allowfullscreen loading="lazy"></iframe>`);
+  // Embedded map — key: map (must be a Google Maps embed URL ending in &output=embed)
+  const mapEmbed = s.map || s.map_embed || s.mapEmbed;
+  if (mapEmbed) setHtml('map-container', `<iframe src="${mapEmbed}" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy"></iframe>`);
 }
 
-// ── LOAD PRODUCTS ─────────────────────────────────────────
+// ── LOAD & RENDER PRODUCTS ────────────────────────────────
 function loadProducts() {
-  // Update category counts
+  const s     = _siteSettings || {};
+  const waNum = (s.phone || '').replace(/\D/g, '');
+
+  // Category counts
   setText('stat-products', allProducts.length + '+');
   setText('cnt-all',   allProducts.length + ' items');
   setText('cnt-women', allProducts.filter(p => p.category === 'Ladies Suiting').length + ' items');
-  setText('cnt-men',   allProducts.filter(p => p.category === 'Gents Suiting').length + ' items');
-  setText('cnt-acc',   allProducts.filter(p => p.category === 'Accessories').length + ' items');
+  setText('cnt-men',   allProducts.filter(p => p.category === 'Gents Suiting').length  + ' items');
+  setText('cnt-acc',   allProducts.filter(p => p.category === 'Accessories').length    + ' items');
 
-  // Hero cards
-  const heroWithImg = allProducts.filter(p => p.img && p.img.length > 4);
+  // Hero cards — top 3 products with images
+  const heroWithImg = allProducts.filter(p => p.img && p.img.trim().length > 4);
   const heroItems   = (heroWithImg.length ? heroWithImg : allProducts).slice(0, 3);
-  ['hc1', 'hc2', 'hc3'].forEach((hcId, idx) => {
+  ['hc1','hc2','hc3'].forEach((hcId, idx) => {
     const p = heroItems[idx]; if (!p) return;
     const emoji = catEmoji[p.category] || '🛍️';
     const hc    = el(hcId); if (!hc) return;
     hc.innerHTML = p.img
       ? `<img src="${p.img}" style="width:100%;height:100%;object-fit:cover;"
-           onerror="this.style.display='none';this.parentNode.insertAdjacentText('beforeend','${emoji}')">`
+             onerror="this.style.display='none';this.parentNode.insertAdjacentText('beforeend','${emoji}')">`
       : emoji;
     setText(hcId + '-name',  p.name);
     setText(hcId + '-price', 'Rs. ' + Number(p.price).toLocaleString());
@@ -108,7 +138,6 @@ function loadProducts() {
   renderProducts();
 }
 
-// ── FILTER HANDLERS ───────────────────────────────────────
 function filterCat(cat) {
   activeFilter = cat;
   document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('active'));
@@ -120,20 +149,21 @@ function filterCat(cat) {
 function filterBrandNav(cat, elem) {
   document.querySelectorAll('.brands-nav-item').forEach(i => i.classList.remove('active'));
   if (elem) elem.classList.add('active');
-  activeFilter = cat === 'all' ? '' : cat;
+  activeFilter = (cat === 'all' || !cat) ? '' : cat;
   renderProducts();
   el('collections')?.scrollIntoView({ behavior: 'smooth' });
 }
 
-// ── RENDER PRODUCTS ───────────────────────────────────────
 function renderProducts() {
   const filtered = activeFilter
     ? allProducts.filter(p => p.category === activeFilter)
     : allProducts;
 
-  const liveTag = '<span style="font-size:10px;background:#d4f7de;color:#166534;padding:2px 7px;border-radius:20px;font-weight:600;vertical-align:middle;">● LIVE</span>';
+  const liveTag = allProducts.length > 0
+    ? ' <span style="font-size:10px;background:#d4f7de;color:#166534;padding:2px 7px;border-radius:20px;font-weight:600;vertical-align:middle;">● LIVE</span>'
+    : '';
   const countEl = el('products-count');
-  if (countEl) countEl.innerHTML = filtered.length + ' product' + (filtered.length !== 1 ? 's' : '') + ' shown ' + liveTag;
+  if (countEl) countEl.innerHTML = filtered.length + ' product' + (filtered.length !== 1 ? 's' : '') + ' shown' + liveTag;
 
   const s     = _siteSettings || {};
   const waNum = (s.phone || '').replace(/\D/g, '');
@@ -141,33 +171,38 @@ function renderProducts() {
   if (!grid) return;
 
   if (!filtered.length) {
-    grid.innerHTML = `<div class="no-products" style="grid-column:1/-1;">
-      <span class="np-icon">${activeFilter ? '🔍' : '🛍️'}</span>
-      <p>${activeFilter ? 'No products in this category yet.' : 'Products loading… if this persists, please refresh the page.'}</p>
+    grid.innerHTML = `<div class="no-products" style="grid-column:1/-1;text-align:center;padding:60px 20px;">
+      <span style="font-size:56px">${activeFilter ? '🔍' : '🛍️'}</span>
+      <p style="margin-top:16px;color:var(--gray-400);">${activeFilter ? 'No products in this category yet.' : 'Products loading… if this persists, please refresh the page.'}</p>
     </div>`;
     return;
   }
 
   grid.innerHTML = filtered.map((p, i) => {
-    const emoji   = catEmoji[p.category] || '🛍️';
-    const waMsg   = encodeURIComponent(`Hi! I'm interested in: ${p.name} (Rs. ${Number(p.price).toLocaleString()}). Is it available?`);
-    const waHref  = waNum ? `https://wa.me/${waNum}?text=${waMsg}` : '#';
-    const isNew   = i < 3;
+    const emoji    = catEmoji[p.category] || '🛍️';
+    const waMsg    = encodeURIComponent(`Hi! I'm interested in: ${p.name} (Rs. ${Number(p.price).toLocaleString()}). Is it available?`);
+    const waHref   = waNum ? `https://wa.me/${waNum}?text=${waMsg}` : '#';
+    const isNew    = i < 3;
     const fallback = `<span style="font-size:64px">${emoji}</span>`;
-    const imgHtml = p.img
+    const imgHtml  = (p.img && p.img.trim())
       ? `<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;"
              onerror="this.parentNode.innerHTML=this.dataset.fb" data-fb="${fallback.replace(/"/g,'&quot;')}">`
       : fallback;
+    const stock = Number(p.stock);
+    const lowStock = stock > 0 && stock <= 5;
     return `<div class="product-card" style="animation-delay:${i*0.06}s">
       ${isNew ? '<div class="pc-badge">New</div>' : ''}
       <div class="pc-image">${imgHtml}</div>
       <div class="pc-body">
-        <div class="pc-category">${p.category}</div>
+        <div class="pc-category">${p.category || ''}</div>
         <div class="pc-name">${p.name}</div>
-        <div class="pc-size">SKU: ${p.sku}</div>
+        ${p.sku ? `<div class="pc-size" style="font-size:11px;color:var(--gray-400);">SKU: ${p.sku}</div>` : ''}
         ${p.description ? `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px;line-height:1.4;">${p.description}</div>` : ''}
         <div class="pc-footer">
-          <div class="pc-price">Rs. ${Number(p.price).toLocaleString()}</div>
+          <div>
+            <div class="pc-price">Rs. ${Number(p.price).toLocaleString()}</div>
+            ${lowStock ? `<div style="font-size:10px;color:#b45309;font-weight:600;">Only ${stock} left</div>` : ''}
+          </div>
           <a class="pc-action" href="${waHref}" target="_blank">Order →</a>
         </div>
       </div>
@@ -187,10 +222,10 @@ function toggleMobile() {
 }
 
 // ── REVEAL ON SCROLL ──────────────────────────────────────
-const observer = new IntersectionObserver(entries => {
+const revealObserver = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.12 });
-document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+document.querySelectorAll('.reveal').forEach(e => revealObserver.observe(e));
 
 // ── QR CODE DOWNLOAD ──────────────────────────────────────
 function downloadQR() {
@@ -203,24 +238,32 @@ function downloadQR() {
 
 // ── INIT ──────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  // 1. Show the page immediately with defaults — never block on network
-  loadProducts();
+  // 1. Apply defaults immediately — page is fully visible right away
+  applySiteData(DEFAULT_SETTINGS);
   hideLoader();
+  loadProducts(); // renders empty state while Supabase loads
 
-  // 2. Fetch live data from Supabase
   try {
-    const [products, settings] = await Promise.all([
+    // 2. Fetch products and settings from Supabase in parallel
+    const [rawProducts, liveSettings] = await Promise.all([
       dbGetProducts(),
-      dbGetSettings()
+      dbGetSettings().catch(() => ({}))
     ]);
 
-    // Only in-stock products shown on store
-    allProducts = products.filter(p => p.stock > 0);
+    // 3. Merge: live settings override defaults (only non-empty values win)
+    const merged = { ...DEFAULT_SETTINGS };
+    Object.entries(liveSettings).forEach(([k, v]) => {
+      if (v && String(v).trim()) merged[k] = v;
+    });
 
-    applySiteData(settings);
-    loadProducts();
+    // 4. Filter to in-stock only; cast stock to Number to handle string values from DB
+    allProducts = (rawProducts || []).filter(p => Number(p.stock) > 0);
+
+    applySiteData(merged);
+    loadProducts(); // re-render with live data
+
   } catch(e) {
-    console.warn('Supabase load error:', e);
-    // Page already visible with empty state — no crash
+    console.error('Store load error:', e);
+    // Page already visible with defaults — graceful degradation
   }
 });
