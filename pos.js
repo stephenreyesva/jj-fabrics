@@ -633,33 +633,56 @@ let _salesMap={};
 
 function viewSaleByTxn(txnNum){const s=_salesMap[txnNum];if(s)showInvoice(s);}
 
-function renderSales(){
+async function renderSales(){
   const isOwner=CU&&['owner','developer'].includes(CU.role);
   document.getElementById('sales-void-th').style.display=isOwner?'':'none';
   const clearBtn=document.getElementById('clear-all-sales-btn');
   if(clearBtn)clearBtn.style.display=isOwner?'':'none';
   const from=document.getElementById('sales-from').value,to=document.getElementById('sales-to').value;
   const pay=document.getElementById('sales-pay').value;
-  const allSales=get(K.sales);
-  _salesMap={};allSales.forEach(s=>{_salesMap[s.txnNum]=s;});
-  const sales=allSales.filter(s=>{const d=(s.date||'').slice(0,10);return(!from||d>=from)&&(!to||d<=to)&&(!pay||s.payment===pay);}).sort((a,b)=>new Date(b.date)-new Date(a.date));
-  const fmt=n=>'Rs. '+n.toLocaleString('en-PH',{minimumFractionDigits:2});
-  document.getElementById('sales-tbody').innerHTML=sales.length
-    ?sales.map(s=>{
-      const voided=!!s.voided;
-      return`<tr class="${voided?'void-row':''}">
-        <td><code>${s.txnNum}</code>${voided?`<br><span style="font-size:10px;color:var(--red);font-weight:700;">VOID</span>`:''}</td>
-        <td>${new Date(s.date).toLocaleString('en-PH')}</td>
-        <td>${s.customer}</td>
-        <td>${s.items.length} item(s)</td>
-        <td><span class="badge ${voided?'voided':s.payment}">${voided?'VOIDED':s.payment.toUpperCase()}</span></td>
-        <td style="color:var(--green);">${s.discount>0?'-'+fmt(s.discount):'—'}</td>
-        <td style="font-weight:700;color:${voided?'var(--red)':'var(--gold-600)'};">${voided?'<s>'+fmt(s.total)+'</s>':fmt(s.total)}</td>
-        <td><button class="btn btn-outline btn-sm" onclick="viewSaleByTxn('${s.txnNum}')">👁 View</button></td>
-        ${isOwner?`<td><button class="btn-void" onclick="voidSale('${s.txnNum}')">⊘ Void</button></td>`:''}
-      </tr>`;
-    }).join('')
-    :'<tr><td colspan="9" style="text-align:center;color:var(--gray-400);padding:24px;">No sales in this range.</td></tr>';
+  const tbody=document.getElementById('sales-tbody');
+  tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray-400);padding:24px;">Loading sales…</td></tr>';
+  try {
+    const rawSales = await dbGetSales();
+    // Normalize Supabase fields to match local format
+    const allSales = (rawSales||[]).map(s=>({
+      txnNum:   s.sale_ref,
+      date:     s.created_at,
+      customer: s.cashier||'Walk-in',
+      items:    Array.isArray(s.items)?s.items:[],
+      payment:  s.payment_method||'cash',
+      discount: Number(s.discount||0),
+      total:    Number(s.total||0),
+      subtotal: Number(s.subtotal||0),
+      voided:   false
+    }));
+    // Also sync to local cache for invoice viewing
+    set(K.sales, allSales);
+    _salesMap={};allSales.forEach(s=>{_salesMap[s.txnNum]=s;});
+    const sales=allSales.filter(s=>{
+      const d=(s.date||'').slice(0,10);
+      return(!from||d>=from)&&(!to||d<=to)&&(!pay||pay==='all'||s.payment===pay);
+    }).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const fmt=n=>'Rs. '+Number(n).toLocaleString('en-PH',{minimumFractionDigits:2});
+    tbody.innerHTML=sales.length
+      ?sales.map(s=>{
+        const pmtClass = s.payment==='cash'?'cash':s.payment==='card'?'card':'cash';
+        return`<tr>
+          <td><code>${s.txnNum}</code></td>
+          <td>${new Date(s.date).toLocaleString('en-PH')}</td>
+          <td>${s.customer}</td>
+          <td>${s.items.length} item(s)</td>
+          <td><span class="badge ${pmtClass}">${s.payment.toUpperCase()}</span></td>
+          <td style="color:var(--green);">${s.discount>0?'-'+fmt(s.discount):'—'}</td>
+          <td style="font-weight:700;color:var(--gold-600);">${fmt(s.total)}</td>
+          <td><button class="btn btn-outline btn-sm" onclick="viewSaleByTxn('${s.txnNum}')">👁 View</button></td>
+          ${isOwner?`<td><button class="btn-void" onclick="voidSale('${s.txnNum}')">🗑 Delete</button></td>`:''}
+        </tr>`;
+      }).join('')
+      :'<tr><td colspan="9" style="text-align:center;color:var(--gray-400);padding:24px;">No sales in this range.</td></tr>';
+  } catch(e) {
+    tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;color:#ef4444;padding:24px;">Failed to load sales: ${e.message}</td></tr>`;
+  }
 }
 
 async function voidSale(txnNum){
@@ -690,7 +713,7 @@ function clearAllSales(){
 }
 
 // Stub — sales are local; no Sheets to push to
-function pushAllSalesToSheets(){ showToast('Sales are stored in Supabase via checkout ✅','success'); }
+function pushAllSalesToSheets(){ renderSales(); showToast('Sales refreshed from Supabase ✅','success'); }
 function toggleSaveLog(){}
 
 // ─────────────────────────────────────────
