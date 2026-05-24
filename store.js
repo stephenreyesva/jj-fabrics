@@ -209,6 +209,8 @@ function renderProducts() {
     const waMsg    = encodeURIComponent(`Hi! I'm interested in: ${p.name} (Rs. ${Number(p.price).toLocaleString()}). Is it available?`);
     const waHref   = waNum ? `https://wa.me/${waNum}?text=${waMsg}` : '#';
     const isNew    = p.is_new === true || p.is_new === 'true';
+    const isSale   = p.sale_price && Number(p.sale_price) > 0 && Number(p.sale_price) < Number(p.price);
+    const discPct  = isSale ? Math.round((1 - Number(p.sale_price)/Number(p.price))*100) : 0;
     const fallback = `<span style="font-size:64px">${emoji}</span>`;
     const imgHtml  = (p.img && p.img.trim())
       ? `<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;"
@@ -217,7 +219,8 @@ function renderProducts() {
     const stock = Number(p.stock);
     const lowStock = stock > 0 && stock <= 5;
     return `<div class="product-card" style="animation-delay:${i*0.06}s">
-      ${isNew ? '<div class="pc-badge">New</div>' : ''}
+      ${isNew ? '<div class="pc-badge-new">NEW</div>' : ''}
+      ${isSale ? `<div class="pc-badge-sale" style="${isNew?'top:64px;':''}">-${discPct}%</div>` : ''}
       <div class="pc-image">${imgHtml}</div>
       <div class="pc-body">
         <div class="pc-category">${p.category || ''}</div>
@@ -226,7 +229,10 @@ function renderProducts() {
         ${p.description ? `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px;line-height:1.4;">${p.description}</div>` : ''}
         <div class="pc-footer">
           <div>
-            <div class="pc-price">Rs. ${Number(p.price).toLocaleString()}</div>
+            ${isSale
+              ? `<div class="pc-price" style="color:#e01f1f;">Rs. ${Number(p.sale_price).toLocaleString()} <span style="font-size:11px;color:var(--gray-400);text-decoration:line-through;font-weight:400;">Rs. ${Number(p.price).toLocaleString()}</span></div>`
+              : `<div class="pc-price">Rs. ${Number(p.price).toLocaleString()}</div>`
+            }
             ${lowStock ? `<div style="font-size:10px;color:#b45309;font-weight:600;">Only ${stock} left</div>` : ''}
           </div>
           <a class="pc-action" href="${waHref}" target="_blank">Order →</a>
