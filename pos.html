@@ -326,7 +326,7 @@
     <!-- ── PUBLIC WEBSITE EDITOR (dev only) ── -->
     <div class="page" id="website-page">
       <div class="page-header">
-        <div class="page-header-left"><h2>🌐 Public Website Editor</h2><p>Update the public storefront — developer access only</p></div>
+        <div class="page-header-left"><h2>🌐 Public Website Editor</h2><p>Update the public storefront — admin &amp; developer access</p></div>
         <button class="btn btn-gold" onclick="publishSiteData()">🚀 Publish Changes</button>
       </div>
       <div id="website-no-access" style="display:none;">
@@ -496,6 +496,16 @@
       <div class="form-group"><label>Min Stock Alert</label><input class="input-field" type="number" id="p-minstock" placeholder="5" min="0" style="margin-bottom:0"></div>
     </div>
     <div class="form-group"><label>Description</label><input class="input-field" type="text" id="p-desc" placeholder="Brief description" style="margin-bottom:0"></div>
+    <div class="form-group" style="margin-bottom:0;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+        <div style="position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0;">
+          <input type="checkbox" id="p-is-new" style="opacity:0;width:0;height:0;position:absolute;">
+          <span id="p-is-new-track" onclick="toggleNewBadge()" style="position:absolute;inset:0;background:#d1d5db;border-radius:24px;cursor:pointer;transition:0.2s;"></span>
+          <span id="p-is-new-thumb" onclick="toggleNewBadge()" style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
+        </div>
+        <span style="font-size:13px;font-weight:600;">✨ Mark as <span style="color:var(--gold);">New Arrival</span> <span style="font-size:11px;font-weight:400;color:var(--gray-400);">(shows badge on store)</span></span>
+      </label>
+    </div>
     <div class="form-group">
       <label>Photo</label>
       <!-- Drag & Drop Zone -->
@@ -525,8 +535,8 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('product-modal')">Cancel</button>
-      <button class="btn btn-gold" onclick="saveProduct(false)">💾 Save Locally</button>
-      <button class="btn-save-sheets" onclick="saveProduct(true)" style="padding:9px 16px;font-size:13px;">☁ Save &amp; Push to Sheets</button>
+      <button class="btn btn-gold" onclick="saveProduct(false)">💾 Save</button>
+      <button class="btn-save-sheets" onclick="saveProduct(true)" style="padding:9px 16px;font-size:13px;">☁ Save to Supabase</button>
     </div>
   </div>
 </div>
