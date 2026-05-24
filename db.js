@@ -96,7 +96,7 @@ async function dbGetSales() {
 
 async function dbLogin(username, password) {
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(password)}&select=id,username,role`,
+    `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(password)}&select=id,username,role,full_name`,
     { headers: HEADERS }
   );
   if (!res.ok) throw new Error('Login failed');
@@ -138,4 +138,14 @@ async function dbGetAllUsers() {
   );
   if (!res.ok) throw new Error('Failed to fetch users');
   return res.json();
+}
+
+// ── DELETE SALE (owner/developer only) ────────────────────
+
+async function dbDeleteSale(txnNum) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/sales?sale_ref=eq.${encodeURIComponent(txnNum)}`,
+    { method: 'DELETE', headers: HEADERS }
+  );
+  if (!res.ok) throw new Error('Delete failed: ' + await res.text());
 }
