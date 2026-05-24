@@ -1,7 +1,7 @@
 // ============================================================
 //  JJ Fabrics — Supabase Database Layer
 //  Shared by pos.html and store.html
-// ============================================================//
+// ============================================================
 
 const SUPABASE_URL = 'https://qkinurfvnhpywfvzwgpi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFraW51cmZ2bmhweXdmdnp3Z3BpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTMyNjQsImV4cCI6MjA5NTE2OTI2NH0.8ZVj7grTG_dmyNs-m89uumr9WhGgpvSzsenLpXe0Kec';
@@ -24,7 +24,6 @@ async function dbGetProducts() {
 }
 
 async function dbSaveProduct(product) {
-  // upsert by SKU
   const res = await fetch(`${SUPABASE_URL}/rest/v1/products?on_conflict=sku`, {
     method: 'POST',
     headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
@@ -94,13 +93,19 @@ async function dbGetSales() {
 // ── USERS ─────────────────────────────────────────────────
 
 async function dbLogin(username, password) {
+  // Fetch by username only first, then check password in JS
+  // This avoids URL encoding issues with special characters
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(password)}&select=id,username,role`,
+    `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(username)}&select=id,username,password,role`,
     { headers: HEADERS }
   );
   if (!res.ok) throw new Error('Login failed');
   const rows = await res.json();
-  return rows.length > 0 ? rows[0] : null;
+  if (!rows.length) return null;
+  // Check password client-side
+  const user = rows[0];
+  if (user.password !== password) return null;
+  return { id: user.id, username: user.username, role: user.role };
 }
 
 // ── SETTINGS ──────────────────────────────────────────────
