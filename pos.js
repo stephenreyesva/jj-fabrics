@@ -228,10 +228,12 @@ function renderProducts() {
   const grid = document.getElementById('product-grid');
   if(!prods.length){grid.innerHTML='<p style="grid-column:1/-1;font-size:13px;color:var(--gray-400);">No products found.</p>';return;}
   grid.innerHTML=prods.map(p=>{
-    const isOut=p.stock===0, isLow=p.stock>0&&p.stock<=5;
+    const isOut=p.stock===0, isLow=p.stock>0&&p.stock<=5, isNew=p.is_new===true||p.is_new==='true';
     const emoji=catEmoji[p.category]||'🛍️';
     const imgHtml=p.img?`<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;" onerror="this.parentNode.innerHTML='<span style=font-size:32px>${emoji}</span>'">`:`<span style="font-size:32px;">${emoji}</span>`;
-    return`<div class="product-card ${isOut?'out-of-stock':''}" data-sku="${p.sku}">
+    const newBadge=isNew?`<span style="position:absolute;top:6px;left:6px;z-index:3;width:40px;height:40px;background:#e01f1f;color:#fff;font-size:9px;font-weight:900;text-transform:uppercase;display:flex;align-items:center;justify-content:center;clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);animation:posNewPop 0.4s ease both;letter-spacing:0.3px;">NEW</span>`:'';
+    return`<div class="product-card ${isOut?'out-of-stock':''}" data-sku="${p.sku}" style="position:relative;">
+      ${newBadge}
       ${isLow?'<span class="stock-badge low">Low</span>':''}${isOut?'<span class="stock-badge out">Out</span>':''}
       <div class="pc-img">${imgHtml}</div>
       <div class="pc-name">${p.name}</div>
@@ -239,6 +241,13 @@ function renderProducts() {
       <div class="pc-stock">${p.stock} in stock</div>
     </div>`;
   }).join('');
+  // Inject NEW badge animation if not already present
+  if(!document.getElementById('pos-new-badge-style')){
+    const s=document.createElement('style');
+    s.id='pos-new-badge-style';
+    s.textContent='@keyframes posNewPop{0%{transform:scale(0) rotate(-20deg);opacity:0}80%{transform:scale(1.15) rotate(5deg)}100%{transform:scale(1) rotate(0)}}';
+    document.head.appendChild(s);
+  }
   grid.onclick=function(e){
     const card=e.target.closest('.product-card[data-sku]');
     if(!card||card.classList.contains('out-of-stock'))return;
