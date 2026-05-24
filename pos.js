@@ -28,6 +28,18 @@ function seed() {
 // ─────────────────────────────────────────
 //  AUTH
 // ─────────────────────────────────────────
+// ─────────────────────────────────────────
+//  GREETING HELPER
+// ─────────────────────────────────────────
+function getGreeting(name) {
+  const h = new Date().getHours();
+  const fullName = name ? name.charAt(0).toUpperCase() + name.slice(1) : '';
+  if (h >= 5  && h < 12) return { time: 'Good Morning', name: fullName };
+  if (h >= 12 && h < 17) return { time: 'Good Afternoon', name: fullName };
+  if (h >= 17 && h < 21) return { time: 'Good Evening', name: fullName };
+  return { time: 'Good Night', name: fullName };
+}
+
 async function doLogin() {
   const username = document.getElementById('login-user').value.trim();
   const password = document.getElementById('login-pass').value;
@@ -52,10 +64,15 @@ async function doLogin() {
     CU = user;
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display          = 'block';
-    document.getElementById('user-display').textContent   = user.username;
+
+    // Personalized greeting
+    const gr = getGreeting(user.full_name || user.username);
+    const greetLabel = document.getElementById('greeting-label');
+    if (greetLabel) greetLabel.textContent = gr.time + ',';
+    document.getElementById('user-display').textContent   = gr.name;
     document.getElementById('role-display').textContent   = user.role.toUpperCase();
-    document.getElementById('dash-name').textContent      = user.username;
-    document.getElementById('mob-user-label').textContent = user.username;
+    document.getElementById('dash-name').textContent      = gr.name;
+    document.getElementById('mob-user-label').textContent = gr.name;
 
     // Role-based nav visibility
     if (user.role === 'cashier') {
@@ -63,7 +80,7 @@ async function doLogin() {
       document.getElementById('nav-website').style.display  = 'none';
     }
     const resetBtn = document.getElementById('dash-reset-btn');
-    if (resetBtn) resetBtn.style.display = user.role === 'owner' ? '' : 'none';
+    if (resetBtn) resetBtn.style.display = ['owner','developer'].includes(user.role) ? '' : 'none';
 
     await loadProducts();
     showPage('dashboard');
@@ -617,7 +634,7 @@ let _salesMap={};
 function viewSaleByTxn(txnNum){const s=_salesMap[txnNum];if(s)showInvoice(s);}
 
 function renderSales(){
-  const isOwner=CU&&CU.role==='owner';
+  const isOwner=CU&&['owner','developer'].includes(CU.role);
   document.getElementById('sales-void-th').style.display=isOwner?'':'none';
   const clearBtn=document.getElementById('clear-all-sales-btn');
   if(clearBtn)clearBtn.style.display=isOwner?'':'none';
@@ -645,18 +662,28 @@ function renderSales(){
     :'<tr><td colspan="9" style="text-align:center;color:var(--gray-400);padding:24px;">No sales in this range.</td></tr>';
 }
 
-function voidSale(txnNum){
-  if(CU.role!=='owner'){showToast('Only the owner can void sales!','error');return;}
-  if(!confirm('Void transaction '+txnNum+'?'))return;
-  const sales=get(K.sales),idx=sales.findIndex(s=>s.txnNum===txnNum);
-  if(idx<0)return;
-  sales[idx].voided=true;set(K.sales,sales);
-  renderSales();refreshDashboard();
-  showToast(txnNum+' voided ✅','success');
+async function voidSale(txnNum){
+  if(!['owner','developer'].includes(CU.role)){showToast('Only owner/developer can void sales!','error');return;}
+  if(!confirm('Void & permanently delete transaction '+txnNum+' from Supabase? This cannot be undone.'))return;
+  try {
+    // Delete from Supabase
+    await dbDeleteSale(txnNum);
+    // Also remove from local cache
+    const sales=get(K.sales),idx=sales.findIndex(s=>s.txnNum===txnNum);
+    if(idx>=0){sales.splice(idx,1);set(K.sales,sales);}
+    renderSales();refreshDashboard();
+    showToast(txnNum+' deleted ✅','success');
+  } catch(e) {
+    // Fallback: just void locally
+    const sales=get(K.sales),idx=sales.findIndex(s=>s.txnNum===txnNum);
+    if(idx>=0){sales[idx].voided=true;set(K.sales,sales);}
+    renderSales();refreshDashboard();
+    showToast(txnNum+' voided locally (Supabase: '+e.message+')','error');
+  }
 }
 
 function clearAllSales(){
-  if(CU.role!=='owner'){showToast('Only the owner can do this!','error');return;}
+  if(!['owner','developer'].includes(CU.role)){showToast('Only owner/developer can do this!','error');return;}
   if(!confirm('Delete ALL sales records? This cannot be undone.'))return;
   set(K.sales,[]); renderSales(); refreshDashboard();
   showToast('All sales cleared 🗑','success');
