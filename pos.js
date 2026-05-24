@@ -705,22 +705,100 @@ function saveConfig(){
 }
 
 // ─────────────────────────────────────────
-//  WEBSITE EDITOR (stub — no Sheets)
+//  WEBSITE EDITOR
 // ─────────────────────────────────────────
-function renderWebsiteEditor(){
-  const noAccess=document.getElementById('website-no-access');
-  const editor=document.getElementById('website-editor');
-  if(CU.role!=='developer'&&CU.role!=='owner'){
-    if(noAccess)noAccess.style.display='flex';
-    if(editor)editor.style.display='none';
+async function renderWebsiteEditor() {
+  const noAccess = document.getElementById('website-no-access');
+  const editor   = document.getElementById('website-editor');
+  if (CU.role !== 'developer' && CU.role !== 'owner') {
+    if (noAccess) noAccess.style.display = 'flex';
+    if (editor)   editor.style.display   = 'none';
     return;
   }
-  if(noAccess)noAccess.style.display='none';
-  if(editor)editor.style.display='block';
+  if (noAccess) noAccess.style.display = 'none';
+  if (editor)   editor.style.display   = 'block';
+
+  // Load current settings from Supabase and populate fields
+  try {
+    const s = await dbGetSettings();
+    const v = (id, val) => { const e = document.getElementById(id); if (e) e.value = val || ''; };
+    v('ws-name',     s.name);
+    v('ws-tagline',  s.tagline);
+    v('ws-about',    s.about);
+    v('ws-address',  s.address);
+    v('ws-phone',    s.phone);
+    v('ws-email',    s.email);
+    v('ws-fb',       s.facebook);
+    v('ws-ig',       s.instagram);
+    v('ws-map',      s.map);
+    v('ws-emoji',    s.emoji);
+    v('ws-hero-color',     s.hero_color     || '#FFFDF0');
+    v('ws-hero-color-txt', s.hero_color     || '#FFFDF0');
+    v('ws-accent-color',     s.accent_color || '#EAB308');
+    v('ws-accent-color-txt', s.accent_color || '#EAB308');
+
+    // Sync color pickers with text inputs
+    ['hero-color','accent-color'].forEach(key => {
+      const picker = document.getElementById('ws-' + key);
+      const txt    = document.getElementById('ws-' + key + '-txt');
+      if (picker && txt) {
+        picker.oninput = () => txt.value   = picker.value;
+        txt.oninput    = () => picker.value = txt.value;
+      }
+    });
+
+    syncFeaturedFromInventory();
+  } catch(e) {
+    showToast('Could not load site settings', 'error');
+  }
 }
-function publishSiteData(){showToast('Website editor not connected to Supabase yet','error');}
-function syncFeaturedFromInventory(){showToast('Sync not connected yet','error');}
-function toggleFeatured(){}
+
+async function publishSiteData() {
+  const g = id => (document.getElementById(id)?.value || '').trim();
+
+  // Build array of {key, value} pairs matching the Supabase settings table schema
+  const entries = [
+    { key: 'name',         value: g('ws-name')            },
+    { key: 'tagline',      value: g('ws-tagline')          },
+    { key: 'about',        value: g('ws-about')            },
+    { key: 'address',      value: g('ws-address')          },
+    { key: 'phone',        value: g('ws-phone')            },
+    { key: 'email',        value: g('ws-email')            },
+    { key: 'facebook',     value: g('ws-fb')               },
+    { key: 'instagram',    value: g('ws-ig')               },
+    { key: 'map',          value: g('ws-map')              },
+    { key: 'emoji',        value: g('ws-emoji')            },
+    { key: 'hero_color',   value: g('ws-hero-color-txt')   },
+    { key: 'accent_color', value: g('ws-accent-color-txt') },
+  ];
+
+  const btn = document.querySelector('[onclick="publishSiteData()"]');
+  if (btn) { btn.textContent = '⏳ Publishing…'; btn.disabled = true; }
+
+  try {
+    await dbSaveSettings(entries);
+    showToast('✅ Website settings published!', 'success');
+  } catch(e) {
+    showToast('❌ Publish failed: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.textContent = '🚀 Publish Changes'; btn.disabled = false; }
+  }
+}
+
+function syncFeaturedFromInventory() {
+  const list = document.getElementById('featured-product-list');
+  if (!list) return;
+  const inStock = allProducts.filter(p => p.stock > 0);
+  if (!inStock.length) { list.innerHTML = '<p style="font-size:13px;color:var(--gray-400);">No in-stock products found.</p>'; return; }
+  list.innerHTML = inStock.map(p => `
+    <div style="background:var(--gray-50);border-radius:10px;padding:12px;font-size:12px;">
+      <div style="font-weight:700;margin-bottom:4px;">${p.name}</div>
+      <div style="color:var(--gray-400);">${p.category} · Rs. ${Number(p.price).toLocaleString()}</div>
+      <div style="color:var(--green);margin-top:4px;">${p.stock} in stock</div>
+    </div>`).join('');
+}
+
+function toggleFeatured() {}
 
 // ─────────────────────────────────────────
 //  CSV EXPORT
