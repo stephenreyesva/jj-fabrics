@@ -309,8 +309,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (v && String(v).trim()) merged[k] = v;
     });
 
-    // 4. Filter to in-stock only; cast stock to Number to handle string values from DB
-    allProducts = (rawProducts || []).filter(p => Number(p.stock) > 0);
+    // 4. Filter to in-stock only, then priority sort: new+sale first, then new, then sale, then rest
+    allProducts = sortProducts((rawProducts || []).filter(p => Number(p.stock) > 0));
 
     applySiteData(merged);
     loadProducts(); // re-render with live data
