@@ -1,111 +1,311 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>JJ Fabrics — Premium Fabric Store</title>
-  <link rel="stylesheet" href="store.css"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JJ Fabrics — Gents & Ladies Suiting</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="store.css">
 </head>
 <body>
 
-<!-- NAV -->
-<header class="navbar">
-  <div class="nav-inner">
-    <div class="nav-brand">JJ<span>Fabrics</span></div>
-    <nav class="nav-links">
-      <a href="#hero">Home</a>
-      <a href="#collections">Collections</a>
-      <a href="#contact">Contact</a>
-    </nav>
-  </div>
-</header>
+<!-- LOADER -->
+<div id="page-loader">
+  <div class="loader-logo" style="display:flex;align-items:center;gap:10px;"><img src="image/logo.jpeg" style="width:50px;height:50px;object-fit:contain;border-radius:50%;" onerror="this.style.display='none'" /><span>JJ Fabrics</span></div>
+  <div class="loader-dot"></div>
+</div>
 
-<!-- HERO -->
-<section class="hero" id="hero">
-  <div class="hero-content">
-    <div class="hero-text">
-      <div class="hero-tag">New Arrivals 2025</div>
-      <h1>Elegance in<br/><span class="gold">Every Thread</span></h1>
-      <p>Premium fabrics for every occasion — from festive lawns to luxury pret.</p>
-      <a href="#collections" class="btn-hero">Explore Collection</a>
-    </div>
-    <div class="hero-cards" id="hero-cards">
-      <!-- filled by JS -->
-    </div>
-  </div>
-</section>
+<!-- FLOATING WHATSAPP -->
+<a class="wa-float" id="wa-btn" href="#" target="_blank" title="Chat on WhatsApp">💬</a>
 
-<!-- MARQUEE -->
-<div class="marquee-bar">
-  <div class="marquee-track">
-    <span>Ladies Suiting</span><span>✦</span>
-    <span>Gents Suiting</span><span>✦</span>
-    <span>Kids Wear</span><span>✦</span>
-    <span>Accessories</span><span>✦</span>
-    <span>Premium Lawn</span><span>✦</span>
-    <span>Luxury Pret</span><span>✦</span>
-    <span>Embroidered</span><span>✦</span>
-    <span>New Arrivals</span><span>✦</span>
-    <span>Ladies Suiting</span><span>✦</span>
-    <span>Gents Suiting</span><span>✦</span>
-    <span>Kids Wear</span><span>✦</span>
-    <span>Accessories</span><span>✦</span>
-    <span>Premium Lawn</span><span>✦</span>
-    <span>Luxury Pret</span><span>✦</span>
-    <span>Embroidered</span><span>✦</span>
-    <span>New Arrivals</span><span>✦</span>
+<!-- BACK TO TOP -->
+<div id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <a class="nav-brand" href="#">
+    <img id="nav-logo" src="image/logo.jpeg" style="width:44px;height:44px;object-fit:contain;border-radius:50%;background:#000;" />
+    <h1 id="nav-name">JJ Fabrics</h1>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#collections">Collections</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a class="nav-cta" id="nav-whatsapp" href="#" target="_blank">💬 Chat with Us</a>
+  <div class="hamburger" onclick="toggleMobile()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#collections" onclick="toggleMobile()">Collections</a>
+  <a href="#about" onclick="toggleMobile()">About</a>
+  <a href="#contact" onclick="toggleMobile()">Contact</a>
+  <a href="#" id="mob-wa" target="_blank" style="color:var(--accent-dark);">💬 WhatsApp</a>
+</div>
+
+<!-- BRANDS NAV STRIP -->
+<div class="brands-nav" id="brands-nav">
+  <div class="brands-nav-inner">
+    <!-- Set 1 -->
+    <a class="brands-nav-item" onclick="filterBrandNav('all',this);return false;" href="#collections">
+      <span class="brands-nav-label">All Collections</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this);return false;" href="#collections">
+      <span class="brands-nav-label">SAYA · Bonanza · Sapphire</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this);return false;" href="#collections">
+      <span class="brands-nav-label">Maria.B · Bareeze · Cross Stitch</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this);return false;" href="#collections">
+      <span class="brands-nav-label">Veezal · Qalandari · Laam</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Gents Suiting',this);return false;" href="#collections">
+      <span class="brands-nav-label">Gents &amp; Ladies Suiting</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Accessories',this);return false;" href="#collections">
+      <span class="brands-nav-label">Accessories</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <!-- Set 2 — duplicate for seamless loop -->
+    <a class="brands-nav-item" onclick="filterBrandNav('all',this);return false;" href="#collections">
+      <span class="brands-nav-label">All Collections</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this);return false;" href="#collections">
+      <span class="brands-nav-label">SAYA · Bonanza · Sapphire</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this);return false;" href="#collections">
+      <span class="brands-nav-label">Maria.B · Bareeze · Cross Stitch</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Ladies Suiting',this);return false;" href="#collections">
+      <span class="brands-nav-label">Veezal · Qalandari · Laam</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Gents Suiting',this);return false;" href="#collections">
+      <span class="brands-nav-label">Gents &amp; Ladies Suiting</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
+    <a class="brands-nav-item" onclick="filterBrandNav('Accessories',this);return false;" href="#collections">
+      <span class="brands-nav-label">Accessories</span>
+      <span class="brands-nav-plus">+</span>
+    </a>
   </div>
 </div>
 
-<!-- COLLECTIONS -->
-<section class="collections" id="collections">
-  <div class="section-inner">
-    <div class="section-header">
-      <h2>Our Collections</h2>
-      <p>Handpicked premium fabrics — updated regularly from our store</p>
-    </div>
-
-    <!-- Filter -->
-    <div class="filter-bar">
-      <button class="filter-btn active" onclick="filterStore('all',this)">All</button>
-      <button class="filter-btn" onclick="filterStore('Ladies Suiting',this)">Ladies</button>
-      <button class="filter-btn" onclick="filterStore('Gents Suiting',this)">Gents</button>
-      <button class="filter-btn" onclick="filterStore('Kids Wear',this)">Kids</button>
-      <button class="filter-btn" onclick="filterStore('Accessories',this)">Accessories</button>
-    </div>
-
-    <div id="store-grid" class="store-grid">
-      <div class="loading-state">Loading products…</div>
-    </div>
+<!-- MARQUEE TICKER -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">JJ Fabrics — Attock City <span class="mdot">✦</span></span>
+    <span class="marquee-item">House of Brands <span class="mdot">✦</span></span>
+    <span class="marquee-item">Premium Embroidered Lawn <span class="mdot">✦</span></span>
+    <span class="marquee-item">Gents &amp; Ladies Suiting <span class="mdot">✦</span></span>
+    <span class="marquee-item">SAYA · Bonanza · Sapphire <span class="mdot">✦</span></span>
+    <span class="marquee-item">Maria.B · Cross Stitch · Bareeze <span class="mdot">✦</span></span>
+    <span class="marquee-item">100% Authentic <span class="mdot">✦</span></span>
+    <span class="marquee-item">New Arrivals Every Season <span class="mdot">✦</span></span>
+    <span class="marquee-item">Main Bazar, Attock City <span class="mdot">✦</span></span>
+    <span class="marquee-item">03145777344 <span class="mdot">✦</span></span>
+    <!-- Duplicate set for seamless loop -->
+    <span class="marquee-item">JJ Fabrics — Attock City <span class="mdot">✦</span></span>
+    <span class="marquee-item">House of Brands <span class="mdot">✦</span></span>
+    <span class="marquee-item">Premium Embroidered Lawn <span class="mdot">✦</span></span>
+    <span class="marquee-item">Gents &amp; Ladies Suiting <span class="mdot">✦</span></span>
+    <span class="marquee-item">SAYA · Bonanza · Sapphire <span class="mdot">✦</span></span>
+    <span class="marquee-item">Maria.B · Cross Stitch · Bareeze <span class="mdot">✦</span></span>
+    <span class="marquee-item">100% Authentic <span class="mdot">✦</span></span>
+    <span class="marquee-item">New Arrivals Every Season <span class="mdot">✦</span></span>
+    <span class="marquee-item">Main Bazar, Attock City <span class="mdot">✦</span></span>
+    <span class="marquee-item">03145777344 <span class="mdot">✦</span></span>
   </div>
-</section>
+</div>
 
-<!-- CONTACT -->
-<section class="contact-section" id="contact">
-  <div class="section-inner">
-    <div class="contact-grid">
-      <div>
-        <h2>Visit Us</h2>
-        <p>Come experience the fabric in person.</p>
-        <div class="contact-info">
-          <div class="contact-item">📍 Sharjah, UAE</div>
-          <div class="contact-item">📞 +971 XX XXX XXXX</div>
-          <div class="contact-item">🕐 Sat–Thu: 10am – 10pm</div>
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-pill">House of Brands — Attock City</div>
+      <h2 id="hero-headline">Your <em>House of Brands</em><br>in Attock City</h2>
+      <p id="hero-sub">Attock's premier House of Brands — featuring SAYA, Bonanza Satrangi, Sapphire, Maria.B, J., Bin Saeed &amp; more. Finest gents and ladies suiting at great prices.</p>
+      <div class="hero-btns">
+        <a href="#collections" class="btn-hero-primary">Shop Collection ↓</a>
+        <a href="#contact" class="btn-hero-ghost">Find Our Store</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="num" id="stat-products">0+</div><div class="lbl">Products</div></div>
+        <div class="hero-stat"><div class="num">10+</div><div class="lbl">Top Brands</div></div>
+        <div class="hero-stat"><div class="num">100%</div><div class="lbl">Authentic</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card-stack">
+        <div class="hero-card c1">
+          <div class="hc-img" id="hc1">👗</div>
+          <div class="hc-body">
+            <div class="hc-name" id="hc1-name">Floral Midi</div>
+            <div class="hc-price" id="hc1-price">Rs. 1,299</div>
+          </div>
+        </div>
+        <div class="hero-card c2">
+          <div class="hc-img" id="hc2">👔</div>
+          <div class="hc-body">
+            <div class="hc-name" id="hc2-name">Polo Shirt</div>
+            <div class="hc-price" id="hc2-price">Rs. 799</div>
+          </div>
+        </div>
+        <div class="hero-card c3">
+          <div class="hc-img" id="hc3">💍</div>
+          <div class="hc-body">
+            <div class="hc-name" id="hc3-name">Pearl Necklace</div>
+            <div class="hc-price" id="hc3-price">Rs. 499</div>
+          </div>
         </div>
       </div>
-      <div class="store-name-block">
-        <div class="big-logo">JJ<span>Fabrics</span></div>
-        <p>Premium Pakistani Fabrics</p>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="categories reveal" id="categories">
+  <div class="container">
+    <div class="section-label">Browse By</div>
+    <div class="section-title">Our <em>Categories</em></div>
+    <div class="cat-grid" id="cat-grid">
+      <div class="cat-card active" onclick="filterCat('')"><span class="cat-icon">🛍️</span><div class="cat-name">All Items</div><div class="cat-count" id="cnt-all">— items</div></div>
+      <div class="cat-card" onclick="filterCat('Ladies Suiting')"><span class="cat-icon">👗</span><div class="cat-name">Ladies Suits</div><div class="cat-count" id="cnt-women">— items</div></div>
+      <div class="cat-card" onclick="filterCat('Gents Suiting')"><span class="cat-icon">👔</span><div class="cat-name">Gents Wear</div><div class="cat-count" id="cnt-men">— items</div></div>
+      <div class="cat-card" onclick="filterCat('Accessories')"><span class="cat-icon">💍</span><div class="cat-name">Accessories</div><div class="cat-count" id="cnt-acc">— items</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section class="products-section" id="collections">
+  <div class="container">
+    <div class="products-header">
+      <div>
+        <div class="section-label">Featured</div>
+        <div class="section-title"><em>Collections</em></div>
+      </div>
+      <div id="products-count" style="font-size:13px;color:var(--gray-400);font-weight:500;"></div>
+    </div>
+    <div class="product-grid" id="product-grid"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about-section reveal" id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div>
+        <div class="section-label">Our Story</div>
+        <div class="section-title">Attock's <em>House of Brands</em></div>
+        <div class="section-subtitle" id="about-text">JJ Fabrics is Attock City's premier House of Brands, we curate timeless pieces that celebrate your unique style — blending elegance, comfort, and affordability.</div>
+        <div class="about-features">
+          <div class="about-feat"><div class="feat-icon">✨</div><div class="feat-text"><div class="ft-title">Premium Brands</div><div class="ft-desc">10+ top Pakistani fashion brands</div></div></div>
+          <div class="about-feat"><div class="feat-icon">🏷️</div><div class="feat-text"><div class="ft-title">Original Products</div><div class="ft-desc">100% authentic, authorized retailer</div></div></div>
+          <div class="about-feat"><div class="feat-icon">🔄</div><div class="feat-text"><div class="ft-title">New Arrivals</div><div class="ft-desc">Latest collections every season</div></div></div>
+          <div class="about-feat"><div class="feat-icon">💬</div><div class="feat-text"><div class="ft-title">Personal Styling</div><div class="ft-desc">Ask us via WhatsApp!</div></div></div>
+        </div>
+      </div>
+      <div class="about-visual">
+        <div class="about-img-block tall" style="background:linear-gradient(135deg,var(--accent-dark),var(--gray-900));font-size:80px;">👘</div>
+        <div class="about-img-block" style="background:linear-gradient(135deg,var(--gray-900),var(--gray-600));font-size:48px;">👔</div>
+        <div class="about-img-block" style="background:linear-gradient(135deg,var(--gray-100),var(--gray-200));font-size:48px;">🧵</div>
       </div>
     </div>
   </div>
 </section>
 
-<footer class="footer">
-  <p>© 2025 JJ Fabrics — All rights reserved</p>
+
+<!-- SOCIAL STRIP -->
+<div class="social-strip reveal" id="social">
+  <div class="social-strip-inner">
+    <h3>Find Us Online &amp; In Person</h3>
+    <p>Follow us on social media or message us directly — we'd love to hear from you!</p>
+    <div class="social-links">
+      <a class="social-btn facebook" id="link-fb" href="#" target="_blank">
+        <span class="sb-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></span> Facebook
+      </a>
+      <a class="social-btn instagram" id="link-ig" href="#" target="_blank">
+        <span class="sb-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></span> Instagram
+      </a>
+      <a class="social-btn tiktok" id="link-tt" href="#" target="_blank">
+        <span class="sb-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg></span> TikTok
+      </a>
+      <a class="social-btn whatsapp" id="link-wa" href="#" target="_blank">
+        <span class="sb-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></span> WhatsApp
+      </a>
+      <a class="social-btn youtube" id="link-yt" href="https://youtube.com/@jjfabric786?si=HoEYFCJVncSEmGBm" target="_blank"><span class="sb-icon">▶️</span> YouTube</a>
+      <a class="social-btn location" href="#contact"><span class="sb-icon">📍</span> Find Our Store</a>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<section class="contact-section reveal" id="contact">
+  <div class="container">
+    <div class="section-label">Visit Us</div>
+    <div class="section-title" style="margin-bottom:36px;">Where to <em>Find Us</em></div>
+    <div class="contact-grid">
+      <div class="contact-info">
+        <div class="ci-item"><div class="ci-icon">📍</div><div class="ci-text"><div class="cit-label">Address</div><div class="cit-value" id="contact-address">—</div></div></div>
+        <div class="ci-item"><div class="ci-icon">👤</div><div class="ci-text"><div class="cit-label">Owner</div><div class="cit-value">M. Hamza Javed</div></div></div>
+        <div class="ci-item"><div class="ci-icon">📞</div><div class="ci-text"><div class="cit-label">Phone</div><div class="cit-value"><a href="#" id="contact-phone-link">—</a></div></div></div>
+        <div class="ci-item"><div class="ci-icon">✉️</div><div class="ci-text"><div class="cit-label">Email</div><div class="cit-value"><a href="#" id="contact-email-link">—</a></div></div></div>
+        <div class="ci-item"><div class="ci-icon">🕐</div><div class="ci-text"><div class="cit-label">Hours</div><div class="cit-value">Mon–Sat: 9:00 AM – 7:00 PM<br>Sun: 10:00 AM – 5:00 PM</div></div></div>
+        <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">
+          <a class="pc-action" id="cta-wa" href="#" target="_blank">💬 WhatsApp Us</a>
+          <a class="pc-action" id="cta-fb" href="#" target="_blank" style="background:var(--gray-100);color:var(--gray-900);">📘 Facebook</a>
+        </div>
+      </div>
+      <div class="map-container" id="map-container">
+        <div class="map-placeholder"><span class="mp-icon">🗺️</span><p>Map will appear here</p><p style="font-size:11px;margin-top:4px;">Add Google Maps URL in the POS website editor</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <h3 id="footer-name">👗 JJ Fabrics</h3>
+        <p id="footer-tagline">Gents & Ladies Suiting Place</p>
+      </div>
+      <div class="footer-socials">
+        <a class="fs-btn fs-facebook" id="fs-fb" href="#" target="_blank" title="Facebook">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </a>
+        <a class="fs-btn fs-instagram" id="fs-ig" href="#" target="_blank" title="Instagram">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a class="fs-btn fs-tiktok" id="fs-tt" href="#" target="_blank" title="TikTok">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>
+        </a>
+        <a class="fs-btn fs-youtube" id="fs-yt" href="https://youtube.com/@jjfabric786?si=HoEYFCJVncSEmGBm" target="_blank" title="YouTube">▶️</a>
+        <a class="fs-btn fs-whatsapp" id="fs-wa" href="#" target="_blank" title="WhatsApp">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p id="footer-copy">© 2025 JJ Fabrics. All rights reserved.</p>
+      <p>Powered by JJ Fabrics POS System</p>
+    </div>
+  </div>
 </footer>
 
-<script src="db.js"></script>
 <script src="store.js"></script>
 </body>
 </html>
