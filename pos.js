@@ -411,9 +411,10 @@ function renderInventory(){
     const thumbHtml=p.img
       ?`<img src="${p.img}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.outerHTML='<span style=font-size:20px>${emoji}</span>'">`
       :`<span style="font-size:20px;">${emoji}</span>`;
+    const newBadge=p.is_new?'<span style="font-size:10px;background:#fef3c7;color:#92400e;font-weight:700;padding:1px 7px;border-radius:20px;margin-left:6px;">✨ NEW</span>':'';
     return`<tr>
       <td><code>${p.sku}</code></td>
-      <td><div style="display:flex;align-items:center;gap:10px;">${thumbHtml}<div><strong>${p.name}</strong><br><span style="font-size:11px;color:var(--gray-400);">${p.description||''}</span></div></div></td>
+      <td><div style="display:flex;align-items:center;gap:10px;">${thumbHtml}<div><strong>${p.name}</strong>${newBadge}<br><span style="font-size:11px;color:var(--gray-400);">${p.description||''}</span></div></div></td>
       <td>${p.category}</td>
       <td>${p.size||'—'}</td>
       <td style="font-weight:700;">Rs. ${Number(p.price).toLocaleString()}</td>
@@ -467,6 +468,33 @@ function clearImgField(){
   const label=document.getElementById('img-drop-label');
   if(label)label.innerHTML='🖼 Drag &amp; drop photo here, or <span style="color:var(--gold);font-weight:700;">click to browse</span>';
 }
+function toggleNewBadge(){
+  const cb = document.getElementById('p-is-new');
+  cb.checked = !cb.checked;
+  const track = document.getElementById('p-is-new-track');
+  const thumb = document.getElementById('p-is-new-thumb');
+  if(cb.checked){
+    track.style.background = '#D4A017';
+    thumb.style.left = '21px';
+  } else {
+    track.style.background = '#d1d5db';
+    thumb.style.left = '3px';
+  }
+}
+function setNewToggle(val){
+  const cb = document.getElementById('p-is-new'); if(!cb) return;
+  cb.checked = !!val;
+  const track = document.getElementById('p-is-new-track');
+  const thumb = document.getElementById('p-is-new-thumb');
+  if(val){
+    track.style.background = '#D4A017';
+    thumb.style.left = '21px';
+  } else {
+    track.style.background = '#d1d5db';
+    thumb.style.left = '3px';
+  }
+}
+
 function _setModalImg(val){
   document.getElementById('p-img-final').value=val||'';
   if(val&&val.startsWith('http')){ document.getElementById('p-img').value=val; setImgPreview(val); }
@@ -484,6 +512,7 @@ function openAddProduct(){
   ['p-sku','p-name','p-size','p-desc','p-img'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   ['p-price','p-cost','p-stock','p-minstock'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   clearImgField();
+  setNewToggle(false);
   openModal('product-modal');
 }
 
@@ -501,6 +530,7 @@ function openEditProduct(sku){
   const msEl=document.getElementById('p-minstock'); if(msEl)msEl.value=p.minStock||5;
   document.getElementById('p-desc').value=p.description||'';
   _setModalImg(p.img||'');
+  setNewToggle(p.is_new||false);
   openModal('product-modal');
 }
 
@@ -517,7 +547,8 @@ async function saveProduct(pushNow=false){
     stock:    parseInt(document.getElementById('p-stock').value)||0,
     minStock: parseInt(document.getElementById('p-minstock')?.value)||5,
     description: document.getElementById('p-desc').value.trim(),
-    img:      document.getElementById('p-img-final').value.trim()
+    img:      document.getElementById('p-img-final').value.trim(),
+    is_new:   document.getElementById('p-is-new')?.checked || false
   };
   try {
     await dbSaveProduct(product);
@@ -710,7 +741,7 @@ function saveConfig(){
 async function renderWebsiteEditor() {
   const noAccess = document.getElementById('website-no-access');
   const editor   = document.getElementById('website-editor');
-  if (CU.role !== 'developer' && CU.role !== 'owner') {
+  if (!['developer','owner','admin'].includes(CU.role)) {
     if (noAccess) noAccess.style.display = 'flex';
     if (editor)   editor.style.display   = 'none';
     return;
