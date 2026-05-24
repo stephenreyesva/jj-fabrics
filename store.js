@@ -10,22 +10,22 @@ let activeFilter  = '';
 let _siteSettings = null;
 
 // Hardcoded defaults — shown immediately and used as fallback
-// if the Supabase settings table is empty or unreachable.
-// Update these to match your store, or publish via the POS Website Editor.
+// Keys match the Supabase settings table exactly (key column values).
 const DEFAULT_SETTINGS = {
-  name:         'JJ Fabrics',
+  store_name:   'JJ Fabrics',
   tagline:      'Gents & Ladies Suiting Place',
   about:        'JJ Fabrics is Attock City\'s premier House of Brands, we curate timeless pieces that celebrate your unique style — blending elegance, comfort, and affordability.',
   address:      'Sher Bahadur Plaza, K-Block, Near Dr. Ibadat Hospital, Main Bazar, Attock City',
+  whatsapp:     '923145777344',
   phone:        '923145777344',
   email:        'jjfabrics@gmail.com',
-  facebook:     'https://www.facebook.com/share/r/17wrND2MNc/',
-  instagram:    'https://www.instagram.com/muhammadhamzajaved11961?igsh=MXNrdWhwZ2FhMGw1Mw==',
+  facebook:     'https://www.facebook.com/jjfabrics',
+  instagram:    'https://www.instagram.com/jjfabrics',
   tiktok:       'https://www.tiktok.com/@hamzajaved04?_r=1&_t=ZS-96YCJS7LU6X',
   youtube:      'https://youtube.com/@jjfabric786?si=HoEYFCJVncSEmGBm',
-  map:          'https://maps.google.com/maps?q=Sher+Bahadur+Plaza+K+Block+Attock+City+Pakistan&output=embed',
-  map_url:      'https://maps.app.goo.gl/FpTpXPsSP61XQrkf9',
-  accent_color: '#EAB308',
+  map_embed:    'https://maps.google.com/maps?q=Sher+Bahadur+Plaza+K+Block+Attock+City+Pakistan&output=embed',
+  maps_url:     'https://maps.app.goo.gl/FpTpXPsSP61XQrkf9',
+  accent_color: '#D4A017',
   hero_color:   '#1C1C14',
 };
 
@@ -61,16 +61,17 @@ function applySiteData(s) {
   _siteSettings = s;
 
   // Colors — keys: accent_color, hero_color
-  const accent = s.accent_color || s.accentColor;
+  // Colors — Supabase keys: accent_color, hero_color
+  const accent = s.accent_color;
   if (accent) {
     document.documentElement.style.setProperty('--accent',      accent);
     document.documentElement.style.setProperty('--accent-dark', shadeColor(accent, -20));
     document.documentElement.style.setProperty('--accent-lt',   shadeColor(accent,  80));
   }
-  const heroColor = s.hero_color || s.heroColor;
-  if (heroColor) document.documentElement.style.setProperty('--hero-section-bg', heroColor);
+  if (s.hero_color) document.documentElement.style.setProperty('--hero-section-bg', s.hero_color);
 
-  const name = s.name || 'JJ Fabrics';
+  // Supabase key: store_name
+  const name = s.store_name || 'JJ Fabrics';
   setText('nav-name',       name);
   setText('footer-name',    name);
   setText('footer-tagline', s.tagline || '');
@@ -79,12 +80,12 @@ function applySiteData(s) {
 
   if (s.about) setText('about-text', s.about);
 
-  // WhatsApp — key: phone (stored as '923145777344' or '+923145777344')
-  const waNum  = (s.phone || '').replace(/\D/g, '');
+  // WhatsApp — Supabase key: whatsapp (fallback: phone)
+  const waNum  = (s.whatsapp || s.phone || '').replace(/\D/g, '');
   const waLink = waNum ? `https://wa.me/${waNum}?text=Hi! I'm interested in your products.` : '#';
   ['wa-btn','nav-whatsapp','mob-wa','link-wa','cta-wa','fs-wa'].forEach(id => setHref(id, waLink));
 
-  // Social — keys: facebook, instagram, tiktok, youtube
+  // Social — Supabase keys: facebook, instagram, tiktok, youtube
   if (s.facebook)  ['link-fb','cta-fb','fs-fb'].forEach(id => setHref(id, s.facebook));
   if (s.instagram) ['link-ig','fs-ig'].forEach(id => setHref(id, s.instagram));
   if (s.tiktok)    ['link-tt','fs-tt'].forEach(id => setHref(id, s.tiktok));
@@ -92,8 +93,8 @@ function applySiteData(s) {
 
   // Contact
   const phoneDisplay = waNum ? waNum.replace(/(\d{2})(\d{3})(\d{3})(\d{4})/, '+$1 $2 $3 $4') : '—';
-  // Map link — key: map_url (direct Google Maps URL for the "Open in Maps" link)
-  const mapUrl = s.map_url || s.mapUrl || 'https://maps.app.goo.gl/FpTpXPsSP61XQrkf9';
+  // Supabase key: maps_url (direct link for "Open in Google Maps")
+  const mapUrl = s.maps_url || 'https://maps.app.goo.gl/FpTpXPsSP61XQrkf9';
   setHtml('contact-address',
     (s.address || '—') +
     `<br><a href="${mapUrl}" target="_blank" style="color:var(--accent-dark);font-size:12px;font-weight:700;">📍 Open in Google Maps →</a>`
@@ -103,8 +104,8 @@ function applySiteData(s) {
   setText('contact-email-link', s.email || '—');
   setHref('contact-email-link', s.email ? `mailto:${s.email}` : '#');
 
-  // Embedded map — key: map (must be a Google Maps embed URL ending in &output=embed)
-  const mapEmbed = s.map || s.map_embed || s.mapEmbed;
+  // Supabase key: map_embed (Google Maps iframe embed URL ending in &output=embed)
+  const mapEmbed = s.map_embed;
   if (mapEmbed) setHtml('map-container', `<iframe src="${mapEmbed}" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy"></iframe>`);
 }
 
