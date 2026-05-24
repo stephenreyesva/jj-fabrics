@@ -16,7 +16,7 @@ const HEADERS = {
 // ── PRODUCTS ──────────────────────────────────────────────
 
 async function dbGetProducts() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/products?order=created_at.asc`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/products?order=created_at.desc`, {
     headers: HEADERS
   });
   if (!res.ok) throw new Error('Failed to fetch products');
