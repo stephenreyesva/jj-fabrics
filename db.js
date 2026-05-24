@@ -127,3 +127,14 @@ async function dbSaveSettings(entries) {
   }
   return res.json();
 }
+
+// ── GET ALL USERS (for Settings > User Accounts panel) ────
+
+async function dbGetAllUsers() {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/users?select=id,username,role,full_name,fullname,name&order=role.asc`,
+    { headers: HEADERS }
+  );
+  if (!res.ok) throw new Error('Failed to fetch users');
+  return res.json();
+}
