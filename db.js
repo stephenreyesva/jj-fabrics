@@ -24,18 +24,19 @@ async function dbGetProducts() {
 }
 
 async function dbSaveProduct(product) {
+  // upsert by SKU
   const res = await fetch(`${SUPABASE_URL}/rest/v1/products?on_conflict=sku`, {
     method: 'POST',
     headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
     body: JSON.stringify({
-      sku: product.sku,
-      name: product.name,
-      category: product.category,
-      price: Number(product.price),
-      stock: Number(product.stock),
-      img: product.img || '',
+      sku:         product.sku,
+      name:        product.name,
+      category:    product.category,
+      price:       Number(product.price),
+      stock:       Number(product.stock),
+      img:         product.img || '',
       description: product.description || '',
-      updated_at: new Date().toISOString()
+      updated_at:  new Date().toISOString()
     })
   });
   if (!res.ok) {
@@ -69,13 +70,13 @@ async function dbSaveSale(sale) {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify({
-      sale_ref: sale.ref,
-      items: sale.items,
-      subtotal: Number(sale.subtotal),
-      discount: Number(sale.discount || 0),
-      total: Number(sale.total),
+      sale_ref:       sale.ref,
+      items:          sale.items,
+      subtotal:       Number(sale.subtotal),
+      discount:       Number(sale.discount || 0),
+      total:          Number(sale.total),
       payment_method: sale.paymentMethod || 'cash',
-      cashier: sale.cashier || ''
+      cashier:        sale.cashier || ''
     })
   });
   if (!res.ok) throw new Error('Sale save failed');
@@ -93,19 +94,13 @@ async function dbGetSales() {
 // ── USERS ─────────────────────────────────────────────────
 
 async function dbLogin(username, password) {
-  // Fetch by username only first, then check password in JS
-  // This avoids URL encoding issues with special characters
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(username)}&select=id,username,password,role`,
+    `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(username)}&password=eq.${encodeURIComponent(password)}&select=id,username,role`,
     { headers: HEADERS }
   );
   if (!res.ok) throw new Error('Login failed');
   const rows = await res.json();
-  if (!rows.length) return null;
-  // Check password client-side
-  const user = rows[0];
-  if (user.password !== password) return null;
-  return { id: user.id, username: user.username, role: user.role };
+  return rows.length > 0 ? rows[0] : null;
 }
 
 // ── SETTINGS ──────────────────────────────────────────────
