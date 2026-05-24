@@ -37,6 +37,7 @@ async function dbSaveProduct(product) {
       img:         product.img || '',
       description: product.description || '',
       is_new:      product.is_new || false,
+      sale_price:  product.sale_price || null,
       updated_at:  new Date().toISOString()
     })
   });
