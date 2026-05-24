@@ -231,13 +231,17 @@ function renderProducts() {
     const isOut=p.stock===0, isLow=p.stock>0&&p.stock<=5, isNew=p.is_new===true||p.is_new==='true';
     const emoji=catEmoji[p.category]||'🛍️';
     const imgHtml=p.img?`<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;" onerror="this.parentNode.innerHTML='<span style=font-size:32px>${emoji}</span>'">`:`<span style="font-size:32px;">${emoji}</span>`;
-    const newBadge=isNew?`<span style="position:absolute;top:6px;left:6px;z-index:3;width:40px;height:40px;background:#e01f1f;color:#fff;font-size:9px;font-weight:900;text-transform:uppercase;display:flex;align-items:center;justify-content:center;clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);animation:posNewPop 0.4s ease both;letter-spacing:0.3px;">NEW</span>`:'';
+    const isSale=p.sale_price&&Number(p.sale_price)>0&&Number(p.sale_price)<Number(p.price);
+    const discPct=isSale?Math.round((1-Number(p.sale_price)/Number(p.price))*100):0;
+    const badgeStyle='position:absolute;z-index:3;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;text-transform:uppercase;box-shadow:0 2px 6px rgba(0,0,0,0.25);animation:posNewPop 0.35s cubic-bezier(.34,1.56,.64,1) both;';
+    const newBadge=isNew?`<span style="${badgeStyle}background:#16a34a;color:#fff;top:6px;left:6px;">NEW</span>`:'';
+    const saleBadge=isSale?`<span style="${badgeStyle}background:#e01f1f;color:#fff;top:${isNew?'52px':'6px'};left:6px;">-${discPct}%</span>`:'';
     return`<div class="product-card ${isOut?'out-of-stock':''}" data-sku="${p.sku}" style="position:relative;">
-      ${newBadge}
+      ${newBadge}${saleBadge}
       ${isLow?'<span class="stock-badge low">Low</span>':''}${isOut?'<span class="stock-badge out">Out</span>':''}
       <div class="pc-img">${imgHtml}</div>
       <div class="pc-name">${p.name}</div>
-      <div class="pc-price">Rs. ${Number(p.price).toLocaleString()}</div>
+      ${isSale?`<div class="pc-price" style="color:#e01f1f;">Rs. ${Number(p.sale_price).toLocaleString()} <span style="font-size:10px;text-decoration:line-through;color:#9ca3af;font-weight:400;">Rs. ${Number(p.price).toLocaleString()}</span></div>`:`<div class="pc-price">Rs. ${Number(p.price).toLocaleString()}</div>`}
       <div class="pc-stock">${p.stock} in stock</div>
     </div>`;
   }).join('');
@@ -539,6 +543,7 @@ function openAddProduct(){
   ['p-sku','p-name','p-size','p-desc','p-img'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   ['p-price','p-cost','p-stock','p-minstock'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   clearImgField();
+  const spEl=document.getElementById('p-sale-price'); if(spEl) spEl.value='';
   setNewToggle(false);
   openModal('product-modal');
 }
@@ -556,6 +561,7 @@ function openEditProduct(sku){
   document.getElementById('p-stock').value=p.stock;
   const msEl=document.getElementById('p-minstock'); if(msEl)msEl.value=p.minStock||5;
   document.getElementById('p-desc').value=p.description||'';
+  const salePriceEl=document.getElementById('p-sale-price'); if(salePriceEl) salePriceEl.value=p.sale_price||'';
   _setModalImg(p.img||'');
   setNewToggle(p.is_new||false);
   openModal('product-modal');
@@ -575,7 +581,8 @@ async function saveProduct(pushNow=false){
     minStock: parseInt(document.getElementById('p-minstock')?.value)||5,
     description: document.getElementById('p-desc').value.trim(),
     img:      document.getElementById('p-img-final').value.trim(),
-    is_new:   document.getElementById('p-is-new')?.checked || false
+    is_new:   document.getElementById('p-is-new')?.checked || false,
+    sale_price: parseFloat(document.getElementById('p-sale-price')?.value)||null
   };
   try {
     await dbSaveProduct(product);
