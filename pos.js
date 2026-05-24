@@ -878,3 +878,62 @@ showPage=function(p){
 //  INIT
 // ─────────────────────────────────────────
 seed();
+
+// ─────────────────────────────────────────
+//  PATCHED renderSettings — shows User Accounts for owner/admin/developer
+// ─────────────────────────────────────────
+(function(){
+  // Replace the original renderSettings with a new async version
+  const origKey = 'settings';
+  const PAGES = window._pages || {};
+
+  window.renderSettings = async function(){
+    if(CU.role==='cashier'){
+      document.getElementById('settings-page').innerHTML='<div class="no-access"><span style="font-size:48px;">🔒</span><p>Access Denied</p></div>';
+      return;
+    }
+
+    // Restore settings page if it was wiped
+    // (safe — cashier check above already returned)
+    const cfg = getCfg();
+    const cfgName    = document.getElementById('cfg-name');
+    const cfgAddress = document.getElementById('cfg-address');
+    const cfgPhone   = document.getElementById('cfg-phone');
+    const cfgVat     = document.getElementById('cfg-vat');
+    if(cfgName)    cfgName.value    = cfg.name    || '';
+    if(cfgAddress) cfgAddress.value = cfg.address || '';
+    if(cfgPhone)   cfgPhone.value   = cfg.phone   || '';
+    if(cfgVat)     cfgVat.value     = cfg.vat     || 0;
+
+    // ── User Accounts panel ──
+    const usersCard  = document.getElementById('users-card');
+    const usersTbody = document.getElementById('users-tbody');
+    const canSeeUsers = ['owner','admin','developer'].includes(CU.role);
+
+    if(usersCard)  usersCard.style.display = canSeeUsers ? '' : 'none';
+
+    if(canSeeUsers && usersTbody){
+      usersTbody.innerHTML = '<tr><td colspan="3" style="color:var(--gray-400);font-size:12px;padding:8px;">Loading…</td></tr>';
+      try {
+        const users = await dbGetAllUsers();
+        if(!users || !users.length){
+          usersTbody.innerHTML = '<tr><td colspan="3" style="color:var(--gray-400);font-size:12px;padding:8px;">No users found.</td></tr>';
+        } else {
+          const roleColors = {owner:'#7c3aed',admin:'#D4A017',developer:'#0ea5e9',cashier:'#16a34a'};
+          usersTbody.innerHTML = users.map(u => {
+            const color  = roleColors[u.role] || '#888';
+            const isSelf = u.username === CU.username;
+            const name   = u.full_name || u.fullname || u.name || '—';
+            return `<tr>
+              <td style="font-weight:600;padding:6px 8px;">${u.username}${isSelf?' <span style="font-size:10px;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:10px;">you</span>':''}</td>
+              <td style="padding:6px 8px;">${name}</td>
+              <td style="padding:6px 8px;"><span style="font-size:11px;font-weight:700;color:${color};text-transform:uppercase;">${u.role}</span></td>
+            </tr>`;
+          }).join('');
+        }
+      } catch(e) {
+        usersTbody.innerHTML = '<tr><td colspan="3" style="color:#ef4444;font-size:12px;padding:8px;">Failed to load users: ' + e.message + '</td></tr>';
+      }
+    }
+  };
+})();
