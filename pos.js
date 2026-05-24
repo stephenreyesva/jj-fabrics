@@ -393,7 +393,8 @@ function showInvoice(sale){
 async function loadAndRenderInventory() {
   showToast('Loading from Supabase…','');
   try {
-    allProducts = await dbGetProducts();
+    const rawProds = await dbGetProducts();
+    allProducts = rawProds.sort((a,b) => (b.is_new?1:0)-(a.is_new?1:0) || new Date(b.created_at)-new Date(a.created_at));
     renderInventory();
   } catch(e) {
     showToast('Failed to load products','error');
@@ -569,7 +570,8 @@ async function saveProduct(pushNow=false){
   };
   try {
     await dbSaveProduct(product);
-    allProducts = await dbGetProducts();
+    const raw = await dbGetProducts();
+    allProducts = raw.sort((a,b) => (b.is_new?1:0)-(a.is_new?1:0) || new Date(b.created_at)-new Date(a.created_at));
     closeModal('product-modal');
     renderInventory(); renderProducts();
     showToast('Product saved to Supabase ✅','success');
