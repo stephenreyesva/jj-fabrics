@@ -114,9 +114,14 @@ function loadProducts() {
   const s     = _siteSettings || {};
   const waNum = (s.phone || '').replace(/\D/g, '');
 
+  // Sort: newest first
+  allProducts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
   // Category counts
+  const newCount = allProducts.filter(p => p.created_at && (new Date() - new Date(p.created_at)) < 30 * 24 * 60 * 60 * 1000).length;
   setText('stat-products', allProducts.length + '+');
   setText('cnt-all',   allProducts.length + ' items');
+  setText('cnt-new',   newCount + ' items');
   setText('cnt-women', allProducts.filter(p => p.category === 'Ladies Suiting').length + ' items');
   setText('cnt-men',   allProducts.filter(p => p.category === 'Gents Suiting').length  + ' items');
   setText('cnt-acc',   allProducts.filter(p => p.category === 'Accessories').length    + ' items');
@@ -142,7 +147,7 @@ function loadProducts() {
 function filterCat(cat) {
   activeFilter = cat;
   document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('active'));
-  const idx = ['', 'Ladies Suiting', 'Gents Suiting', 'Accessories'].indexOf(cat);
+  const idx = ['', '__new__', 'Ladies Suiting', 'Gents Suiting', 'Accessories'].indexOf(cat);
   if (idx >= 0) document.querySelectorAll('.cat-card')[idx]?.classList.add('active');
   renderProducts();
 }
@@ -156,9 +161,11 @@ function filterBrandNav(cat, elem) {
 }
 
 function renderProducts() {
-  const filtered = activeFilter
-    ? allProducts.filter(p => p.category === activeFilter)
-    : allProducts;
+  const filtered = activeFilter === '__new__'
+    ? allProducts.filter(p => p.created_at && (new Date() - new Date(p.created_at)) < 30 * 24 * 60 * 60 * 1000)
+    : activeFilter
+      ? allProducts.filter(p => p.category === activeFilter)
+      : allProducts;
 
   const liveTag = allProducts.length > 0
     ? ' <span style="font-size:10px;background:#d4f7de;color:#166534;padding:2px 7px;border-radius:20px;font-weight:600;vertical-align:middle;">● LIVE</span>'
@@ -183,7 +190,7 @@ function renderProducts() {
     const emoji    = catEmoji[p.category] || '🛍️';
     const waMsg    = encodeURIComponent(`Hi! I'm interested in: ${p.name} (Rs. ${Number(p.price).toLocaleString()}). Is it available?`);
     const waHref   = waNum ? `https://wa.me/${waNum}?text=${waMsg}` : '#';
-    const isNew    = i < 3;
+    const isNew    = p.created_at && (new Date() - new Date(p.created_at)) < 30 * 24 * 60 * 60 * 1000;
     const fallback = `<span style="font-size:64px">${emoji}</span>`;
     const imgHtml  = (p.img && p.img.trim())
       ? `<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;"
