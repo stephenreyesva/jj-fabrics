@@ -19,7 +19,7 @@
   html { scroll-behavior: smooth; }
   body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--white); color: var(--gray-900); overflow-x: hidden; }
 
-  /* ── LOADER ──- */
+  /* ── LOADER ── */
   #page-loader {
     position: fixed; inset: 0; background: #FFFDF0; z-index: 9999;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -257,7 +257,7 @@
     transition: all 0.25s; border: 2px solid transparent;
   }
   .social-btn .sb-icon { font-size: 20px; }
-  .social-btn.tiktok   { background: #010101; color: white; border-color: rgba(255,255,255,0.15); }
+  .social-btn.tiktok   { background: #010101; color: white; }
   .social-btn.tiktok:hover   { background: #69C9D0; color: #010101; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(105,201,208,0.4); }
   .social-btn.facebook  { background: #1877F2; color: white; }
   .social-btn.facebook:hover  { background: #0d65d9; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(24,119,242,0.4); }
