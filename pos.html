@@ -204,9 +204,9 @@
       <div class="page-header">
         <div class="page-header-left"><h2>📦 Inventory</h2><p>Manage stock and product catalogue</p></div>
         <div style="display:flex;gap:8px;align-items:center;">
-          <button class="btn btn-outline btn-sm" onclick="syncFromSheets()" style="font-size:12px;">⟳ Sync from Sheets</button>
+          <button class="btn btn-outline btn-sm" onclick="syncFromSheets()" style="font-size:12px;">⟳ Refresh from Supabase</button>
           <button class="btn-save-sheets" id="inv-save-btn" onclick="saveInventoryToSheets()">
-            <span id="inv-save-icon">☁</span> Save to Sheets
+            <span id="inv-save-icon">☁</span> Save to Supabase
           </button>
         </div>
       </div>
@@ -255,7 +255,7 @@
         <div class="page-header-left"><h2>🧾 Sales History</h2><p>All transaction records</p></div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <button class="btn-push-sales" onclick="pushAllSalesToSheets()">
-            ☁ Push Sales to Sheets
+            ⟳ Refresh Sales
           </button>
           <button class="btn btn-danger btn-sm" id="clear-all-sales-btn" style="display:none;" onclick="clearAllSales()">🗑 Clear All Records</button>
         </div>
