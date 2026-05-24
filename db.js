@@ -36,6 +36,7 @@ async function dbSaveProduct(product) {
       stock:       Number(product.stock),
       img:         product.img || '',
       description: product.description || '',
+      is_new:      product.is_new || false,
       updated_at:  new Date().toISOString()
     })
   });
