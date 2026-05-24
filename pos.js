@@ -40,6 +40,21 @@ function getGreeting(name) {
   return { time: 'Good Night', name: fullName };
 }
 
+
+// Priority sort: sale+new first, then new only, then sale only, then rest (newest first)
+function sortProducts(prods) {
+  return [...prods].sort((a, b) => {
+    const aNew  = a.is_new === true || a.is_new === 'true';
+    const bNew  = b.is_new === true || b.is_new === 'true';
+    const aSale = a.sale_price && Number(a.sale_price) > 0 && Number(a.sale_price) < Number(a.price);
+    const bSale = b.sale_price && Number(b.sale_price) > 0 && Number(b.sale_price) < Number(b.price);
+    const aPri  = (aNew ? 2 : 0) + (aSale ? 1 : 0);
+    const bPri  = (bNew ? 2 : 0) + (bSale ? 1 : 0);
+    if (bPri !== aPri) return bPri - aPri;
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
+}
+
 async function doLogin() {
   const username = document.getElementById('login-user').value.trim();
   const password = document.getElementById('login-pass').value;
@@ -406,8 +421,7 @@ function showInvoice(sale){
 async function loadAndRenderInventory() {
   showToast('Loading from Supabase…','');
   try {
-    const rawProds = await dbGetProducts();
-    allProducts = rawProds.sort((a,b) => (b.is_new?1:0)-(a.is_new?1:0) || new Date(b.created_at)-new Date(a.created_at));
+    allProducts = sortProducts(await dbGetProducts());
     renderInventory();
   } catch(e) {
     showToast('Failed to load products','error');
@@ -586,8 +600,7 @@ async function saveProduct(pushNow=false){
   };
   try {
     await dbSaveProduct(product);
-    const raw = await dbGetProducts();
-    allProducts = raw.sort((a,b) => (b.is_new?1:0)-(a.is_new?1:0) || new Date(b.created_at)-new Date(a.created_at));
+    allProducts = sortProducts(await dbGetProducts());
     closeModal('product-modal');
     renderInventory(); renderProducts();
     showToast('Product saved to Supabase ✅','success');
