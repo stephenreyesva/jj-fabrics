@@ -1,7 +1,7 @@
 // ============================================================
 //  JJ Fabrics — Supabase Database Layer
 //  Shared by pos.html and store.html
-// ============================================================
+// ============================================================//
 
 const SUPABASE_URL = 'https://qkinurfvnhpywfvzwgpi.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFraW51cmZ2bmhweXdmdnp3Z3BpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1OTMyNjQsImV4cCI6MjA5NTE2OTI2NH0.8ZVj7grTG_dmyNs-m89uumr9WhGgpvSzsenLpXe0Kec';
