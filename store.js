@@ -204,9 +204,7 @@ function renderProducts() {
       ? allProducts.filter(p => p.category === activeFilter)
       : allProducts;
 
-  const liveTag = allProducts.length > 0
-    ? ' <span style="font-size:10px;background:#d4f7de;color:#166534;padding:2px 7px;border-radius:20px;font-weight:600;vertical-align:middle;">● LIVE</span>'
-    : '';
+  const liveTag = '';
   const countEl = el('products-count');
   if (countEl) countEl.innerHTML = filtered.length + ' product' + (filtered.length !== 1 ? 's' : '') + ' shown' + liveTag;
 
@@ -237,10 +235,14 @@ function renderProducts() {
       : fallback;
     const stock = Number(p.stock);
     const lowStock = stock > 0 && stock <= 5;
+    // Build gallery images array (img + img2..img5 if set)
+    const galleryImgs = [p.img,p.img2,p.img3,p.img4,p.img5].filter(x=>x&&x.trim()).map(x=>`"${x}"`).join(',');
+    const clickAttr = galleryImgs ? `onclick="openGallery([${galleryImgs}],'${p.name.replace(/'/g,"\'")}','${waHref}')"` : '';
     return `<div class="product-card" style="animation-delay:${i*0.06}s">
       ${isNew ? '<div class="pc-badge-new"><span>NEW</span></div>' : ''}
-      ${isSale ? `<div class="pc-badge-sale" style="${isNew?'top:64px;':''}">-${discPct}%</div>` : ''}
-      <div class="pc-image">${imgHtml}</div>
+      <div class="pc-image" ${clickAttr} style="${clickAttr?'cursor:pointer;':''}">${imgHtml}
+        ${clickAttr ? '<div class="pc-gallery-hint">🔍 View Photos</div>' : ''}
+      </div>
       <div class="pc-body">
         <div class="pc-category">${p.category || ''}</div>
         <div class="pc-name">${p.name}</div>
@@ -254,11 +256,44 @@ function renderProducts() {
             }
             ${lowStock ? `<div style="font-size:10px;color:#b45309;font-weight:600;">Only ${stock} left</div>` : ''}
           </div>
-          <a class="pc-action" href="${waHref}" target="_blank">Order →</a>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            ${isSale ? `<div class="pc-sale-tag"><span class="pst-orig">Rs.${Number(p.price).toLocaleString()}</span><span class="pst-price">Rs.${Number(p.sale_price).toLocaleString()}</span><span class="pst-off">-${discPct}% OFF</span></div>` : ''}
+            <a class="pc-action" href="${waHref}" target="_blank">Order →</a>
+          </div>
         </div>
       </div>
     </div>`;
   }).join('');
+}
+
+
+// ── PRODUCT GALLERY MODAL ─────────────────────────────────
+function openGallery(imgs, name, waHref) {
+  let cur = 0;
+  const overlay = document.createElement('div');
+  overlay.id = 'gallery-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;';
+  const render = () => {
+    overlay.innerHTML = `
+      <button onclick="document.getElementById('gallery-overlay').remove()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;z-index:2;">✕</button>
+      <div style="font-size:13px;color:#ccc;margin-bottom:10px;font-weight:600;">${name}</div>
+      <div style="position:relative;width:min(90vw,480px);height:min(70vw,480px);border-radius:12px;overflow:hidden;background:#111;">
+        <img src="${imgs[cur]}" style="width:100%;height:100%;object-fit:contain;" />
+        ${imgs.length>1&&cur>0?`<button onclick="event.stopPropagation();goPrev()" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.6);border:none;color:#fff;font-size:22px;width:36px;height:36px;border-radius:50%;cursor:pointer;">‹</button>`:''}
+        ${imgs.length>1&&cur<imgs.length-1?`<button onclick="event.stopPropagation();goNext()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.6);border:none;color:#fff;font-size:22px;width:36px;height:36px;border-radius:50%;cursor:pointer;">›</button>`:''}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:center;">
+        ${imgs.map((img,idx)=>`<img src="${img}" onclick="galJump(${idx})" style="width:52px;height:52px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid ${idx===cur?'#EAB308':'transparent'};opacity:${idx===cur?'1':'0.6'};">`).join('')}
+      </div>
+      <a href="${waHref}" target="_blank" style="margin-top:16px;background:#EAB308;color:#000;font-weight:700;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:14px;">💬 Order on WhatsApp</a>
+    `;
+  };
+  window.goPrev = () => { if(cur>0){cur--;render();} };
+  window.goNext = () => { if(cur<imgs.length-1){cur++;render();} };
+  window.galJump = (i) => { cur=i; render(); };
+  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+  render();
 }
 
 // ── NAV SCROLL ────────────────────────────────────────────
