@@ -67,10 +67,9 @@ function hideLoader() {
   loader.style.pointerEvents = 'none';
   setTimeout(() => { loader.style.display = 'none'; }, 450);
 }
-// Aggressive safety nets - hide at 1s, 2s, 3s
-setTimeout(() => hideLoader(), 1000);
+setTimeout(() => hideLoader(), 800);
 setTimeout(() => hideLoader(), 2000);
-setTimeout(() => hideLoader(), 3000);
+setTimeout(() => hideLoader(), 4000);
 
 // ── APPLY SITE SETTINGS ───────────────────────────────────
 // Supabase settings table stores rows as {key, value} pairs.
