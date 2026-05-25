@@ -248,16 +248,21 @@ function renderProducts() {
         <div class="pc-name">${p.name}</div>
         ${p.sku ? `<div class="pc-size" style="font-size:11px;color:var(--gray-400);">SKU: ${p.sku}</div>` : ''}
         ${p.description ? `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px;line-height:1.4;">${p.description}</div>` : ''}
-        <div class="pc-footer">
+        <div class="pc-footer" style="align-items:flex-end;">
           <div>
             ${isSale
-              ? `<div class="pc-price" style="color:#e01f1f;">Rs. ${Number(p.sale_price).toLocaleString()} <span style="font-size:11px;color:var(--gray-400);text-decoration:line-through;font-weight:400;">Rs. ${Number(p.price).toLocaleString()}</span></div>`
+              ? `<div style="font-size:10px;color:#e8000d;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;">● ON SALE</div>`
               : `<div class="pc-price">Rs. ${Number(p.price).toLocaleString()}</div>`
             }
             ${lowStock ? `<div style="font-size:10px;color:#b45309;font-weight:600;">Only ${stock} left</div>` : ''}
           </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-            ${isSale ? `<div class="pc-sale-tag"><span class="pst-orig">Rs.${Number(p.price).toLocaleString()}</span><span class="pst-price">Rs.${Number(p.sale_price).toLocaleString()}</span><span class="pst-off">-${discPct}% OFF</span></div>` : ''}
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+            ${isSale ? `<div class="pc-sale-tag">
+              <div class="pst-label">SALE</div>
+              <div class="pst-orig">Rs.${Number(p.price).toLocaleString()}</div>
+              <div class="pst-price">Rs.${Number(p.sale_price).toLocaleString()}</div>
+              <div class="pst-off">-${discPct}% OFF</div>
+            </div>` : ''}
             <a class="pc-action" href="${waHref}" target="_blank">Order →</a>
           </div>
         </div>
