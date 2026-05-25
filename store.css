@@ -263,48 +263,49 @@
   /* ── SALE price tag — voucher style with diagonal design ── */
   .pc-sale-tag {
     display: flex; flex-direction: row; align-items: stretch;
-    border-radius: 6px; overflow: hidden; min-width: 148px; height: 52px;
+    min-width: 148px; height: 52px;
     box-shadow: 0 3px 12px rgba(0,0,0,0.35);
     animation: badgePop 0.35s cubic-bezier(.34,1.56,.64,1) both;
-    position: relative;
+    position: relative; border-radius: 6px;
+    clip-path: inset(0 round 6px);
   }
   /* Black left panel — old price written vertically */
   .pc-sale-tag .pst-black {
-    background: #1a1a1a; width: 26px; flex-shrink: 0;
+    background: #1a1a1a; width: 28px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    position: relative; z-index: 2;
+    position: relative; z-index: 3;
   }
   .pc-sale-tag .pst-orig {
-    color: #888; font-size: 7.5px; font-weight: 700; letter-spacing: 1.5px;
+    color: #777; font-size: 7px; font-weight: 700; letter-spacing: 1.2px;
     text-transform: uppercase; text-decoration: line-through;
     writing-mode: vertical-rl; text-orientation: mixed;
-    transform: rotate(180deg); white-space: nowrap;
-    line-height: 1;
+    transform: rotate(180deg); white-space: nowrap; line-height: 1;
   }
-  /* Red middle panel — new price, diagonal right edge */
+  /* Red middle panel — new price, diagonal right edge via skew */
   .pc-sale-tag .pst-red {
-    background: #e8000d; flex: 1;
+    background: #e8000d; flex: 1; position: relative; z-index: 2;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 100%, 0 100%);
-    padding: 4px 18px 4px 8px; position: relative; z-index: 1;
+    padding: 4px 22px 4px 8px;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
   }
   .pc-sale-tag .pst-label {
-    color: rgba(255,255,255,0.75); font-size: 7px; font-weight: 800;
+    color: rgba(255,255,255,0.8); font-size: 7px; font-weight: 800;
     letter-spacing: 1.5px; text-transform: uppercase; line-height: 1; margin-bottom: 2px;
   }
   .pc-sale-tag .pst-price {
     color: #fff; font-size: 13px; font-weight: 900; line-height: 1.2; letter-spacing: 0.3px;
     white-space: nowrap;
   }
-  /* Yellow right panel — discount %, diagonal left edge */
+  /* Yellow right panel — discount %, diagonal left edge via skew */
   .pc-sale-tag .pst-yellow {
-    background: #f5c800; width: 38px; flex-shrink: 0;
+    background: #f5c800; width: 44px; flex-shrink: 0; position: relative; z-index: 1;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%);
-    padding-left: 6px;
+    clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%);
+    padding-left: 8px;
+    margin-left: -14px;
   }
   .pc-sale-tag .pst-off-pct {
-    color: #1a1a1a; font-size: 12px; font-weight: 900; line-height: 1; letter-spacing: -0.5px;
+    color: #1a1a1a; font-size: 13px; font-weight: 900; line-height: 1; letter-spacing: -0.5px;
   }
   .pc-sale-tag .pst-off-label {
     color: #1a1a1a; font-size: 6.5px; font-weight: 800; letter-spacing: 1px;
