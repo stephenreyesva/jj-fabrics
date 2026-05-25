@@ -216,25 +216,42 @@
   /* ── NEW ribbon — corner flush ── */
   .pc-badge-new {
     position: absolute; top: 0; left: 0; z-index: 2;
-    width: 90px; height: 90px;
+    width: 110px; height: 110px;
     overflow: hidden; pointer-events: none;
     border-radius: 12px 0 0 0;
   }
   .pc-badge-new span {
-    position: absolute; top: 22px; left: -30px;
-    width: 115px; height: 26px;
-    background: linear-gradient(to bottom, #e8000d, #a80009);
+    position: absolute; top: 28px; left: -32px;
+    width: 140px; height: 32px;
+    background: linear-gradient(to bottom, #e8000d 0%, #c20009 100%);
     transform: rotate(-45deg);
-    display: block; text-align: center; line-height: 26px;
-    font-size: 9px; font-weight: 900; letter-spacing: 1px;
+    display: block; text-align: center; line-height: 32px;
+    font-size: 11px; font-weight: 900; letter-spacing: 2px;
     color: #fff; text-transform: uppercase;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.6);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.2);
   }
-  /* ── SALE price tag — Best Deal style, bottom of card ── */
+  /* ── ON SALE corner ribbon — top-right ── */
+  .pc-badge-sale {
+    position: absolute; top: 0; right: 0; z-index: 2;
+    width: 110px; height: 110px;
+    overflow: hidden; pointer-events: none;
+    border-radius: 0 12px 0 0;
+  }
+  .pc-badge-sale span {
+    position: absolute; top: 28px; right: -32px;
+    width: 140px; height: 32px;
+    background: linear-gradient(to bottom, #f5c800 0%, #d4a800 100%);
+    transform: rotate(45deg);
+    display: block; text-align: center; line-height: 32px;
+    font-size: 10px; font-weight: 900; letter-spacing: 1.5px;
+    color: #111; text-transform: uppercase;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+  /* ── SALE price tag — left side of footer ── */
   .pc-sale-tag {
     display: flex; flex-direction: column; align-items: stretch;
     background: #1a1a1a; border-radius: 5px;
-    overflow: hidden; min-width: 100px;
+    overflow: hidden; min-width: 105px;
     box-shadow: 0 3px 10px rgba(0,0,0,0.3);
     animation: badgePop 0.35s cubic-bezier(.34,1.56,.64,1) both;
   }
@@ -259,11 +276,11 @@
   .pc-image { position: relative; overflow: hidden; }
   .pc-gallery-hint {
     position: absolute; bottom: 0; left: 0; right: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-    color: #fff; font-size: 11px; font-weight: 600;
-    padding: 18px 10px 8px; text-align: center;
+    background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
+    color: #fff; font-size: 12px; font-weight: 700;
+    padding: 24px 10px 10px; text-align: center;
     opacity: 0; transition: opacity 0.2s;
-    pointer-events: none;
+    cursor: pointer;
   }
   .pc-image:hover .pc-gallery-hint { opacity: 1; }
   @keyframes badgePop { 0%{transform:scale(0);opacity:0} 80%{transform:scale(1.1)} 100%{transform:scale(1)} }
@@ -306,11 +323,13 @@
   .social-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
   .social-btn {
     display: flex; align-items: center; justify-content: center; gap: 10px;
-    padding: 14px 24px; min-width: 150px;
+    padding: 0; height: 52px; min-width: 160px; width: 160px;
     border-radius: 14px; font-size: 14px; font-weight: 700; text-decoration: none;
     transition: all 0.25s; border: 2px solid transparent;
+    box-sizing: border-box;
   }
-  .social-btn .sb-icon { font-size: 20px; }
+  .social-btn .sb-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; }
+  .social-btn .sb-icon svg { width: 20px; height: 20px; }
   .social-btn.tiktok   { background: #010101; color: white; border-color: rgba(255,255,255,0.15); }
   .social-btn.tiktok:hover   { background: #69C9D0; color: #010101; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(105,201,208,0.4); }
   .social-btn.facebook  { background: #1877F2; color: white; }
