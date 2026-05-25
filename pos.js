@@ -283,8 +283,11 @@ function addToCart(sku) {
   const p=allProducts.find(x=>x.sku===sku);
   if(!p||p.stock===0)return;
   const ex=cart.find(c=>c.sku===sku);
+  const isSale=p.sale_price&&Number(p.sale_price)>0&&Number(p.sale_price)<Number(p.price);
+  const finalPrice=isSale?Number(p.sale_price):Number(p.price);
+  const origPrice=Number(p.price);
   if(ex){if(ex.qty>=p.stock){showToast('Max stock reached!','error');return;}ex.qty++;}
-  else cart.push({sku:p.sku,name:p.name,price:p.price,qty:1,maxStock:p.stock});
+  else cart.push({sku:p.sku,name:p.name,price:finalPrice,origPrice:origPrice,isSale:isSale,qty:1,maxStock:p.stock});
   renderCart(); showToast(p.name+' added ✓','success');
 }
 
@@ -298,20 +301,25 @@ function renderCart() {
     updateCartTotals();return;
   }
   document.getElementById('cash-calc').style.display='block';
-  box.innerHTML=cart.map((it,i)=>`
-    <div class="cart-item">
+  box.innerHTML=cart.map((it,i)=>{
+    const saleTag=it.isSale?`<span style="background:#e01f1f;color:#fff;font-size:9px;font-weight:800;padding:1px 6px;border-radius:3px;margin-left:5px;letter-spacing:0.5px;vertical-align:middle;">SALE</span>`:'';
+    const priceHtml=it.isSale
+      ?`<span style="text-decoration:line-through;color:var(--gray-400);font-size:11px;margin-right:4px;">Rs. ${Number(it.origPrice).toLocaleString()}</span><span style="color:#e01f1f;font-weight:700;">Rs. ${Number(it.price).toLocaleString()}</span> each`
+      :`Rs. ${Number(it.price).toLocaleString()} each`;
+    return`<div class="cart-item">
       <div class="cart-item-info">
-        <div class="ci-name">${it.name}</div>
-        <div class="ci-price">Rs. ${Number(it.price).toLocaleString()} each</div>
+        <div class="ci-name">${it.name}${saleTag}</div>
+        <div class="ci-price">${priceHtml}</div>
       </div>
       <div class="qty-control">
         <button class="qty-btn" onclick="chQty(${i},-1)">−</button>
         <span class="qty-num">${it.qty}</span>
         <button class="qty-btn" onclick="chQty(${i},1)">+</button>
       </div>
-      <div class="ci-total">Rs. ${(it.qty*it.price).toLocaleString()}</div>
+      <div class="ci-total" style="${it.isSale?'color:#e01f1f;font-weight:700;':''}">Rs. ${(it.qty*it.price).toLocaleString()}</div>
       <button class="remove-btn" onclick="rmCart(${i})">✕</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   updateCartTotals();
 }
 
@@ -364,7 +372,7 @@ async function checkout(method) {
     // Save to Supabase
     await dbSaveSale({
       ref: txnNum,
-      items: cart.map(i=>({sku:i.sku,name:i.name,qty:i.qty,price:i.price})),
+      items: cart.map(i=>({sku:i.sku,name:i.name,qty:i.qty,price:i.price,origPrice:i.origPrice||i.price,isSale:i.isSale||false})),
       subtotal:sub, discount:disc, total, paymentMethod:method, cashier:CU.username
     });
     // Update stock in Supabase
@@ -403,7 +411,24 @@ function showInvoice(sale){
   document.getElementById('inv-vat-label').textContent=`VAT (${cfg.vat||0}%)`;
   document.getElementById('inv-vat').textContent='Rs. '+(sale.vat||0).toFixed(2);
   document.getElementById('inv-grand').textContent='Rs. '+sale.total.toFixed(2);
-  document.getElementById('inv-items').innerHTML=sale.items.map(i=>`<tr><td>${i.name}</td><td>${i.qty}</td><td>Rs. ${Number(i.price).toFixed(2)}</td><td>Rs. ${(i.qty*i.price).toFixed(2)}</td></tr>`).join('');
+  document.getElementById('inv-items').innerHTML=sale.items.map(i=>{
+    const isSale=i.isSale&&i.origPrice&&Number(i.origPrice)!==Number(i.price);
+    const origPrice=Number(i.origPrice||i.price);
+    const finalPrice=Number(i.price);
+    const itemDisc=isSale?((origPrice-finalPrice)*i.qty):0;
+    const priceCell=isSale
+      ?`<td><span style="text-decoration:line-through;color:#aaa;font-size:10px;">Rs.${origPrice.toFixed(2)}</span><br><span style="color:#e01f1f;font-weight:700;">Rs.${finalPrice.toFixed(2)}</span></td>`
+      :`<td>Rs. ${finalPrice.toFixed(2)}</td>`;
+    const discCell=isSale?`<td style="color:#e01f1f;font-size:10px;">-Rs.${itemDisc.toFixed(2)}</td>`:`<td>—</td>`;
+    const saleTag=isSale?`<span style="background:#e01f1f;color:#fff;font-size:8px;font-weight:800;padding:1px 4px;border-radius:2px;margin-left:4px;">SALE</span>`:'';
+    return`<tr>
+      <td>${i.name}${saleTag}</td>
+      <td>${i.qty}</td>
+      ${priceCell}
+      ${discCell}
+      <td>Rs. ${(i.qty*finalPrice).toFixed(2)}</td>
+    </tr>`;
+  }).join('');
   const tendered=parseFloat(document.getElementById('cash-tendered')?.value)||0;
   if(sale.payment==='cash'&&tendered>0){
     document.getElementById('inv-tendered-row').style.display='flex';
