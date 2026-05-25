@@ -215,17 +215,30 @@
   .product-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.1); border-color: var(--accent); }
   .pc-badge-new {
     position: absolute; top: 0; left: 0; z-index: 2;
-    width: 0; height: 0;
-    pointer-events: none;
+    width: 80px; height: 80px;
+    overflow: hidden; pointer-events: none;
   }
   .pc-badge-new::before {
+    content: 'NEW';
+    position: absolute;
+    top: 19px; left: -22px;
+    width: 90px; height: 22px;
+    background: linear-gradient(180deg, #e8000d 0%, #b00009 100%);
+    transform: rotate(-45deg);
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; line-height: 22px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 9px; font-weight: 900; letter-spacing: 1.5px;
+    color: #fff; text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .pc-badge-new::after {
     content: '';
     position: absolute;
-    top: 28px; left: -40px;
-    width: 160px; height: 26px;
-    background: linear-gradient(180deg, #e00000 0%, #aa0000 100%);
-    transform: rotate(-45deg);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+    top: 0; left: 0;
+    border-style: solid;
+    border-width: 6px 6px 0 0;
+    border-color: #7a0006 transparent transparent transparent;
   }
   .pc-badge-sale {
     position: absolute; top: 10px; left: 10px; z-index: 2;
