@@ -24,26 +24,38 @@ async function dbGetProducts() {
 }
 
 async function dbSaveProduct(product) {
-  // upsert by SKU
+  // Build payload — only include img2-5 if the columns exist in Supabase.
+  // If you get PGRST204 errors, run this SQL in Supabase SQL editor:
+  //   ALTER TABLE products ADD COLUMN IF NOT EXISTS img2 text DEFAULT '';
+  //   ALTER TABLE products ADD COLUMN IF NOT EXISTS img3 text DEFAULT '';
+  //   ALTER TABLE products ADD COLUMN IF NOT EXISTS img4 text DEFAULT '';
+  //   ALTER TABLE products ADD COLUMN IF NOT EXISTS img5 text DEFAULT '';
+  //   ALTER TABLE products ADD COLUMN IF NOT EXISTS cost numeric DEFAULT 0;
+  //   ALTER TABLE products ADD COLUMN IF NOT EXISTS min_stock integer DEFAULT 5;
+  const payload = {
+    sku:         product.sku,
+    name:        product.name,
+    category:    product.category,
+    price:       Number(product.price),
+    stock:       Number(product.stock),
+    img:         product.img || '',
+    description: product.description || '',
+    is_new:      product.is_new || false,
+    sale_price:  product.sale_price || null,
+    updated_at:  new Date().toISOString()
+  };
+  // Only add extra image fields if they have a value — avoids PGRST204 if columns missing
+  if (product.img2  !== undefined) payload.img2  = product.img2  || '';
+  if (product.img3  !== undefined) payload.img3  = product.img3  || '';
+  if (product.img4  !== undefined) payload.img4  = product.img4  || '';
+  if (product.img5  !== undefined) payload.img5  = product.img5  || '';
+  if (product.cost  !== undefined) payload.cost  = Number(product.cost) || 0;
+  if (product.min_stock !== undefined) payload.min_stock = Number(product.min_stock) || 5;
+
   const res = await fetch(`${SUPABASE_URL}/rest/v1/products?on_conflict=sku`, {
     method: 'POST',
     headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
-    body: JSON.stringify({
-      sku:         product.sku,
-      name:        product.name,
-      category:    product.category,
-      price:       Number(product.price),
-      stock:       Number(product.stock),
-      img:         product.img || '',
-      img2:        product.img2 || '',
-      img3:        product.img3 || '',
-      img4:        product.img4 || '',
-      img5:        product.img5 || '',
-      description: product.description || '',
-      is_new:      product.is_new || false,
-      sale_price:  product.sale_price || null,
-      updated_at:  new Date().toISOString()
-    })
+    body: JSON.stringify(payload)
   });
   if (!res.ok) {
     const err = await res.text();
