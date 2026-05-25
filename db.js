@@ -1,4 +1,4 @@
-// ===========================================================
+// ============================================================
 //  JJ Fabrics — Supabase Database Layer
 //  Shared by pos.html and store.html
 // ============================================================
@@ -35,6 +35,10 @@ async function dbSaveProduct(product) {
       price:       Number(product.price),
       stock:       Number(product.stock),
       img:         product.img || '',
+      img2:        product.img2 || '',
+      img3:        product.img3 || '',
+      img4:        product.img4 || '',
+      img5:        product.img5 || '',
       description: product.description || '',
       is_new:      product.is_new || false,
       sale_price:  product.sale_price || null,
