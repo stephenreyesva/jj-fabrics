@@ -235,11 +235,13 @@ function renderProducts() {
       : fallback;
     const stock = Number(p.stock);
     const lowStock = stock > 0 && stock <= 5;
-    // Build gallery images array (img + img2..img5 if set)
+    // Build gallery images array — always clickable if at least 1 image
     const galleryImgs = [p.img,p.img2,p.img3,p.img4,p.img5].filter(x=>x&&x.trim()).map(x=>`"${x}"`).join(',');
-    const clickAttr = galleryImgs ? `onclick="openGallery([${galleryImgs}],'${p.name.replace(/'/g,"\'")}','${waHref}')"` : '';
+    const hasImg = p.img && p.img.trim();
+    const clickAttr = hasImg ? `onclick="openGallery([${galleryImgs||`"${p.img}"`}],'${p.name.replace(/'/g,"\'")}','${waHref}')"` : '';
     return `<div class="product-card" style="animation-delay:${i*0.06}s">
       ${isNew ? '<div class="pc-badge-new"><span>NEW</span></div>' : ''}
+      ${isSale ? '<div class="pc-badge-sale"><span>SALE</span></div>' : ''}
       <div class="pc-image" ${clickAttr} style="${clickAttr?'cursor:pointer;':''}">${imgHtml}
         ${clickAttr ? '<div class="pc-gallery-hint">🔍 View Photos</div>' : ''}
       </div>
@@ -248,23 +250,17 @@ function renderProducts() {
         <div class="pc-name">${p.name}</div>
         ${p.sku ? `<div class="pc-size" style="font-size:11px;color:var(--gray-400);">SKU: ${p.sku}</div>` : ''}
         ${p.description ? `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px;line-height:1.4;">${p.description}</div>` : ''}
-        <div class="pc-footer" style="align-items:flex-end;">
-          <div>
-            ${isSale
-              ? `<div style="font-size:10px;color:#e8000d;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;">● ON SALE</div>`
-              : `<div class="pc-price">Rs. ${Number(p.price).toLocaleString()}</div>`
-            }
-            ${lowStock ? `<div style="font-size:10px;color:#b45309;font-weight:600;">Only ${stock} left</div>` : ''}
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <div class="pc-footer" style="align-items:flex-end;gap:8px;">
+          <div style="flex:1;">
             ${isSale ? `<div class="pc-sale-tag">
               <div class="pst-label">SALE</div>
               <div class="pst-orig">Rs.${Number(p.price).toLocaleString()}</div>
               <div class="pst-price">Rs.${Number(p.sale_price).toLocaleString()}</div>
               <div class="pst-off">-${discPct}% OFF</div>
-            </div>` : ''}
-            <a class="pc-action" href="${waHref}" target="_blank">Order →</a>
+            </div>` : `<div class="pc-price">Rs. ${Number(p.price).toLocaleString()}</div>`}
+            ${lowStock ? `<div style="font-size:10px;color:#b45309;font-weight:600;margin-top:3px;">Only ${stock} left</div>` : ''}
           </div>
+          <a class="pc-action" href="${waHref}" target="_blank">Order →</a>
         </div>
       </div>
     </div>`;
