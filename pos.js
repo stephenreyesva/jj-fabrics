@@ -248,9 +248,9 @@ function renderProducts() {
     const imgHtml=p.img?`<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;" onerror="this.parentNode.innerHTML='<span style=font-size:32px>${emoji}</span>'">`:`<span style="font-size:32px;">${emoji}</span>`;
     const isSale=p.sale_price&&Number(p.sale_price)>0&&Number(p.sale_price)<Number(p.price);
     const discPct=isSale?Math.round((1-Number(p.sale_price)/Number(p.price))*100):0;
-    const badgeStyle='position:absolute;z-index:3;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;text-transform:uppercase;box-shadow:0 2px 6px rgba(0,0,0,0.25);animation:posNewPop 0.35s cubic-bezier(.34,1.56,.64,1) both;';
-    const newBadge=isNew?`<span style="${badgeStyle}background:#16a34a;color:#fff;top:6px;left:6px;">NEW</span>`:'';
-    const saleBadge=isSale?`<span style="${badgeStyle}background:#e01f1f;color:#fff;top:${isNew?'52px':'6px'};left:6px;">-${discPct}%</span>`:'';
+    const saleBadgeStyle='position:absolute;z-index:3;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;text-transform:uppercase;box-shadow:0 2px 6px rgba(0,0,0,0.25);animation:posNewPop 0.35s cubic-bezier(.34,1.56,.64,1) both;';
+    const newBadge=isNew?`<span style="position:absolute;top:0;left:0;z-index:3;width:100%;height:100%;pointer-events:none;"><span style="position:absolute;top:26px;left:-38px;width:150px;height:24px;background:linear-gradient(180deg,#e00000 0%,#aa0000 100%);transform:rotate(-45deg);box-shadow:0 3px 8px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.15);display:block;"></span></span>`:'';
+    const saleBadge=isSale?`<span style="${saleBadgeStyle}background:#e01f1f;color:#fff;top:6px;left:6px;">-${discPct}%</span>`:'';
     return`<div class="product-card ${isOut?'out-of-stock':''}" data-sku="${p.sku}" style="position:relative;">
       ${newBadge}${saleBadge}
       ${isLow?'<span class="stock-badge low">Low</span>':''}${isOut?'<span class="stock-badge out">Out</span>':''}
