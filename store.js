@@ -1,7 +1,7 @@
 // ============================================================
 //  JJ Fabrics Store — Display Logic
 //  Backend: Supabase (via db.js)
-// =============================================================
+// ============================================================
 
 
 // Priority sort: sale+new first, then new only, then sale only, then rest
