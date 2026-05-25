@@ -215,20 +215,19 @@
   .product-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.1); border-color: var(--accent); }
   .pc-badge-new {
     position: absolute; top: 0; left: 0; z-index: 2;
-    width: 75px; height: 75px;
+    width: 72px; height: 72px;
     overflow: hidden; pointer-events: none;
   }
-  .pc-badge-new::before {
-    content: 'NEW';
+  .pc-badge-new span {
     position: absolute;
-    top: 20px; left: -20px;
-    width: 88px; height: 22px;
+    top: 17px; left: -22px;
+    width: 90px; height: 22px;
     background: linear-gradient(to bottom, #e8000d, #a80009);
     transform: rotate(-45deg);
-    text-align: center; line-height: 22px;
-    font-size: 9px; font-weight: 900; letter-spacing: 1.5px;
+    display: block; text-align: center; line-height: 22px;
+    font-size: 9px; font-weight: 900; letter-spacing: 1px;
     color: #fff; text-transform: uppercase;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.45);
   }
   .pc-badge-sale {
     position: absolute; top: 10px; left: 10px; z-index: 2;
