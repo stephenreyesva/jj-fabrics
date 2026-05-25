@@ -213,42 +213,47 @@
     animation: fadeUp 0.6s ease both;
   }
   .product-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.1); border-color: var(--accent); }
-  /* ── NEW ribbon ── */
+  /* ── NEW ribbon — corner flush ── */
   .pc-badge-new {
-    position: absolute; top: -2px; left: -2px; z-index: 2;
-    width: 80px; height: 80px;
+    position: absolute; top: 0; left: 0; z-index: 2;
+    width: 90px; height: 90px;
     overflow: hidden; pointer-events: none;
+    border-radius: 12px 0 0 0;
   }
   .pc-badge-new span {
-    position: absolute; top: 20px; left: -26px;
-    width: 100px; height: 24px;
+    position: absolute; top: 22px; left: -30px;
+    width: 115px; height: 26px;
     background: linear-gradient(to bottom, #e8000d, #a80009);
     transform: rotate(-45deg);
-    display: block; text-align: center; line-height: 24px;
+    display: block; text-align: center; line-height: 26px;
     font-size: 9px; font-weight: 900; letter-spacing: 1px;
     color: #fff; text-transform: uppercase;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.6);
   }
-  /* ── SALE price tag at bottom of card ── */
+  /* ── SALE price tag — Best Deal style, bottom of card ── */
   .pc-sale-tag {
-    display: flex; flex-direction: column; align-items: flex-end;
-    background: #1a1a1a; border-radius: 6px 0 6px 6px;
-    overflow: hidden; font-size: 10px; min-width: 90px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column; align-items: stretch;
+    background: #1a1a1a; border-radius: 5px;
+    overflow: hidden; min-width: 100px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
     animation: badgePop 0.35s cubic-bezier(.34,1.56,.64,1) both;
   }
-  .pc-sale-tag .pst-orig {
-    background: #1a1a1a; color: #aaa; font-size: 9px; font-weight: 600;
-    text-decoration: line-through; padding: 3px 8px; width: 100%; text-align: right;
+  .pc-sale-tag .pst-label {
+    background: #1a1a1a; color: #ccc; font-size: 8px; font-weight: 700;
+    padding: 3px 8px; text-align: center; text-transform: uppercase; letter-spacing: 1px;
     border-bottom: 1px solid #333;
   }
+  .pc-sale-tag .pst-orig {
+    background: #1a1a1a; color: #888; font-size: 9px; font-weight: 600;
+    text-decoration: line-through; padding: 1px 8px; text-align: center;
+  }
   .pc-sale-tag .pst-price {
-    background: #e8000d; color: #fff; font-size: 14px; font-weight: 900;
-    padding: 2px 8px; width: 100%; text-align: right; line-height: 1.3;
+    background: #e8000d; color: #fff; font-size: 15px; font-weight: 900;
+    padding: 3px 8px 2px; text-align: center; line-height: 1.3; letter-spacing: 0.5px;
   }
   .pc-sale-tag .pst-off {
-    background: #f5c800; color: #000; font-size: 8px; font-weight: 800;
-    padding: 2px 8px; width: 100%; text-align: right; letter-spacing: 0.5px;
+    background: #f5c800; color: #111; font-size: 8px; font-weight: 900;
+    padding: 2px 8px; text-align: center; letter-spacing: 0.5px; text-transform: uppercase;
   }
   /* ── Gallery hint overlay ── */
   .pc-image { position: relative; overflow: hidden; }
