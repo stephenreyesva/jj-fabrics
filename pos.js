@@ -248,8 +248,8 @@ function renderProducts() {
     const imgHtml=p.img?`<img src="${p.img}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:8px;display:block;" onerror="this.parentNode.innerHTML='<span style=font-size:32px>${emoji}</span>'">`:`<span style="font-size:32px;">${emoji}</span>`;
     const isSale=p.sale_price&&Number(p.sale_price)>0&&Number(p.sale_price)<Number(p.price);
     const discPct=isSale?Math.round((1-Number(p.sale_price)/Number(p.price))*100):0;
-    const rWrap='position:absolute;top:0;left:0;z-index:3;width:70px;height:70px;overflow:hidden;pointer-events:none;';
-    const rBar='position:absolute;top:19px;left:-18px;width:82px;height:20px;background:linear-gradient(to bottom,#e8000d,#a80009);transform:rotate(-45deg);display:block;text-align:center;line-height:20px;font-size:8px;font-weight:900;letter-spacing:1.5px;color:#fff;text-transform:uppercase;box-shadow:0 2px 5px rgba(0,0,0,0.4);';
+    const rWrap='position:absolute;top:0;left:0;z-index:3;width:72px;height:72px;overflow:hidden;pointer-events:none;';
+    const rBar='position:absolute;top:17px;left:-22px;width:90px;height:22px;background:linear-gradient(to bottom,#e8000d,#a80009);transform:rotate(-45deg);display:block;text-align:center;line-height:22px;font-size:9px;font-weight:900;letter-spacing:1px;color:#fff;text-transform:uppercase;box-shadow:0 2px 6px rgba(0,0,0,0.45);';
     const sStyle='position:absolute;z-index:3;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;text-transform:uppercase;box-shadow:0 2px 6px rgba(0,0,0,0.25);animation:posNewPop 0.35s cubic-bezier(.34,1.56,.64,1) both;';
     const newBadge=isNew?`<span style="${rWrap}"><span style="${rBar}">NEW</span></span>`:'';
     const saleBadge=isSale?`<span style="${sStyle}background:#e01f1f;color:#fff;top:6px;left:6px;">-${discPct}%</span>`:'';
