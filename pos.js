@@ -249,7 +249,7 @@ function renderProducts() {
     const isSale=p.sale_price&&Number(p.sale_price)>0&&Number(p.sale_price)<Number(p.price);
     const discPct=isSale?Math.round((1-Number(p.sale_price)/Number(p.price))*100):0;
     const newBadge=isNew?`<div style="position:absolute;top:7px;left:7px;z-index:3;background:linear-gradient(135deg,#e8000d,#c20009);color:#fff;font-size:9px;font-weight:900;padding:3px 8px;border-radius:4px;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 2px 8px rgba(232,0,13,0.45);">★ NEW</div>`:'';
-    const saleBadge=isSale?`<div style="position:absolute;top:7px;right:7px;z-index:3;background:linear-gradient(135deg,#f5c800,#d4a800);color:#111;font-size:9px;font-weight:900;padding:3px 8px;border-radius:4px;letter-spacing:1px;text-transform:uppercase;box-shadow:0 2px 8px rgba(0,0,0,0.2);">-${discPct}%</div>`:'';
+    const saleBadge=isSale?`<div style="position:absolute;top:7px;right:7px;z-index:3;background:#16a34a;color:#fff;font-size:9px;font-weight:900;padding:3px 8px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;box-shadow:0 2px 8px rgba(22,163,74,0.4);">-${discPct}%</div>`:'';
     return`<div class="product-card ${isOut?'out-of-stock':''}" data-sku="${p.sku}" style="position:relative;">
       ${newBadge}${saleBadge}
       ${isLow?'<span class="stock-badge low">Low</span>':''}${isOut?'<span class="stock-badge out">Out</span>':''}
