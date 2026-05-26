@@ -261,7 +261,7 @@ function renderProducts() {
             </div>` : `<div class="pc-price">Rs. ${Number(p.price).toLocaleString()}</div>`}
             ${lowStock ? `<div style="font-size:10px;color:#b45309;font-weight:600;margin-top:3px;">Only ${stock} left</div>` : ''}
           </div>
-          <a class="pc-action" href="${waHref}" target="_blank">Order →</a>
+          <a class="pc-action" href="${waHref}" target="_blank">Order</a>
         </div>
       </div>
     </div>`;
