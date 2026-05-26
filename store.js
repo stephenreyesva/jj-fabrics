@@ -252,7 +252,7 @@ function renderProducts() {
         <div class="pc-name">${p.name}</div>
         ${p.sku ? `<div class="pc-size" style="font-size:11px;color:var(--gray-400);">SKU: ${p.sku}</div>` : ''}
         ${p.description ? `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px;line-height:1.4;">${p.description}</div>` : ''}
-        <div class="pc-footer" style="align-items:flex-end;gap:8px;">
+        <div class="pc-footer" style="align-items:flex-end;gap:7px;">
           <div style="flex:1;">
             ${isSale ? `<div class="pc-sale-tag">
               <div class="pst-black"><div class="pst-orig">Rs.${Number(p.price).toLocaleString()}</div></div>
